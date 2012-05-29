@@ -1,4 +1,4 @@
-#Tue May 29 16:29:47 CEST 2012
+#Tue May 29 16:52:50 CEST 2012
 eclipse.preferences.version=1
 encoding//morphjongleur/io/database.py=utf-8
 encoding//morphjongleur/io/swc.py=utf-8
@@ -11,5 +11,5 @@ encoding//morphjongleur/orm/datajongleur/experiment.py=utf-8
 encoding//morphjongleur/orm/datajongleur/morphology.py=utf-8
 encoding//morphjongleur/orm/datajongleur/neuron.py=utf-8
 encoding//morphjongleur/orm/datajongleur/sinusresult.py=utf-8
-encoding//morphjongleur/usecases/morphjokey/amira.py=utf-8
 encoding//morphjongleur/util/auto_string.py=utf-8
+encoding//usecases/morphjokey/amira.py=utf-8
