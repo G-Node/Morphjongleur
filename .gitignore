@@ -1,0 +1,8 @@
+tmp/*
+old/*
+*.pyc
+*.swp
+*.mwb
+*~
+doc/build/*
+*sqlite
