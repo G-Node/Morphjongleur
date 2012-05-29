@@ -7,13 +7,13 @@ import sqlalchemy.dialects.postgresql
 from datajongleur import Base
 from datajongleur.beanbags.models import PREFIX as BB_PREFIX
 from datajongleur.beanbags.models import *
-import mrj.model.experiment
+import morphjongleur.model.experiment
 from datajongleur.beanbags.models import Identity
 from datajongleur.utils.sa import NumpyType
 
 PREFIX = 'mrj_'
 
-class Experiment(mrj.model.experiment.Experiment, Identity):
+class Experiment(morphjongleur.model.experiment.Experiment, Identity):
     __tablename__   = PREFIX + 'experiments'
     experiment_key  = sqlalchemy.Column(
         sqlalchemy.ForeignKey(BB_PREFIX + 'identities.uuid'),
@@ -26,7 +26,7 @@ class Experiment(mrj.model.experiment.Experiment, Identity):
     nseg            = sqlalchemy.Column('nseg', sqlalchemy.Integer)
     description     = sqlalchemy.Column('description', sqlalchemy.String)
 
-class RecordingPoint(mrj.model.experiment.RecordingPoint, Identity):
+class RecordingPoint(morphjongleur.model.experiment.RecordingPoint, Identity):
     __tablename__   = PREFIX + 'recordingpoints'
     recordingpoint_key  = sqlalchemy.Column('recordingpoint_key',
         sqlalchemy.Integer,
@@ -45,7 +45,7 @@ class RecordingPoint(mrj.model.experiment.RecordingPoint, Identity):
         sqlalchemy.Integer)#redundant
     position        = sqlalchemy.Column('position', sqlalchemy.Float)
 
-class VoltageTrace(mrj.model.experiment.VoltageTrace, Identity):
+class VoltageTrace(morphjongleur.model.experiment.VoltageTrace, Identity):
     __tablename__   = PREFIX + 'voltage_traces'
     voltagetrace_key= sqlalchemy.Column('voltagetrace_key',
         sqlalchemy.Integer,
@@ -66,7 +66,7 @@ class VoltageTrace(mrj.model.experiment.VoltageTrace, Identity):
     t_max           = sqlalchemy.Column('t_max', sqlalchemy.Float)
     v_max           = sqlalchemy.Column('v_max', sqlalchemy.Float)
 
-class TauFit(mrj.model.experiment.TauFit, Identity):
+class TauFit(morphjongleur.model.experiment.TauFit, Identity):
     __tablename__   = PREFIX + 'tau_fits'
     tau_fit_key     = sqlalchemy.Column('tau_fit_key',
         sqlalchemy.Integer,

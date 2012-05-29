@@ -7,12 +7,12 @@ from datajongleur import Base
 from datajongleur.beanbags.models import Identity
 from datajongleur.beanbags.models import PREFIX as BB_PREFIX
 from datajongleur.beanbags.models import *
-import mrj.model.clamp
-import mrj.util.auto_string
+import morphjongleur.model.clamp
+import morphjongleur.util.auto_string
 
 PREFIX = 'mrj_'
 
-class VClamp(mrj.model.clamp.VClamp, Identity):
+class VClamp(morphjongleur.model.clamp.VClamp, Identity):
     __tablename__   = PREFIX + 'vclamps'
     vclamp_key      = sqlalchemy.Column(
         sqlalchemy.ForeignKey(BB_PREFIX + 'identities.uuid'),
@@ -28,7 +28,7 @@ class VClamp(mrj.model.clamp.VClamp, Identity):
     position        = sqlalchemy.Column('position', sqlalchemy.Float)
 
 
-class IClamp(mrj.model.clamp.IClamp, Identity):
+class IClamp(morphjongleur.model.clamp.IClamp, Identity):
     __tablename__   = PREFIX + 'iclamps'
     iclamp_key      = sqlalchemy.Column('iclamp_key',
         sqlalchemy.Integer,
@@ -51,7 +51,7 @@ class IClamp(mrj.model.clamp.IClamp, Identity):
     duration        = sqlalchemy.Column('duration', sqlalchemy.Float)
 
 
-class PatternClamp(mrj.model.clamp.PatternClamp, Identity):
+class PatternClamp(morphjongleur.model.clamp.PatternClamp, Identity):
     __tablename__   = PREFIX + 'vpatternclamps'
     patternclamp_key=   sqlalchemy.Column('patternclamp_key',
         sqlalchemy.Integer,
@@ -73,7 +73,7 @@ class PatternClamp(mrj.model.clamp.PatternClamp, Identity):
     duration        = sqlalchemy.Column('duration', sqlalchemy.Float)
 
 
-class Clamp_groups(mrj.util.auto_string.Auto_string, Identity):
+class Clamp_groups(morphjongleur.util.auto_string.Auto_string, Identity):
     __tablename__   = PREFIX + 'iclamps_groups'
     iclamp_group_key= sqlalchemy.Column('iclamp_group_key',
         sqlalchemy.Integer,

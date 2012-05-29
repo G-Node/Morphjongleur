@@ -6,13 +6,13 @@ import sqlalchemy.orm #from sqlalchemy import Table, Column, Integer, String, Me
 from datajongleur import Base
 from datajongleur.beanbags.models import PREFIX as BB_PREFIX
 from datajongleur.beanbags.models import *
-import mrj.model.neuron_passive
+import morphjongleur.model.neuron_passive
 from datajongleur.beanbags.models import Identity
 
 PREFIX = 'mrj_'
 
 class Neuron_passive_parameter(
-    mrj.model.neuron_passive.Neuron_passive_parameter,
+    morphjongleur.model.neuron_passive.Neuron_passive_parameter,
     Identity): 
     __tablename__   = PREFIX + 'neuron_passive_parameters'
     neuron_passive_parameter_key = sqlalchemy.Column(

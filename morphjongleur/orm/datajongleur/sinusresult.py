@@ -3,13 +3,13 @@ import sqlalchemy
 from datajongleur import Base
 from datajongleur.beanbags.models import PREFIX as BB_PREFIX
 from datajongleur.beanbags.models import *
-import mrj.model.sinusresult
-import mrj.util.pattern_generator
+import mitsubachi.model.sinusresult
+import mitsubachi.util.pattern_generator
 from datajongleur.beanbags.models import Identity
 
 PREFIX = 'mrj_'
 
-class SinusResult_old(mrj.model.sinusresult.SinusResult, Identity):
+class SinusResult_old(mitsubachi.model.sinusresult.SinusResult, Identity):
     __tablename__   = PREFIX + 'sinusresult'
     uuid = sa.Column(
         sqlalchemy.ForeignKey(BB_PREFIX + 'identities.uuid'),
@@ -23,7 +23,7 @@ class SinusResult_old(mrj.model.sinusresult.SinusResult, Identity):
     phase_angle     = sqlalchemy.Column('phase_angle', sqlalchemy.Float)
 
 
-class SinusExperiment(mrj.model.sinusresult.SinusExperiment, Identity):
+class SinusExperiment(mitsubachi.model.sinusresult.SinusExperiment, Identity):
     __tablename__   = PREFIX + 'sinusexperiments'
     sinusexperiment_key = sqlalchemy.Column(
         sqlalchemy.ForeignKey(BB_PREFIX + 'identities.uuid'),
@@ -33,7 +33,7 @@ class SinusExperiment(mrj.model.sinusresult.SinusExperiment, Identity):
     frequency = sqlalchemy.Column('frequency', sqlalchemy.Float)
 
 
-class SinusResult(mrj.model.sinusresult.SinusResult, Identity):
+class SinusResult(mitsubachi.model.sinusresult.SinusResult, Identity):
     __tablename__   = PREFIX + 'sinusresults'
     morphology_name = sqlalchemy.Column('morphology_name',
         sqlalchemy.String)#TODO: remove
