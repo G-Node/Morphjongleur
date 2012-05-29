@@ -5,6 +5,7 @@
 '''
 #http://www.sqlalchemy.org/docs/orm/mapper_config.html
 import sqlalchemy.orm
+from sqlalchemy.orm import backref
 from datajongleur import Base
 from datajongleur.beanbags.models import PREFIX as BB_PREFIX
 from datajongleur.beanbags.models import *
@@ -14,13 +15,35 @@ from datajongleur.beanbags.models import Identity
 
 PREFIX = 'mrj_'
 
+morphologies_morphology_groups_maps = sqlalchemy.Table(
+    PREFIX + 'morphologies_morphology_groups_maps',
+    Base.metadata,
+    sqlalchemy.Column('morphology_key',
+        sqlalchemy.ForeignKey(PREFIX + 'morphologies.morphology_key'),
+        primary_key=True),
+    sqlalchemy.Column('morphology_group_key',
+        sqlalchemy.ForeignKey(
+          PREFIX + 'morphology_groups.morphology_group_key'),
+        primary_key=True))
+
+compartments_compartment_groups_maps = sqlalchemy.Table(
+    PREFIX + 'compartments_compartment_groups_maps',
+    Base.metadata,
+    sqlalchemy.Column('compartment_key',
+        sqlalchemy.ForeignKey(PREFIX + 'compartments.compartment_key'),
+        primary_key=True),
+    sqlalchemy.Column('compartment_group_key',
+        sqlalchemy.ForeignKey(
+          PREFIX + 'compartment_groups.compartment_group_key'),
+        primary_key=True))
+
+
 class Compartment(morphjongleur.model.morphology.Compartment, Identity):
     __tablename__ = PREFIX + 'compartments'
     compartment_key = sa.Column(
         sqlalchemy.ForeignKey(BB_PREFIX + 'identities.uuid'),
         primary_key=True)
-    morphology_key  = sqlalchemy.Column('morphology_key',
-        sqlalchemy.Integer,
+    morphology_key = sqlalchemy.Column(
         sqlalchemy.ForeignKey(PREFIX + 'morphologies.morphology_key'))
     compartment_id  = sqlalchemy.Column('compartment_id',
         sqlalchemy.Integer)
@@ -89,21 +112,8 @@ class Compartment_groups(morphjongleur.util.auto_string.Auto_string, Identity):
     type    = sqlalchemy.Column('type', sqlalchemy.String)
     
     _compartment  =   sqlalchemy.orm.relation(Compartment,
-        secondary=PREFIX + 'compartments_compartment_groups_map',
+        secondary=compartments_compartment_groups_maps,
         backref='_groups')
-
-
-class Compartments_compartment_groups_map(Base):         
-    __tablename__ = PREFIX + 'compartments_compartment_groups_maps'
-    compartment_key = sqlalchemy.Column('compartment_key',
-        None,
-        sqlalchemy.ForeignKey(PREFIX + 'compartments.compartment_key'),
-        primary_key=True)
-    compartment_group_key   = sqlalchemy.Column('compartment_group_key',
-        None,
-        sqlalchemy.ForeignKey(
-          PREFIX + 'compartment_groups.compartment_group_key'),
-        primary_key=True)
 
 
 class Morphology(morphjongleur.model.morphology.Morphology, Identity):
@@ -117,9 +127,8 @@ class Morphology(morphjongleur.model.morphology.Morphology, Identity):
     description = sqlalchemy.Column('description', sqlalchemy.String)
     datetime_recording  = sqlalchemy.Column('datetime_recording',
         sqlalchemy.String)
-    compartments    = sqlalchemy.orm.relation(Compartment,
+    compartments = sqlalchemy.orm.relation(Compartment,
         backref='_morphology')
-
 
     def __init__(self, morphology):
         super(Morphology, self).__init__(morphology.name, morphology.file_origin, morphology.description, morphology.datetime_recording, compartments=morphology.compartments)
@@ -196,18 +205,5 @@ class Morphology_groups(morphjongleur.util.auto_string.Auto_string, Identity):
     age         = sqlalchemy.Column('age', sqlalchemy.Float)
 
     _morphology = sqlalchemy.orm.relation(Morphology,
-        secondary=PREFIX + 'morphologies_morphology_groups_map',
+        secondary=morphologies_morphology_groups_maps,
         backref='_groups')
-
-
-class Morphologies_morphology_groups_map(Base):
-    __tablename__ = PREFIX + 'morphologies_morphology_groups_maps'
-    morphology_key          = sqlalchemy.Column('morphology_key',
-        None,
-        sqlalchemy.ForeignKey(PREFIX + 'morphologies.morphology_key'),
-        primary_key=True)
-    morphology_group_key    = sqlalchemy.Column('morphology_group_key',
-        None,
-        sqlalchemy.ForeignKey(
-          PREFIX + 'morphology_groups.morphology_group_key'),
-        primary_key=True)
