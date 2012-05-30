@@ -128,7 +128,8 @@ class Morphology(morphjongleur.model.morphology.Morphology, Identity):
     datetime_recording  = sqlalchemy.Column('datetime_recording',
         sqlalchemy.String)
     compartments = sqlalchemy.orm.relation(Compartment,
-        backref='_morphology')
+        backref='_morphology',
+        primaryjoin='Morphology.morphology_key==Compartment.morphology_key')
 
     def __init__(self, morphology):
         super(Morphology, self).__init__(morphology.name, morphology.file_origin, morphology.description, morphology.datetime_recording, compartments=morphology.compartments)
@@ -191,7 +192,8 @@ class Morphology_info(morphjongleur.util.auto_string.Auto_string, Identity):
     axon                    = sqlalchemy.Column('axon', sqlalchemy.String)
 
     _morphology             = sqlalchemy.orm.relation(Morphology,
-        backref='_info')
+        backref='_info',
+        primaryjoin='Morphology.morphology_key==Morphology_info.morphology_key')
 
 
 class Morphology_groups(morphjongleur.util.auto_string.Auto_string, Identity):
