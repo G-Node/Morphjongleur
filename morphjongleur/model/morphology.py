@@ -559,6 +559,7 @@ class Morphology_info2(morphjongleur.util.auto_string.Auto_string):
    frustum_surface_area = %f, 
  #branches              = %i
     """
+
     import morphjongleur.util.metric_analysis
 
     @property
