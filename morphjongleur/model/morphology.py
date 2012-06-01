@@ -1,8 +1,135 @@
 # -*- coding: utf-8 -*-
 '''
-@author: stransky
+:Author: stransky
 '''
 import morphjongleur.util.auto_string
+
+
+class Compartment(object):
+    '''
+    classdocs
+    @see http://web.mit.edu/neuron_v7.1/doc/help/neuron/neuron/classes/python.html#Section
+    '''
+    def __init__(self, compartment_id, compartment_parent_id, radius=1.0, x=float('nan'),y=float('nan'),z=float('nan'), morphology=None):#, compartment_key=None
+        '''
+        classdocs
+        '''
+        #self.compartment_key   = compartment_key
+        #self.morphology_key    = morphology_key
+        self.compartment_id     = int(compartment_id)
+        self.compartment_parent_id  = int(compartment_parent_id)
+        self.radius  = float(radius)
+        self.x  = float(x)
+        self.y  = float(y)
+        self.z  = float(z)
+        self.parent         = None  #parent automatisch mappen lassen
+        self._morphology    = morphology
+        self._info          = [None]
+        self._groups        = []
+        self.children       = [] #necessary for Morphology._crate_tree()
+        self.synapse        = None
+        
+    @property
+    def info(self):
+        if self._info[0] == None:
+            self._info[0]   = Compartment_info
+        return self._info[0]
+    @info.setter
+    def info(self, value):  raise AttributeError("cannot change calculated information")
+    @info.deleter
+    def info(self):         del self._info
+    #info = property(get_info, set_info, del_info, "I'm the 'dict' property, containing calculated properties.")
+        
+    @property
+    def parent_distance(self):
+        """
+        mapped & property
+        """
+        if not vars(self).has_key('_parent_distance'):
+            import numpy
+            self._parent_distance   =  numpy.sqrt(
+                  ((self.parent.x - self.x) ** 2)
+             +    ((self.parent.y - self.y) ** 2)
+             +    ((self.parent.z - self.z) ** 2)
+             )
+        return self._parent_distance
+    @parent_distance.setter
+    def parent_distance(self, value):  raise AttributeError("cannot change calculated information")
+    @parent_distance.deleter
+    def parent_distance(self):         del self._parent_distance
+    #parent_distance= property(get_info, set_info, del_info, "I'm the 'dict' property, containing calculated properties.")
+
+    def path_distance(self, compartment):
+        a = self.lca(compartment);
+        left    = self
+        right   = compartment
+        dist = 0;
+        while(left  != a):
+            dist    +=left.parent_distance
+            left    = left.parent
+        while(right != a):
+            dist    +=right.parent_distance
+            right   = right.parent
+        return dist;
+
+    def lca(self, compartment):
+        left    = self
+        right   = compartment
+        leftp = {};
+        rightp = {};
+        while True:
+            if(left.compartment_parent_id > 0):
+                left=left.parent
+                leftp[left.compartment_id] = True
+                if(rightp.get(left.compartment_id) != None):
+                    return left;
+            if(right.compartment_parent_id > 0):
+                right=right.parent
+                rightp[right.compartment_id] = True;
+                if(leftp.get(right.compartment_id) != None):
+                    return right;
+
+    def neuron_create(self, parent, parent_location=1, self_location=0 ):
+        '''
+        @see http://web.mit.edu/neuron_v7.1/doc/help/neuron/neuron/geometry.html
+        '''
+        import neuron
+        import numpy
+        self.neuron_h_Section = neuron.h.Section()
+        #??? must be defined BEOFRE to many connections !!!
+        if self.length == 0:
+            self.length = numpy.finfo(self.length).tiny
+            import sys
+            print >> sys.stderr, "distance from %s to its parent %s = 0" %(self.__repr__(), self.parent.__repr__())#oder neu einhängen
+        self.neuron_h_Section.L     = self.length
+        self.neuron_h_Section.diam  = 2 * self.radius
+#        self.neuron_h_Section.Ra    = 
+#        self.neuron_h_Section.ri    =
+#TODO:        if not ( numpy.isnan(self.x) and numpy.isnan(self.y) and numpy.isnan(self.z) ) :
+#            self.neuron_h_Section.x3d = self.x
+#            self.neuron_h_Section.y3d = self.y
+#            self.neuron_h_Section.z3d = self.z
+        self.neuron_h_Section.connect( parent.neuron_h_Section, parent_location, self_location) #connect c 0 with parent(1)
+
+    def __repr__(self):
+        return "Compartment(%i, %i, %f, %f,%f,%f)" % (
+            self.compartment_id, self.compartment_parent_id, self.radius, self.x, self.y, self.z)
+    def __str__(self):
+        return """<Compartment(
+ compartment_key        = '%s' 
+ compartment_id         = %i
+ compartment_parent_id  = %i
+ radius                 = %f
+%s groups = [
+%s          ]
+)>""" % (
+            str(self.compartment_key if vars(self).has_key('compartment_key') else ''), 
+            int(self.compartment_id), 
+            int(self.compartment_parent_id), 
+            float(self.radius),
+            str( self.info if self.info != None else ''),
+            "           ,\n".join(map(str, self._groups)),
+            )
 
 class Morphology(object):
     '''
@@ -11,6 +138,8 @@ class Morphology(object):
     To check the morphology with NEURON gui:
     >>> from neuron import gui
     '''
+
+    _type_compartment   = Compartment
 
     def __init__(self, name, file_origin, description, datetime_recording, compartments=None):
         print compartments
@@ -407,132 +536,6 @@ class Star(Morphology):
 
 
 
-class Compartment(object):
-    '''
-    classdocs
-    @see http://web.mit.edu/neuron_v7.1/doc/help/neuron/neuron/classes/python.html#Section
-    '''
-    def __init__(self, compartment_id, compartment_parent_id, radius=1.0, x=float('nan'),y=float('nan'),z=float('nan'), morphology=None):#, compartment_key=None
-        '''
-        classdocs
-        '''
-        #self.compartment_key   = compartment_key
-        #self.morphology_key    = morphology_key
-        self.compartment_id     = int(compartment_id)
-        self.compartment_parent_id  = int(compartment_parent_id)
-        self.radius  = float(radius)
-        self.x  = float(x)
-        self.y  = float(y)
-        self.z  = float(z)
-        self.parent         = None  #parent automatisch mappen lassen
-        self._morphology    = morphology
-        self._info          = [None]
-        self._groups        = []
-        self.children       = [] #necessary for Morphology._crate_tree()
-        self.synapse        = None
-        
-    @property
-    def info(self):
-        if self._info[0] == None:
-            self._info[0]   = Compartment_info
-        return self._info[0]
-    @info.setter
-    def info(self, value):  raise AttributeError("cannot change calculated information")
-    @info.deleter
-    def info(self):         del self._info
-    #info = property(get_info, set_info, del_info, "I'm the 'dict' property, containing calculated properties.")
-        
-    @property
-    def parent_distance(self):
-        """
-        mapped & property
-        """
-        if not vars(self).has_key('_parent_distance'):
-            import numpy
-            self._parent_distance   =  numpy.sqrt(
-                  ((self.parent.x - self.x) ** 2)
-             +    ((self.parent.y - self.y) ** 2)
-             +    ((self.parent.z - self.z) ** 2)
-             )
-        return self._parent_distance
-    @parent_distance.setter
-    def parent_distance(self, value):  raise AttributeError("cannot change calculated information")
-    @parent_distance.deleter
-    def parent_distance(self):         del self._parent_distance
-    #parent_distance= property(get_info, set_info, del_info, "I'm the 'dict' property, containing calculated properties.")
-
-    def path_distance(self, compartment):
-        a = self.lca(compartment);
-        left    = self
-        right   = compartment
-        dist = 0;
-        while(left  != a):
-            dist    +=left.parent_distance
-            left    = left.parent
-        while(right != a):
-            dist    +=right.parent_distance
-            right   = right.parent
-        return dist;
-
-    def lca(self, compartment):
-        left    = self
-        right   = compartment
-        leftp = {};
-        rightp = {};
-        while True:
-            if(left.compartment_parent_id > 0):
-                left=left.parent
-                leftp[left.compartment_id] = True
-                if(rightp.get(left.compartment_id) != None):
-                    return left;
-            if(right.compartment_parent_id > 0):
-                right=right.parent
-                rightp[right.compartment_id] = True;
-                if(leftp.get(right.compartment_id) != None):
-                    return right;
-
-    def neuron_create(self, parent, parent_location=1, self_location=0 ):
-        '''
-        @see http://web.mit.edu/neuron_v7.1/doc/help/neuron/neuron/geometry.html
-        '''
-        import neuron
-        import numpy
-        self.neuron_h_Section = neuron.h.Section()
-        #??? must be defined BEOFRE to many connections !!!
-        if self.length == 0:
-            self.length = numpy.finfo(self.length).tiny
-            import sys
-            print >> sys.stderr, "distance from %s to its parent %s = 0" %(self.__repr__(), self.parent.__repr__())#oder neu einhängen
-        self.neuron_h_Section.L     = self.length
-        self.neuron_h_Section.diam  = 2 * self.radius
-#        self.neuron_h_Section.Ra    = 
-#        self.neuron_h_Section.ri    =
-#TODO:        if not ( numpy.isnan(self.x) and numpy.isnan(self.y) and numpy.isnan(self.z) ) :
-#            self.neuron_h_Section.x3d = self.x
-#            self.neuron_h_Section.y3d = self.y
-#            self.neuron_h_Section.z3d = self.z
-        self.neuron_h_Section.connect( parent.neuron_h_Section, parent_location, self_location) #connect c 0 with parent(1)
-
-    def __repr__(self):
-        return "Compartment(%i, %i, %f, %f,%f,%f)" % (
-            self.compartment_id, self.compartment_parent_id, self.radius, self.x, self.y, self.z)
-    def __str__(self):
-        return """<Compartment(
- compartment_key        = '%s' 
- compartment_id         = %i
- compartment_parent_id  = %i
- radius                 = %f
-%s groups = [
-%s          ]
-)>""" % (
-            str(self.compartment_key if vars(self).has_key('compartment_key') else ''), 
-            int(self.compartment_id), 
-            int(self.compartment_parent_id), 
-            float(self.radius),
-            str( self.info if self.info != None else ''),
-            "           ,\n".join(map(str, self._groups)),
-            )
-
 
 
 class Morphology_groups(morphjongleur.util.auto_string.Auto_string):
@@ -545,6 +548,7 @@ class Morphology_info(morphjongleur.util.auto_string.Auto_string):
     pass
 class Morphology_info2(morphjongleur.util.auto_string.Auto_string):
     """
+    TODO: glossary
     path_length         = %f, 
  surface_length         = %f, 
  cylindric_volume       = %f, 
@@ -555,11 +559,12 @@ class Morphology_info2(morphjongleur.util.auto_string.Auto_string):
    frustum_surface_area = %f, 
  #branches              = %i
     """
+    import util.metric_analysis
 
     @property
     def path_length(self):
         if not vars(self).has_key('_path_length') or self._path_length == None:
-            self._path_length   = float('nan')
+            self._path_length   =  util.metric_analysis.path_length(self.morphology)
         return self._path_length
     @path_length.setter
     def path_length(self, value):raise AttributeError("cannot change calculated information")
@@ -645,6 +650,12 @@ class Morphology_info2(morphjongleur.util.auto_string.Auto_string):
     def branches(self, value):raise AttributeError("cannot change calculated information")
     @branches.deleter
     def branches(self):       del self._branches
+    
+    
+    #TODO: name
+    #mean abstand
+    #pca
+    #konvexen polyeder zur not emal in mathesoftware
 
 
 class Compartment_info(morphjongleur.util.auto_string.Auto_string):

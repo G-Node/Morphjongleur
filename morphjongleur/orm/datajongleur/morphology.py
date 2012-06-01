@@ -117,6 +117,8 @@ class Compartment_groups(morphjongleur.util.auto_string.Auto_string, Identity):
 
 
 class Morphology(morphjongleur.model.morphology.Morphology, Identity):
+    _type_compartment   = Compartment
+
     __tablename__ = PREFIX + 'morphologies'
     morphology_key = sa.Column(
         sqlalchemy.ForeignKey(BB_PREFIX + 'identities.uuid'),
@@ -130,14 +132,6 @@ class Morphology(morphjongleur.model.morphology.Morphology, Identity):
     compartments = sqlalchemy.orm.relation(Compartment,
         backref='_morphology',
         primaryjoin='Morphology.morphology_key==Compartment.morphology_key')
-
-    def __init__(self, morphology):
-        super(Morphology, self).__init__(morphology.name, morphology.file_origin, morphology.description, morphology.datetime_recording, compartments=morphology.compartments)
-
-    @staticmethod
-    def specify(morphology):
-        return Morphology(morphology)
-
 
 class Morphology_info(morphjongleur.util.auto_string.Auto_string, Identity):
     """

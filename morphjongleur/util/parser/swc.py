@@ -4,9 +4,9 @@
 '''
 import morphjongleur.model.morphology
 
-@staticmethod
-def swc_parse_stream(stream, name='', file_origin='', description='', time=None ):
-    m = morphjongleur.model.morphology.Morphology(
+@classmethod
+def swc_parse_stream(cls, stream, name='', file_origin='', description='', time=None ):
+    m = cls(
       name                  = name,
       file_origin           = file_origin,
       description           = '',
@@ -19,7 +19,7 @@ def swc_parse_stream(stream, name='', file_origin='', description='', time=None 
             continue
         if row[0].isdigit():
             (compartment_id, type, x,y,z, radius, compartment_parent_id)  = row #TODO > 7 spalten -> error
-            c = morphjongleur.model.morphology.Compartment(compartment_id, compartment_parent_id, radius, x,y,z)
+            c = cls._type_compartment(compartment_id, compartment_parent_id, radius, x,y,z)
             m.add_compartment(c)
         else:
             m.description  += ''.join(row)+'\n'
@@ -27,24 +27,24 @@ def swc_parse_stream(stream, name='', file_origin='', description='', time=None 
 
     return m
 
-@staticmethod
-def swc_parse(file_name):
+@classmethod
+def swc_parse(cls, file_name):
     import csv
     import os
     import datetime
     reader = csv.reader(open(file_name, 'r'), delimiter=' ', quotechar='"')#csv.Dialect.skipinitialspace
-    return morphjongleur.model.morphology.Morphology.swc_parse_stream(
+    return cls.swc_parse_stream(
             reader, 
             name            = os.path.splitext( os.path.basename(file_name) )[0], 
             file_origin     = file_name, 
             time            = datetime.datetime.fromtimestamp( os.stat(file_name).st_mtime ).isoformat(' ')
         )
 
-@staticmethod
-def swcs_parse(file_names):
+@classmethod
+def swcs_parse(cls, file_names):
     morphologies    = []
     for file_name in file_names:
-        morphologies.append( morphjongleur.model.morphology.Morphology.swc_parse(file_name) )
+        morphologies.append( cls.swc_parse(file_name) )
     return morphologies
         
 
