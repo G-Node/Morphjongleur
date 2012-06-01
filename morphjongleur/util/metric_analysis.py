@@ -24,7 +24,7 @@ def surface_length_frustum():
 def volume_cylindric():
     return float('nan')
 
-def frustum_volume():
+def volume_frustum():
     return float('nan')
 
 def cylindric_lateral_area():

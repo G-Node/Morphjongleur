@@ -583,24 +583,24 @@ class Morphology_info2(morphjongleur.util.auto_string.Auto_string):
     def surface_length_frustum(self):       del self._surface_length
 
     @property
-    def cylindric_volume(self):
+    def volume_cylindric(self):
         if not vars(self).has_key('_cylindric_volume') or self._cylindric_volume == None:
-            self._cylindric_volume   = morphjongleur.util.metric_analysis.cylindric_volume(self.morphology)
+            self._cylindric_volume   = morphjongleur.util.metric_analysis.volume_cylindric(self.morphology)
         return self._cylindric_volume
-    @cylindric_volume.setter
-    def cylindric_volume(self, value):raise AttributeError("cannot change calculated information")
-    @cylindric_volume.deleter
-    def cylindric_volume(self):       del self._cylindric_volume
+    @volume_cylindric.setter
+    def volume_cylindric(self, value):raise AttributeError("cannot change calculated information")
+    @volume_cylindric.deleter
+    def volume_cylindric(self):       del self._cylindric_volume
 
     @property
-    def frustum_volume(self):
+    def volume_frustum(self):
         if not vars(self).has_key('_frustum_volume') or self._frustum_volume == None:
-            self._frustum_volume   = morphjongleur.util.metric_analysis.frustum_volume(self.morphology)
+            self._frustum_volume   = morphjongleur.util.metric_analysis.volume_frustum(self.morphology)
         return self._frustum_volume
-    @frustum_volume.setter
-    def frustum_volume(self, value):raise AttributeError("cannot change calculated information")
-    @frustum_volume.deleter
-    def frustum_volume(self):       del self._frustum_volume
+    @volume_frustum.setter
+    def volume_frustum(self, value):raise AttributeError("cannot change calculated information")
+    @volume_frustum.deleter
+    def volume_frustum(self):       del self._frustum_volume
 
     @property
     def cylindric_lateral_area(self):
