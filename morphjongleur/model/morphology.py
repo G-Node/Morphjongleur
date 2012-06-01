@@ -559,12 +559,12 @@ class Morphology_info2(morphjongleur.util.auto_string.Auto_string):
    frustum_surface_area = %f, 
  #branches              = %i
     """
-    import util.metric_analysis
+    import morphjongleur.util.metric_analysis
 
     @property
     def path_length(self):
         if not vars(self).has_key('_path_length') or self._path_length == None:
-            self._path_length   =  util.metric_analysis.path_length(self.morphology)
+            self._path_length   =  morphjongleur.util.metric_analysis.path_length(self.morphology)
         return self._path_length
     @path_length.setter
     def path_length(self, value):raise AttributeError("cannot change calculated information")
@@ -572,19 +572,19 @@ class Morphology_info2(morphjongleur.util.auto_string.Auto_string):
     def path_length(self):       del self._path_length
 
     @property
-    def surface_length(self):
+    def surface_length_frustum(self):
         if not vars(self).has_key('_surface_length') or self._surface_length == None:
-            self._surface_length   = float('nan')
+            self._surface_length   = morphjongleur.util.metric_analysis.surface_length_frustum(self.morphology)
         return self._surface_length
-    @surface_length.setter
-    def surface_length(self, value):raise AttributeError("cannot change calculated information")
-    @surface_length.deleter
-    def surface_length(self):       del self._surface_length
+    @surface_length_frustum.setter
+    def surface_length_frustum(self, value):raise AttributeError("cannot change calculated information")
+    @surface_length_frustum.deleter
+    def surface_length_frustum(self):       del self._surface_length
 
     @property
     def cylindric_volume(self):
         if not vars(self).has_key('_cylindric_volume') or self._cylindric_volume == None:
-            self._cylindric_volume   = float('nan')
+            self._cylindric_volume   = morphjongleur.util.metric_analysis.cylindric_volume(self.morphology)
         return self._cylindric_volume
     @cylindric_volume.setter
     def cylindric_volume(self, value):raise AttributeError("cannot change calculated information")
@@ -594,7 +594,7 @@ class Morphology_info2(morphjongleur.util.auto_string.Auto_string):
     @property
     def frustum_volume(self):
         if not vars(self).has_key('_frustum_volume') or self._frustum_volume == None:
-            self._frustum_volume   = float('nan')
+            self._frustum_volume   = morphjongleur.util.metric_analysis.frustum_volume(self.morphology)
         return self._frustum_volume
     @frustum_volume.setter
     def frustum_volume(self, value):raise AttributeError("cannot change calculated information")
@@ -604,7 +604,7 @@ class Morphology_info2(morphjongleur.util.auto_string.Auto_string):
     @property
     def cylindric_lateral_area(self):
         if not vars(self).has_key('_cylindric_lateral_area') or self._cylindric_lateral_area == None:
-            self._cylindric_lateral_area   = float('nan')
+            self._cylindric_lateral_area   = morphjongleur.util.metric_analysis.cylindric_lateral_area(self.morphology)
         return self._cylindric_lateral_area
     @cylindric_lateral_area.setter
     def cylindric_lateral_area(self, value):raise AttributeError("cannot change calculated information")
@@ -614,7 +614,7 @@ class Morphology_info2(morphjongleur.util.auto_string.Auto_string):
     @property
     def frustum_lateral_area(self):
         if not vars(self).has_key('_frustum_lateral_area') or self._frustum_lateral_area == None:
-            self._frustum_lateral_area   = float('nan')
+            self._frustum_lateral_area   = morphjongleur.util.metric_analysis.frustum_lateral_area(self.morphology)
         return self._frustum_lateral_area
     @frustum_lateral_area.setter
     def frustum_lateral_area(self, value):raise AttributeError("cannot change calculated information")
@@ -624,7 +624,7 @@ class Morphology_info2(morphjongleur.util.auto_string.Auto_string):
     @property
     def cylindric_surface_area(self):
         if not vars(self).has_key('_cylindric_surface_area') or self._cylindric_surface_area == None:
-            self._cylindric_surface_area   = float('nan')
+            self._cylindric_surface_area   = morphjongleur.util.metric_analysis.cylindric_surface_area(self.morphology)
         return self._cylindric_surface_area
     @cylindric_surface_area.setter
     def cylindric_surface_area(self, value):raise AttributeError("cannot change calculated information")
@@ -634,7 +634,7 @@ class Morphology_info2(morphjongleur.util.auto_string.Auto_string):
     @property
     def frustum_surface_area(self):
         if not vars(self).has_key('_frustum_surface_area') or self._frustum_surface_area == None:
-            self._frustum_surface_area   = float('nan')
+            self._frustum_surface_area   = morphjongleur.util.metric_analysis.frustum_surface_area(self.morphology)
         return self._frustum_surface_area
     @frustum_surface_area.setter
     def frustum_surface_area(self, value):raise AttributeError("cannot change calculated information")
@@ -644,7 +644,7 @@ class Morphology_info2(morphjongleur.util.auto_string.Auto_string):
     @property
     def branches(self):
         if not vars(self).has_key('_branches') or self._branches == None:
-            self._branches   = float('nan')
+            self._branches   = morphjongleur.util.metric_analysis.branching_points(self.morphology)
         return self._branches
     @branches.setter
     def branches(self, value):raise AttributeError("cannot change calculated information")
@@ -656,6 +656,8 @@ class Morphology_info2(morphjongleur.util.auto_string.Auto_string):
     #mean abstand
     #pca
     #konvexen polyeder zur not emal in mathesoftware
+    
+    
 
 
 class Compartment_info(morphjongleur.util.auto_string.Auto_string):
