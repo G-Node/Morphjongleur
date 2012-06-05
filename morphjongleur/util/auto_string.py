@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 '''
 @author: stransky
+TODO: as decorator, hidden, list of types
+
 '''
 class Auto_string(object):
     def _return_dict(self):

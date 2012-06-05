@@ -2,20 +2,13 @@
 '''
 @author: stransky
 '''
+import datajongleur
+from morphjongleur.orm.datajongleur.morphology import *
 
 def insert():
+    root_dir = '/home/stransky/git/mitsubachi/data/'
     import morphjongleur.util.parser.swc
-    import morphjongleur.model.morphology
-    import morphjongleur.orm.morphology
-    db = Database(
-                db_name='postgresql://hal08.g-node.pri/morphjongleur',
-                exec_role='morphjokey_admin',#TODO: select does not find table!
-                exec_path='mitsubachi'
-            )
-    # must be mapped before Object is created
-    mapping = morphjongleur.orm.morphology.Mapper( db )
-    mapping.orm_map()
-    
+
     morphologies    = []
     keys            = []
     for swc in [
@@ -38,17 +31,19 @@ def insert():
 'amira/SkeletonTree_RIM_20120330_1-2-3.swc',
 'amira/SkeletonTree_RIM_20120403_1-4.swc',
 'amira/SkeletonTree_RIM_20120405_2-3.swc',
+'amira/SkeletonTree_RIM_20120405_6-7.swc',
 'amira/SkeletonTree_RIM_20120425_3-4.swc',
 'amira/SkeletonTree_RIM_20120503_1-2.swc',
-'amira/SkeletonTree_RIM_20120503_3-4.swc'
+'amira/SkeletonTree_RIM_20120503_3-4.swc',
 ]:
         try: 
             print swc
-            morphology   = morphjongleur.model.morphology.Morphology.swc_parse(swc)
-            db.store(morphology)
+            morphology   = Morphology.swc_parse(root_dir+swc)
+            #TODO: print morphology
+            morphology.save()
             print morphology.morphology_key
             keys.append(morphology.morphology_key)
-            morphology   = mapping.load_morphology( morphology.morphology_key )
+            morphology.load( morphology.morphology_key )
             morphologies.append(morphology)
             morphology.plot_endpoints_histogramm(picture_file='/tmp/amira_endpoints_'+str(morphology.name), picture_formats=['png'])#
         except Exception, e:
@@ -78,5 +73,5 @@ def results():
     morphology.plot_all_properties(morphologies=morphologies, picture_file='/tmp/amira_', picture_formats=['png'])
 
 if __name__ == '__main__':
-    #insert()
-    results()
+    insert()
+    #results()
