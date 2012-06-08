@@ -73,5 +73,5 @@ def results():
     morphology.plot_all_properties(morphologies=morphologies, picture_file='/tmp/amira_', picture_formats=['png'])
 
 if __name__ == '__main__':
-    insert()
-    #results()
+    #insert()
+    results()

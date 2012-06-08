@@ -28,7 +28,7 @@ class Compartment(object):
         self._groups        = []
         self.children       = [] #necessary for Morphology._crate_tree()
         self.synapse        = None
-        
+
     @property
     def info(self):
         if self._info[0] == None:
@@ -39,7 +39,7 @@ class Compartment(object):
     @info.deleter
     def info(self):         del self._info
     #info = property(get_info, set_info, del_info, "I'm the 'dict' property, containing calculated properties.")
-        
+
     @property
     def parent_distance(self):
         """
@@ -538,17 +538,22 @@ class Star(Morphology):
 
 
 
-
-class Morphology_groups(morphjongleur.util.auto_string.Auto_string):
+@morphjongleur.util.auto_string.auto_string
+class Morphology_groups(object):
     pass
 
-class Compartment_groups(morphjongleur.util.auto_string.Auto_string):
+@morphjongleur.util.auto_string.auto_string
+class Compartment_groups(object):
     pass
 
-class Morphology_info(morphjongleur.util.auto_string.Auto_string):
+@morphjongleur.util.auto_string.auto_string
+class Morphology_info(object):
     pass
-class Morphology_info2(morphjongleur.util.auto_string.Auto_string):
+
+@morphjongleur.util.auto_string.auto_string
+class Morphology_info2(object):
     """
+    http://openbook.galileocomputing.de/python/python_kapitel_13_009.htm
     TODO: glossary
     path_length         = %f, 
  surface_length         = %f, 
@@ -652,19 +657,14 @@ class Morphology_info2(morphjongleur.util.auto_string.Auto_string):
     def branches(self, value):raise AttributeError("cannot change calculated information")
     @branches.deleter
     def branches(self):       del self._branches
-    
-    
-    #TODO: name
-    #mean abstand
-    #pca
-    #konvexen polyeder zur not emal in mathesoftware
-    
-    
 
 
-class Compartment_info(morphjongleur.util.auto_string.Auto_string):
+@morphjongleur.util.auto_string.auto_string
+class Compartment_info(object):
     pass
-class Compartment_info2(morphjongleur.util.auto_string.Auto_string):
+
+@morphjongleur.util.auto_string.auto_string
+class Compartment_info2(object):
     """
  parent_radius          = %f,
  length                 = %f,
