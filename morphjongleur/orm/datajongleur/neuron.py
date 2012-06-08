@@ -11,12 +11,13 @@ from datajongleur.beanbags.models import Identity
 
 PREFIX = 'mrj_'
 
-class Neuron_passive_parameter(
+class NeuronPassiveParameter(
     morphjongleur.model.neuron_passive.Neuron_passive_parameter,
     Identity): 
     __tablename__   = PREFIX + 'neuron_passive_parameters'
-    neuron_passive_parameter_key = sqlalchemy.Column(
-        sqlalchemy.ForeignKey(BB_PREFIX + 'identities.uuid'),
+    __mapper_args__ = {'polymorphic_identity': 'NeuronPassiveParameter'}
+    uuid = sqlalchemy.Column(
+        sqlalchemy.ForeignKey(Identity.uuid),
         primary_key=True)
     Ra              = sqlalchemy.Column('Ra', sqlalchemy.Float)
     g               = sqlalchemy.Column('g', sqlalchemy.Float)

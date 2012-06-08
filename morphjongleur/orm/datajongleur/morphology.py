@@ -4,48 +4,46 @@
 @see neo.models
 '''
 #http://www.sqlalchemy.org/docs/orm/mapper_config.html
+import sqlalchemy as sa
 import sqlalchemy.orm
 from sqlalchemy.orm import backref
 from datajongleur import Base
-from datajongleur.beanbags.models import PREFIX as BB_PREFIX
-from datajongleur.beanbags.models import *
-import morphjongleur.model.morphology
-import morphjongleur.util.auto_string
 from datajongleur.beanbags.models import Identity
+import morphjongleur.model.morphology
 
 PREFIX = 'mrj_'
 
 morphologies_morphology_groups_maps = sqlalchemy.Table(
     PREFIX + 'morphologies_morphology_groups_maps',
     Base.metadata,
-    sqlalchemy.Column('morphology_key',
-        sqlalchemy.ForeignKey(PREFIX + 'morphologies.morphology_key'),
+    sqlalchemy.Column('morphology_uuid',
+        sqlalchemy.ForeignKey(PREFIX + 'morphologies.uuid'),
         primary_key=True),
-    sqlalchemy.Column('morphology_group_key',
+    sqlalchemy.Column('morphology_group_uuid',
         sqlalchemy.ForeignKey(
-          PREFIX + 'morphology_groups.morphology_group_key'),
+          PREFIX + 'morphology_groups.uuid'),
         primary_key=True))
 
 compartments_compartment_groups_maps = sqlalchemy.Table(
     PREFIX + 'compartments_compartment_groups_maps',
     Base.metadata,
-    sqlalchemy.Column('compartment_key',
-        sqlalchemy.ForeignKey(PREFIX + 'compartments.compartment_key'),
+    sqlalchemy.Column('compartment_uuid',
+        sqlalchemy.ForeignKey(PREFIX + 'compartments.uuid'),
         primary_key=True),
-    sqlalchemy.Column('compartment_group_key',
+    sqlalchemy.Column('compartment_group_uuid',
         sqlalchemy.ForeignKey(
-          PREFIX + 'compartment_groups.compartment_group_key'),
+          PREFIX + 'compartment_groups.uuid'),
         primary_key=True))
 
 
 class Compartment(morphjongleur.model.morphology.Compartment, Identity):
     __tablename__ = PREFIX + 'compartments'
     __mapper_args__ = {'polymorphic_identity': 'Compartment'}
-    compartment_key = sa.Column(
-        sqlalchemy.ForeignKey(BB_PREFIX + 'identities.uuid'),
+    uuid = sa.Column(
+        sqlalchemy.ForeignKey(Identity.uuid),
         primary_key=True)
-    morphology_key = sqlalchemy.Column(
-        sqlalchemy.ForeignKey(PREFIX + 'morphologies.morphology_key'))
+    morphology_uuid = sqlalchemy.Column(
+        sqlalchemy.ForeignKey(PREFIX + 'morphologies.uuid'))
     compartment_id  = sqlalchemy.Column('compartment_id',
         sqlalchemy.Integer)
     compartment_parent_id   = sqlalchemy.Column('compartment_parent_id',
@@ -55,7 +53,19 @@ class Compartment(morphjongleur.model.morphology.Compartment, Identity):
     y   = sqlalchemy.Column('y', sqlalchemy.Float)
     z   = sqlalchemy.Column('z', sqlalchemy.Float)
 
-class Compartment_info(morphjongleur.util.auto_string.Auto_string, Identity):
+
+class CompartmentInfo(Identity):
+    __tablename__   = PREFIX + 'compartment_infos'
+    uuid = sa.Column(
+        sqlalchemy.ForeignKey(Identity.uuid),
+        primary_key=True)
+    compartment_uuid = sa.Column(
+        sqlalchemy.ForeignKey(PREFIX + 'compartments.uuid'))
+    __mapper_args__ = {
+            'polymorphic_identity': 'CompartmentInfo'}
+   
+
+class CompartmentInfoView(CompartmentInfo):
     """
  parent_radius          = %f,
  length                 = %f,
@@ -67,16 +77,11 @@ class Compartment_info(morphjongleur.util.auto_string.Auto_string, Identity):
  #children              = %i
     """
     __tablename__ = PREFIX + 'v_compartments'
-    __mapper_args__ = {'polymorphic_identity': 'Compartment_info'}
-    compartment_key = sa.Column(
-        sqlalchemy.ForeignKey(BB_PREFIX + 'identities.uuid'),
-        sqlalchemy.ForeignKey(PREFIX + 'compartments.compartment_key'),
+    __mapper_args__ = {'polymorphic_identity': 'CompartmentInfoView'}
+    uuid = sa.Column(
+        sqlalchemy.ForeignKey(PREFIX + 'compartment_infos.uuid'),
         primary_key=True
     )
-    morphology_key  = sqlalchemy.Column('morphology_key',
-        sqlalchemy.Integer,
-        sqlalchemy.ForeignKey(
-          PREFIX + 'v_morphologies_metric_surface_area.morphology_key'))
     compartment_id  = sqlalchemy.Column('compartment_id',
         sqlalchemy.Integer)
     compartment_parent_id   = sqlalchemy.Column('compartment_parent_id',
@@ -101,13 +106,11 @@ class Compartment_info(morphjongleur.util.auto_string.Auto_string, Identity):
     children        = sqlalchemy.Column('children', sqlalchemy.Integer)
 
 
-class Compartment_groups(morphjongleur.util.auto_string.Auto_string, Identity):
+class CompartmentGroups(Identity):
     __tablename__ = PREFIX + 'compartment_groups'
-    __mapper_args__ = {'polymorphic_identity': 'Compartment_groups'}
-    compartment_group_key = sa.Column(
-        #'compartment_group_key',
-        sqlalchemy.ForeignKey(BB_PREFIX + 'identities.uuid'),
-        #sqlalchemy.Integer, 
+    __mapper_args__ = {'polymorphic_identity': 'CompartmentGroups'}
+    uuid = sa.Column(
+        sqlalchemy.ForeignKey(Identity.uuid),
         primary_key=True
     )
     name    = sqlalchemy.Column('name', sqlalchemy.String)
@@ -122,9 +125,13 @@ class Compartment_groups(morphjongleur.util.auto_string.Auto_string, Identity):
 class Morphology(morphjongleur.model.morphology.Morphology, Identity):
     _type_compartment   = Compartment
     __tablename__ = PREFIX + 'morphologies'
-    __mapper_args__ = {'polymorphic_identity': 'Morphology'}
-    morphology_key = sa.Column(
-        sqlalchemy.ForeignKey(BB_PREFIX + 'identities.uuid'),
+    __mapper_args__ = {
+            'polymorphic_identity': 'Morphology',
+            #'inherit_condition': uuid==Identity.uuid,
+            #'primaryjoin': uuid==Identity.uuid,
+            }
+    uuid = sa.Column(
+        sqlalchemy.ForeignKey(Identity.uuid),
         primary_key=True
     )
     name        = sqlalchemy.Column('name', sqlalchemy.String)
@@ -133,10 +140,29 @@ class Morphology(morphjongleur.model.morphology.Morphology, Identity):
     datetime_recording  = sqlalchemy.Column('datetime_recording',
         sqlalchemy.String)
     compartments = sqlalchemy.orm.relation(Compartment,
-        backref='_morphology',
-        primaryjoin='Morphology.morphology_key==Compartment.morphology_key')
+        backref='morphology',
+        primaryjoin='Morphology.uuid==Compartment.morphology_uuid'
+        )
 
-class Morphology_info(morphjongleur.util.auto_string.Auto_string, Identity):
+
+class MorphologyInfo(Identity):
+    __tablename__   = PREFIX + 'morphology_infos'
+    uuid = sa.Column(
+        sqlalchemy.ForeignKey(Identity.uuid),
+        primary_key=True
+    )
+    morphology_uuid = sa.Column(
+        sqlalchemy.ForeignKey(Identity.uuid),
+        sqlalchemy.ForeignKey(PREFIX + 'morphologies.uuid'))
+    __mapper_args__ = {
+            'polymorphic_identity': 'MorphologyInfo',
+            'inherit_condition': uuid==Identity.uuid}
+    morphology             = sqlalchemy.orm.relation(Morphology,
+        backref='morphology_infos',
+        primaryjoin='Morphology.uuid==MorphologyInfo.morphology_uuid')
+
+
+class MorphologyInfoView(MorphologyInfo):
     """
     path_length         = %f, 
  surface_length         = %f, 
@@ -148,11 +174,10 @@ class Morphology_info(morphjongleur.util.auto_string.Auto_string, Identity):
    frustum_surface_area = %f, 
  #branches              = %i
     """
-    __tablename__ = PREFIX + 'v_morphologies_metric_surface_area'
-    __mapper_args__ = {'polymorphic_identity': 'Morphology_info'}
-    morphology_key = sa.Column(
-        sqlalchemy.ForeignKey(BB_PREFIX + 'identities.uuid'),
-        sqlalchemy.ForeignKey(PREFIX + 'morphologies.morphology_key'),
+    __tablename__ = PREFIX + 'v_morphologies'
+    __mapper_args__ = {'polymorphic_identity': 'MorphologyInfoView'}
+    uuid = sa.Column(
+        sqlalchemy.ForeignKey(PREFIX + 'morphology_infos.uuid'),
         primary_key=True)
     name            = sqlalchemy.Column('name', sqlalchemy.String)
     file_origin     = sqlalchemy.Column('file_origin', sqlalchemy.String)
@@ -189,16 +214,13 @@ class Morphology_info(morphjongleur.util.auto_string.Auto_string, Identity):
         sqlalchemy.Integer)
     axon                    = sqlalchemy.Column('axon', sqlalchemy.String)
 
-    _morphology             = sqlalchemy.orm.relation(Morphology,
-        backref='_info',
-        primaryjoin='Morphology.morphology_key==Morphology_info.morphology_key')
 
 
-class Morphology_groups(morphjongleur.util.auto_string.Auto_string, Identity):
+class MorphologyGroups(morphjongleur.util.auto_string.Auto_string, Identity):
     __tablename__ = PREFIX + 'morphology_groups'
-    __mapper_args__ = {'polymorphic_identity': 'Morphology_groups'}
-    morphology_group_key  = sa.Column(
-        sqlalchemy.ForeignKey(BB_PREFIX + 'identities.uuid'),
+    __mapper_args__ = {'polymorphic_identity': 'MorphologyGroups'}
+    uuid = sa.Column(
+        sqlalchemy.ForeignKey(Identity.uuid),
         primary_key=True
     )
     name        = sqlalchemy.Column('name', sqlalchemy.String)
