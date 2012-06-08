@@ -1,11 +1,10 @@
-#Fri Jun 01 11:10:51 CEST 2012
+#Fri Jun 08 17:36:29 CEST 2012
 eclipse.preferences.version=1
 encoding//morphjongleur/model/clamp.py=utf-8
 encoding//morphjongleur/model/experiment.py=utf-8
 encoding//morphjongleur/model/morphology.py=utf-8
 encoding//morphjongleur/model/synapse.py=utf-8
 encoding//morphjongleur/orm/datajongleur/clamp.py=utf-8
-encoding//morphjongleur/orm/datajongleur/experiment.py=utf-8
 encoding//morphjongleur/orm/datajongleur/morphology.py=utf-8
 encoding//morphjongleur/orm/datajongleur/neuron.py=utf-8
 encoding//morphjongleur/orm/datajongleur/sinusresult.py=utf-8
