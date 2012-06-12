@@ -14,6 +14,18 @@ from morphjongleur.orm.datajongleur.neuron import NeuronPassiveParameter
 
 PREFIX = 'mrj_'
 
+point_process_point_process_group_maps = sqlalchemy.Table(
+    PREFIX + 'point_process_point_process_group_maps',
+    Base.metadata,
+    sqlalchemy.Column('point_process_uuid',
+        sqlalchemy.ForeignKey(PREFIX + 'point_processes.uuid'),
+        primary_key=True),
+    sqlalchemy.Column('point_process_group_uuid',
+        sqlalchemy.ForeignKey(
+          PREFIX + 'point_process_groups.uuid'),
+        primary_key=True))
+
+
 class Experiment(morphjongleur.model.experiment.Experiment, Identity):
     __tablename__   = PREFIX + 'experiments'
     uuid  = sqlalchemy.Column(
@@ -50,6 +62,19 @@ class PointProcess(Identity):
     @property
     def morphology(self):
         return self.compartment.morphology
+
+
+class PointProcessGroup(Identity):
+    __tablename__   = PREFIX + 'point_process_groups'
+    uuid = sqlalchemy.Column(
+        sqlalchemy.ForeignKey(Identity.uuid),
+        primary_key=True)
+    name            = sqlalchemy.Column(sqlalchemy.String)
+    description     = sqlalchemy.Column(sqlalchemy.String)
+    
+    point_processes = relationship(PointProcess, 
+            backref='point_process_groups',
+            secondary=point_process_point_process_group_maps)
 
 
 class RecordingPoint(morphjongleur.model.experiment.RecordingPoint,
