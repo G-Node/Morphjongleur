@@ -1,8 +1,7 @@
-<<<<<<< HEAD
-#Tue Jun 05 16:58:12 CEST 2012
-=======
-#Fri Jun 08 17:36:29 CEST 2012
->>>>>>> refs/heads/star_schema
+#Tue Jun 12 17:24:28 CEST 2012
+=\=\=\=\=\=\=
+<<<<<<<=HEAD
+>>>>>>>=refs/heads/star_schema
 eclipse.preferences.version=1
 encoding//morphjongleur/model/clamp.py=utf-8
 encoding//morphjongleur/model/experiment.py=utf-8
@@ -11,7 +10,9 @@ encoding//morphjongleur/model/synapse.py=utf-8
 encoding//morphjongleur/orm/datajongleur/clamp.py=utf-8
 encoding//morphjongleur/orm/datajongleur/morphology.py=utf-8
 encoding//morphjongleur/orm/datajongleur/neuron.py=utf-8
+encoding//morphjongleur/orm/datajongleur/neuron_single_cell_experiment.py=utf-8
 encoding//morphjongleur/orm/datajongleur/sinusresult.py=utf-8
 encoding//morphjongleur/util/auto_string.py=utf-8
 encoding//morphjongleur/util/parser/swc.py=utf-8
+encoding//tests/import.py=utf-8
 encoding//usecases/amira.py=utf-8

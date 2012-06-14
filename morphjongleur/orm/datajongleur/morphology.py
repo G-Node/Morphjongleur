@@ -215,8 +215,8 @@ class MorphologyInfoView(MorphologyInfo):
     axon                    = sqlalchemy.Column('axon', sqlalchemy.String)
 
 
-
-class MorphologyGroups(morphjongleur.util.auto_string.Auto_string, Identity):
+@morphjongleur.util.auto_string.auto_string
+class MorphologyGroups(Identity):
     __tablename__ = PREFIX + 'morphology_groups'
     __mapper_args__ = {'polymorphic_identity': 'MorphologyGroups'}
     uuid = sa.Column(

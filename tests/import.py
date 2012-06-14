@@ -39,12 +39,5 @@ def import_swc(swc):
 if __name__ == '__main__':
     import sqlalchemy
     print sqlalchemy.__version__
-    root_dir = '/home/philipp/Repositories/G-Node/mitsubachi/'
-    #root_dir = '/home/stransky/git/mitsubachi/'
-    #root_dir = '../../../'
-    import_swcs([
-         #root_dir + 'data/H060602DB_10_2_zentai_.swc', 
-         #root_dir + 'data/H060602VB_10_2_zentai_.swc', 
-         #root_dir + 'data/H060607DB_10_2(zentai).swc', 
-         #root_dir + 'data/H060607VB_10_2(zentai).swc'
-    ])
+    assert sqlalchemy.__version__ == "0.7.4"    #sudo easy_install "sqlalchemy==0.7.4"
+    import_swcs(['/home/stransky/git/mitsubachi/data/amira/Skeletontree_20120315_6-8.swc'])

@@ -184,5 +184,6 @@ class PatternClamp(IClamp):
             map(self.iclamps,repr())
         );
 
-class Clamp_groups(morphjongleur.util.auto_string.Auto_string):
+@morphjongleur.util.auto_string.auto_string
+class Clamp_groups(object):
     pass
