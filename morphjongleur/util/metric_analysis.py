@@ -3,149 +3,135 @@ frustrum v.s. cylinder
 
 @author: stransky
 '''
+import math
+import numpy
+import morphjongleur.util.auto_string
+from morphjongleur.model.morphology import Morphology,Star
 
-def euclid_distance(x, y):
-    import math
-    if len(x) != len(y):
-        raise Exception, "different dimension";
-    dist = 0;
-    for i in range(len(x)):
-        dist += (x[i] - y[i])**2;
-    return math.sqrt(dist);
-
-
-def compartments():
-    return float('nan')
-
-def leafs():
-    return float('nan')
-
-def branching_points():
-    #TODO: assert leafes -1  
-    return float('nan')
-
-def path_length():
+@morphjongleur.util.auto_string.auto_string
+class MetricAnalysis(object):
     '''
+    classdocs
     total cell length = sum of all paths (based on center of each compartment)
-    '''
-    dist = 0;
-    for x in compartments:
-        for y in compartments:
-            if(x[0] < y[0]): #o.B.d.A
-                d = euclid_distance(x[1:4],y[1:4]);
-                if d > dist:
-                    dist = d;
-    return dist;
-
-def surface_length_frustum():
-    '''
-    total cell length running over the surface of an frustrum
-    '''
-    return float('nan')
-
-def pca_length():
-    x = None;
-    for r in result:
-        c = scipy.array([r['x'], r['y'], r['z']]);
-        if(x == None):
-            x = c;
-        else:
-            x = scipy.vstack((x,c));
+    surface_length_frustum    total cell length running over the surface of an frustrum
     
-    p = mdp.pca(x);
-    x_min   = float("inf");
-    x_max   = float("-inf");
-    for x,y,z in p:
-        if x < x_min:
-            x_min = x; 
-        if x > x_max:
-            x_max = x;
     
-    return x_max - x_min
-
-def polyeder():
-    '''
+    polyeder    #konvexen polyeder zur not emal in mathesoftware
     http://python.net/~gherman/convexhull.html
 http://www.scipy.org/Cookbook
 http://michelanders.blogspot.de/2012/02/3d-convex-hull-in-python.html
-http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d-points/ 
-    '''
-    pass
+http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d-points/
 
-
-def cylindric_volume():
-    return float('nan')
-
-def frustum_volume():
-    return float('nan')
-
-def cylindric_lateral_area():
-    '''
+    cylindric_lateral_area
     without side circles of terminal tips
-    '''
-    return float('nan')
 
-def frustum_lateral_area():
-    '''
+
+    self.frustum_lateral_area
     without side circles of terminal tips
-    '''
-    return float('nan')
-
-def cylindric_surface_area():
-    return float('nan')
-
-def frustum_surface_area():
-    return float('nan')
-
-def arithmetic_mean_branchpoint_radius():
-    '''
+    
+    
+    arithmetic_mean_branchpoint_radius
     mean cross section area
-    '''
-    return float('nan')
 
-def geometric_mean_branchpoint_radius():
-    '''
+    geometric_mean_branchpoint_radius
     mean cross section area
-    '''
-    return float('nan')
 
-def harmonic_mean_branchpoint_radius():
-    '''
-    mean cross section area
-    '''
-    return float('nan')
+    harmonic_mean_branchpoint_radius    
 
-def arithmetic_mean_branchpoint_distance():
-    '''
-    mean cross section area
-    '''
-    return float('nan')
+    arithmetic_mean_branchpoint_distance    
 
-def geometric_mean_branchpoint_distance():
-    '''
-    mean cross section area
-    '''
-    return float('nan')
+    geometric_mean_branchpoint_distance    
 
-def harmonic_mean_branchpoint_distance():
-    '''
-    mean cross section area
-    '''
-    return float('nan')
+    harmonic_mean_branchpoint_distance    
 
-def cylindric_arithmetic_mean_cross_section_area():
-    '''
-    mean cross section area
-    '''
-    return float('nan')
+    cylindric_arithmetic_mean_cross_section_area    
 
-def frustum_arithmetic_mean_cross_section_area():
+    frustum_arithmetic_mean_cross_section_area    
+    
     '''
-    mean cross section area
-    '''
-    return float('nan')
 
-    #TODO: name
-    #mean abstand
-    #pca
-    #konvexen polyeder zur not emal in mathesoftware
+    @staticmethod
+    def euclid_distance(x, y):
+        if len(x) != len(y):
+            raise Exception, "different dimension";
+        dist = 0;
+        for i in range(len(x)):
+            dist += (x[i] - y[i])**2;
+        return math.sqrt(dist);
+    
+    def __init__(self, morphology):
+        '''
+        '''
+        self.compartments   = len(morphology.compartments)
+        
+        #TODO: assert len(morphology.leafs) == morphology.branching_points + 1
+        self.leafs  = morphology.leafs
+        self.branching_points  = morphology.branching_points
+
+        self.total_cell_length    = 0.
+        self.surface_length_frustum = 0.
+        self.cylindric_volume = 0.
+        self.cylindric_lateral_area = 0.
+        self.arithmetic_mean_branchpoint_radius = 0.
+        self.geometric_mean_branchpoint_radius  = 1.
+        xyz = []
+        for compartment in morphology.getCompartments():
+            xyz.append([compartment.x, compartment.y, compartment.z])
+            
+            self.total_cell_length += compartment.parent_distance
+            
+            self.cylindric_volume += math.pi* compartment.radius**2 * compartment.parent_distance
+
+            self.cylindric_lateral_area += 2 * math.pi* compartment.radius * compartment.parent_distance
+
+            
+            compartment.frustum_length = math.sqrt( (compartment.parent.radius - compartment.radius)^2 + compartment.parent_distance^2)
+            self.surface_length_frustrum += compartment.frustum_length
+            
+            self.frustum_volume  += math.pi/3. * compartment.parent_distance * (compartment.parent_radius^2 + compartment.parent_radius * compartment.radius + compartment.radius^2)            
+            
+            self.frustum_lateral_area   += math.pi * compartment.frustum_length * (compartment.parent_radius + compartment.radius)
+            
+            self.arithmetic_mean_branchpoint_radius += compartment.radius
+            self.geometric_mean_branchpoint_radius  *= compartment.radius
+            self.harmonic_mean_branchpoint_radius   += float('nan')
+            
+            
+            self.cylindric_arithmetic_mean_cross_section_area   += float('nan')
+            self.frustum_arithmetic_mean_cross_section_area     += float('nan')
+        
+        self.cylindric_surface_area += float('nan')            
+        self.frustum_surface_area   += float('nan')
+        
+        self.arithmetic_mean_branchpoint_distance   = self.total_cell_length / self.branching_points
+        self.geometric_mean_branchpoint_distance    += float('nan')
+        self.harmonic_mean_branchpoint_distance += float('nan')
+            
+
+        import mdp
+        x = None;
+        for r in result:
+            c = xyz#numpy.array([r['x'], r['y'], r['z']]);
+            if(x == None):
+                x = c;
+            else:
+                x = numpy.vstack((x,c));        
+        p = mdp.pca(x);
+        x_min   = float("inf");
+        x_max   = float("-inf");
+        for x,y,z in p:
+            if x < x_min:
+                x_min = x; 
+            if x > x_max:
+                x_max = x;
+        self.pca_length = x_max - x_min
+
+        self.polyeder   = float('nan')
+
+if __name__ == '__main__':
+    
+    import morphjongleur.util.parser.swc
+    m   = Morphology.swc_parse('../../data/test.swc')
+    a   = MetricAnalysis(m)
+    print a
+    print m

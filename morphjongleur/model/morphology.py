@@ -47,11 +47,14 @@ class Compartment(object):
         """
         if not vars(self).has_key('_parent_distance'):
             import numpy
-            self._parent_distance   =  numpy.sqrt(
-                  ((self.parent.x - self.x) ** 2)
-             +    ((self.parent.y - self.y) ** 2)
-             +    ((self.parent.z - self.z) ** 2)
-             )
+            if self.parent != 0:
+                self._parent_distance   = 0
+            else:
+                self._parent_distance   =  numpy.sqrt(
+                      ((self.parent.x - self.x) ** 2)
+                 +    ((self.parent.y - self.y) ** 2)
+                 +    ((self.parent.z - self.z) ** 2)
+                 )
         return self._parent_distance
     @parent_distance.setter
     def parent_distance(self, value):  raise AttributeError("cannot change calculated information")
@@ -166,16 +169,16 @@ class Morphology(object):
         #not orm mapped
         self._compartments_map  = {}
 
-    @property
-    def info(self):
-        if self._info[0] == None:
+#    @property
+#    def info(self):
+        #if self.info == None:
 #TODO:            self._info[0]   = Morphology_info()
-                    pass
-        return self._info[0]
-    @info.setter
-    def info(self, value):  raise AttributeError("cannot change calculated information")
-    @info.deleter
-    def info(self):         del self._info
+        #            pass
+#        return self.info
+#    @info.setter
+#    def info(self, value):  raise AttributeError("cannot change calculated information")
+#    @info.deleter
+#    def info(self):         del self._info
     #info = property(get_info, set_info, del_info, "I'm the 'dict' property, containing calculated properties.")
 
     @property
