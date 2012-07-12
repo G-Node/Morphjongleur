@@ -1,4 +1,3 @@
-#Tue Jun 12 17:24:28 CEST 2012
 =\=\=\=\=\=\=
 <<<<<<<=HEAD
 >>>>>>>=refs/heads/star_schema
@@ -13,6 +12,7 @@ encoding//morphjongleur/orm/datajongleur/neuron.py=utf-8
 encoding//morphjongleur/orm/datajongleur/neuron_single_cell_experiment.py=utf-8
 encoding//morphjongleur/orm/datajongleur/sinusresult.py=utf-8
 encoding//morphjongleur/util/auto_string.py=utf-8
+encoding//morphjongleur/util/metric_analysis.py=utf-8
 encoding//morphjongleur/util/parser/swc.py=utf-8
 encoding//tests/import.py=utf-8
 encoding//usecases/amira.py=utf-8

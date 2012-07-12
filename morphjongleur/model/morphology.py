@@ -47,7 +47,7 @@ class Compartment(object):
         """
         if not vars(self).has_key('_parent_distance'):
             import numpy
-            if self.parent != 0:
+            if self.parent == None:
                 self._parent_distance   = 0
             else:
                 self._parent_distance   =  numpy.sqrt(
@@ -144,20 +144,21 @@ class Morphology(object):
 
     _type_compartment   = Compartment
 
-    def __init__(self, name, file_origin, description, datetime_recording, compartments=None):
-        print compartments
+    def __init__(self, name, file_origin, description, datetime_recording, compartments=[]):
         '''
         Constructor
         '''
+        assert len(compartments) == 0
         #self.morphology_key     = morphology_key
         self.name               = name
         self.file_origin        = file_origin
         self.description        = description
         self.datetime_recording = datetime_recording
-        if compartments == None:#or list(compartments) to prevent static list
+        if compartments == []:#or list(compartments) to prevent static list
             self.compartments   = []
         else:
             self.compartments   = compartments
+        self.info              = None
         self._info              = [None]
         self._groups            = []
 
@@ -258,6 +259,14 @@ class Morphology(object):
         '''
         for compartment in self.compartments:
             yield(compartment)
+
+    def getNonRootCompartments(self):
+        '''
+        generator over compartments
+        '''
+        for compartment in self.compartments:
+            if compartment.parent != None:
+                yield(compartment)
 
     def getCompartment(self, compartment_id):
         '''
@@ -542,19 +551,19 @@ class Star(Morphology):
 
 
 @morphjongleur.util.auto_string.auto_string
-class Morphology_groups(object):
+class MorphologyGroups(object):
     pass
 
 @morphjongleur.util.auto_string.auto_string
-class Compartment_groups(object):
+class CompartmentGroups(object):
+    pass
+
+@morphjongleur.util.auto_string.auto_string
+class MorphologyInfo(object):
     pass
 
 @morphjongleur.util.auto_string.auto_string
 class Morphology_info(object):
-    pass
-
-@morphjongleur.util.auto_string.auto_string
-class Morphology_info2(object):
     """
     http://openbook.galileocomputing.de/python/python_kapitel_13_009.htm
     TODO: glossary
@@ -663,11 +672,11 @@ class Morphology_info2(object):
 
 
 @morphjongleur.util.auto_string.auto_string
-class Compartment_info(object):
+class CompartmentInfo(object):
     pass
 
 @morphjongleur.util.auto_string.auto_string
-class Compartment_info2(object):
+class Compartment_info(object):
     """
  parent_radius          = %f,
  length                 = %f,

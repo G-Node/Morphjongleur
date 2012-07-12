@@ -5,7 +5,7 @@
 import morphjongleur.model.morphology
 
 @classmethod
-def swc_parse_stream(cls, stream, name='', file_origin='', description='', time=None ):
+def swc_parse_stream(cls, stream, name='', file_origin='', description='', time=None, verbose=True ):
     m = cls(
       name                  = name,
       file_origin           = file_origin,
@@ -13,22 +13,32 @@ def swc_parse_stream(cls, stream, name='', file_origin='', description='', time=
       datetime_recording    = time
     )
     assert len(m.compartments) == 0
+    unparsables  = 0
+    errors  = 0
     for row in stream:
         if len(row) < 1:
-            print row
             continue
-        if row[0].isdigit():
-            (compartment_id, type, x,y,z, radius, compartment_parent_id)  = row #TODO > 7 spalten -> error
-            c = cls._type_compartment(compartment_id, compartment_parent_id, radius, x,y,z)
-            m.add_compartment(c)
-        else:
+        if row[0].startswith('#'):
             m.description  += ''.join(row)+'\n'
-            print (''.join(row))  #?str.
+            if verbose:
+                print (''.join(row))  #?str.
+        elif row[0].isdigit():
+            try:
+                (compartment_id, type, x,y,z, radius, compartment_parent_id)  = row #TODO > 7 spalten -> error
+                c = cls._type_compartment(compartment_id, compartment_parent_id, radius, x,y,z)
+                m.add_compartment(c)
+            except ValueError:
+                errors += 1
+        else: 
+            unparsables += 1
+    if (unparsables > 0 or errors > 0) and verbose:
+        import sys
+        print >> sys.stderr, "%i unparsable lines and %i errors in %s" % (unparsables, errors, m.name)
 
     return m
 
 @classmethod
-def swc_parse(cls, file_name):
+def swc_parse(cls, file_name, verbose=True):
     import csv
     import os
     import datetime
@@ -37,7 +47,8 @@ def swc_parse(cls, file_name):
             reader, 
             name            = os.path.splitext( os.path.basename(file_name) )[0], 
             file_origin     = file_name, 
-            time            = datetime.datetime.fromtimestamp( os.stat(file_name).st_mtime ).isoformat(' ')
+            time            = datetime.datetime.fromtimestamp( os.stat(file_name).st_mtime ).isoformat(' '),
+            verbose         = verbose
         )
 
 @classmethod
