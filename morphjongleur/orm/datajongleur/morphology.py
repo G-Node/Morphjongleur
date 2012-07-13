@@ -164,15 +164,8 @@ class MorphologyInfo(Identity):
 
 class MorphologyInfoView(MorphologyInfo):
     """
-    path_length         = %f, 
- surface_length         = %f, 
- cylindric_volume       = %f, 
-   frustum_volume       = %f, 
- cylindric_lateral_area = %f, 
-   frustum_lateral_area = %f, 
- cylindric_surface_area = %f, 
-   frustum_surface_area = %f, 
- #branches              = %i
+    creates new table.
+    if view is present, it is used.
     """
     __tablename__ = PREFIX + 'v_morphologies'
     __mapper_args__ = {'polymorphic_identity': 'MorphologyInfoView'}
