@@ -1,9 +1,9 @@
 #http://michelanders.blogspot.de/2012/02/3d-convex-hull-in-python.html
-Z=2
-Y=1
-X=0
+#Z=2
+#Y=1
+#X=0
 
-debug = False
+#debug = False
 
 class Vector:
 	def __init__(self,x,y,z):

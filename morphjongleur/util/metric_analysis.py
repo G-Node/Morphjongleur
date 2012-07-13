@@ -233,8 +233,14 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
                         + self.pca_lengths[1]*self.pca_lengths[2]
                         + self.pca_lengths[2]*self.pca_lengths[0]
                         )
-        
-        self.pca_rhob2=float('nan')
+        '''
+        2 * (
+            1/2. * self.pca_lengths[0] * numpy.sqrt(numpy.square(self.pca_lengths[1]/2) + numpy.square(self.pca_lengths[2]/2)) 
+            +
+            1/2. * self.pca_lengths[0] * numpy.sqrt(numpy.square(self.pca_lengths[2]/2) + numpy.square(self.pca_lengths[1]/2)) 
+            )
+        '''
+        self.pca_rhombus =  self.pca_lengths[0] * numpy.sqrt(numpy.square(self.pca_lengths[2]) + numpy.square(self.pca_lengths[1]))
 
         h    = Hull([Vector.fromArray(x) for x in xs])
         self.convex_enveloping_polyhedron_surface_area   = h.surface_area()
@@ -250,12 +256,8 @@ if __name__ == '__main__':
     import sys
     import morphjongleur.util.parser.swc
     with_head   = True
-    for swc in sys.argv[1:]:#['/tmp/mitsubachi/test.swc','/tmp/mitsubachi/H060602DB_10_2_zentai_.swc','/tmp/mitsubachi/H060602VB_10_2_zentai_.swc','/tmp/mitsubachi/H060607DB_10_2(zentai).swc','/tmp/mitsubachi/H060607VB_10_2(zentai).swc']:#['../../data/test.swc']:#
-        
-        
+    for swc in ['../../data/test.swc']:#sys.argv[1:]:#
 
-        
-        
         m   = Morphology.swc_parse(swc, verbose=False)
         a   = MetricAnalysis(m)
         (ks, vs)    = a.variable_table(['name', 'datetime_recording', 
@@ -265,7 +267,7 @@ if __name__ == '__main__':
         'frustum_volume', 'frustum_surface_area', 
         'cylindric_mean_cross_section_area', 'frustum_mean_cross_section_area', 
         'mean_branchpoint_distance', 
-        'pca_lengths', 'convex_enveloping_polyhedron_surface_area'
+        'pca_lengths', 'pca_box', 'pca_rhombus', 'convex_enveloping_polyhedron_surface_area'
         ])
         
         if with_head:
