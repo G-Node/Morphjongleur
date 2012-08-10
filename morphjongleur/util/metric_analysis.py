@@ -1,4 +1,4 @@
-#!env python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 '''
 frustrum v.s. cylinder
@@ -145,7 +145,7 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         self.arithmetic_mean_branchpoint_distance    = 0.
         self.geometric_mean_branchpoint_distance    = 1.
         self.harmonic_mean_branchpoint_distance    = 0.
-        
+
         xs = []
         for compartment in morphology.getNonRootCompartments():
             xs.append([compartment.x, compartment.y, compartment.z])
@@ -224,15 +224,19 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
                     mins[d]    = x[d]
                 if x[d] > maxs[d]:
                     maxs[d] = x[d]
+        self.pca_length_x  = maxs[0] - mins[0]
+        self.pca_length_y  = maxs[1] - mins[1]
+        self.pca_length_z  = maxs[2] - mins[2]
+        
         self.pca_lengths = (
-            maxs[0] - mins[0],
-            maxs[1] - mins[1],
-            maxs[2] - mins[2]
+            self.pca_length_x,
+            self.pca_length_y,
+            self.pca_length_z
         )
-        self.pca_box= 2*( self.pca_lengths[0]*self.pca_lengths[1]
-                        + self.pca_lengths[1]*self.pca_lengths[2]
-                        + self.pca_lengths[2]*self.pca_lengths[0]
-                        )
+        #self.pca_box_surface_area= 2*( self.pca_lengths[0]*self.pca_lengths[1]
+        #                + self.pca_lengths[1]*self.pca_lengths[2]
+        #                + self.pca_lengths[2]*self.pca_lengths[0]
+        #                )
         '''
         2 * (
             1/2. * self.pca_lengths[0] * numpy.sqrt(numpy.square(self.pca_lengths[1]/2) + numpy.square(self.pca_lengths[2]/2)) 
@@ -240,13 +244,12 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
             1/2. * self.pca_lengths[0] * numpy.sqrt(numpy.square(self.pca_lengths[2]/2) + numpy.square(self.pca_lengths[1]/2)) 
             )
         '''
-        self.pca_rhombus =  self.pca_lengths[0] * numpy.sqrt(numpy.square(self.pca_lengths[2]) + numpy.square(self.pca_lengths[1]))
+        #self.pca_rhombus =  self.pca_lengths[0] * numpy.sqrt(numpy.square(self.pca_lengths[2]) + numpy.square(self.pca_lengths[1]))
 
         h    = Hull([Vector.fromArray(x) for x in xs])
-        self.convex_enveloping_polyhedron_surface_area   = h.surface_area()
+        self.convex_enveloping_polyhedron_surface_area, self.convex_enveloping_polyhedron_volume   = h.surface_area_and_volume()
     
-
-if __name__ == '__main__':
+def metric():
     '''
     Parameter: files, not directories
 
@@ -256,7 +259,7 @@ if __name__ == '__main__':
     import sys
     import morphjongleur.util.parser.swc
     with_head   = True
-    for swc in ['../../data/test.swc']:#sys.argv[1:]:#
+    for swc in sys.argv[1:]:#['../../data/test.swc']:#
 
         m   = Morphology.swc_parse(swc, verbose=False)
         a   = MetricAnalysis(m)
@@ -265,9 +268,11 @@ if __name__ == '__main__':
         'total_cell_length', 'surface_length_frustrum', 
         'cylindric_volume', 'cylindric_surface_area', 
         'frustum_volume', 'frustum_surface_area', 
+        'pca_length_x', 'pca_length_y', 'pca_length_z', 
+        'convex_enveloping_polyhedron_volume', 'convex_enveloping_polyhedron_surface_area', 
+
         'cylindric_mean_cross_section_area', 'frustum_mean_cross_section_area', 
-        'mean_branchpoint_distance', 
-        'pca_lengths', 'pca_box', 'pca_rhombus', 'convex_enveloping_polyhedron_surface_area'
+        'mean_branchpoint_distance'
         ])
         
         if with_head:
@@ -283,3 +288,21 @@ if __name__ == '__main__':
         #print m
         #print 80*'_'
     #a.convex_enveloping_polyeder_hull.Print()
+
+def pca():
+    import sys
+    import morphjongleur.util.parser.swc
+    for swc in sys.argv[1:]:#['../../data/test.swc']:#
+        xs = []
+        f = open(swc+'.pca.txt', 'w')
+        morphology   = Morphology.swc_parse(swc, verbose=False)
+        for compartment in morphology.getNonRootCompartments():
+            xs.append([compartment.x, compartment.y, compartment.z])
+        print swc
+        for x in mdp.pca( numpy.array(xs) ):
+            f.write("%f\t%f\t%f\n" % (x[0], x[1], x[2]))
+        f.close()
+
+if __name__ == '__main__':
+    metric()
+    #pca()

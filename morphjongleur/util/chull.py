@@ -3,7 +3,7 @@
 #Y=1
 #X=0
 
-#debug = False
+debug = False
 
 class Vector:
 	def __init__(self,x,y,z):
@@ -456,26 +456,59 @@ class Hull:
 			
 		return evi,vi
 
-	def surface_area(self):
+	def surface_area_and_volume(self):
 		'''
+		return (surface_area, v)
+		
 		http://stackoverflow.com/questions/451426/how-do-i-calculate-the-surface-area-of-a-2d-polygon
 		http://www.mathopenref.com/coordpolygonarea.html
 		http://www.python-kurs.eu/matrix_arithmetik.php
 		http://stackoverflow.com/questions/2827393/angles-between-two-n-dimensional-vectors-in-python
+		
+		1/3 * G + h
+		http://www.onlinemathe.de/forum/Volumen-und-Grundflaechenberechnung-Pyramide
+		ab =numpy.array([8,14,-8]); ac =numpy.array([12,3,-3]); ad = numpy.array([5,5,7]);s = numpy.dot(np.cross(ab,ac), ad); abs(s)/6.
 		'''
 		import numpy
-		sa	= 0
+		assert len(self.faces) > 3#TODO: execpt
+		surface_area	= 0
+		volume	= 0
+		d	= self.faces[0].vertex[0].v.toNumpyArray()
 		for face in self.faces:
 			assert len(face.vertex) == 3
 			a	= face.vertex[0].v.toNumpyArray()
 			b	= face.vertex[1].v.toNumpyArray()
 			c	= face.vertex[2].v.toNumpyArray()
-			v1	= b - a
-			v2	= c - a
-			cos	= v1.dot(v2) / (numpy.sqrt(v1.dot(v1)) * numpy.sqrt(v2.dot(v2)))
-			sin	= numpy.sqrt(1-cos*cos)
-			sa	+= .5 * numpy.sqrt(v1.dot(v1)) * numpy.sqrt(v2.dot(v2)) * sin
-		return sa
+			ab	= b - a 
+			ac	= c - a
+			ad	= d - a
+			
+			#cos	= ab.dot(ac) / (numpy.sqrt(ab.dot(ab)) * numpy.sqrt(ac.dot(ac)))
+			#sin	= numpy.sqrt(1-cos*cos)
+			#sa		= .5 * numpy.sqrt(ab.dot(ab)) * numpy.sqrt(ac.dot(ac)) * sin
+			
+			k	= numpy.cross(ab,ac)
+			sa	= numpy.sqrt(numpy.dot(k,k))/2.	# norm
+			#print sa
+			surface_area	+= sa
+			
+			s	= numpy.dot(k, ad)	#spatprodukt
+			v	= abs(s)/6
+			volume	+= v
+
+		self._surface_area	= surface_area
+		self._volume		= volume
+		return (surface_area, volume)
+
+	def surface_area(self):
+		if not vars(self).has_key('_surface_area') or self._surface_area == None:
+			self.surface_area_and_volume()
+		return self._surface_area
+	
+	def volume(self):
+		if not vars(self).has_key('_volume') or self._volume == None:
+			self.surface_area_and_volume()
+		return self._volume
 
 if __name__ == "__main__":
 	from random import random
@@ -491,6 +524,8 @@ if __name__ == "__main__":
 	pyramid=[Vector(0,0,0),Vector(0,1,0),Vector(1,0,0),Vector(1,1,0),Vector(0.5,0.5,0.3)]
 	# simple cube with many internal points with random fractional coordinates
 	cubef=[Vector(0,0,0),Vector(1,0,0),Vector(0,1,0),Vector(1,1,0),Vector(0,0,1),Vector(1,0,1),Vector(0,1,1),Vector(1,1,1)]
+	pyramide=[Vector(0,0,0),Vector(8,14,-8),Vector(12,3,-3),Vector(5,5,7)]#http://www.onlinemathe.de/forum/Volumen-und-Grundflaechenberechnung-Pyramide
+	
 	for i in range(20):
 		cubef.append(Vector(random(),random(),random()))
 	
@@ -506,7 +541,7 @@ if __name__ == "__main__":
 	#h=Hull(hexahedron)
 	#h=Hull(cube_internal)
 	#h=Hull(pyramid)
-	h=Hull(cubef)
+	h=Hull(pyramide)
 	#h=Hull(sphere)
-	print(h.debug("#%i faces with %f surface area" % (len(h.faces), h.surface_area()) ))
+	print(h.debug("#%i faces with %f surface area %f volume" % (len(h.faces), h.surface_area(), h.volume()) ))
 	h.Print()
