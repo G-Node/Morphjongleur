@@ -480,7 +480,7 @@ class TauFit(object):
 
     def __repr__(self):
         # Optional: for str(autoobj) or print autoobj    #has %s in %self.clamp, self.morphology
-        return 'Result(r_in=%f, tau_eff=%f, tau_eff_fit=%f)' % (
+        return '<Result(r_in=%f, tau_eff=%f, tau_eff_fit=%f)>' % (
                 self.r_in,
                 self.tau_eff,
                 self.tau_eff_fit,
@@ -488,11 +488,7 @@ class TauFit(object):
         )
             
     def __str__(self):
-        return """<Result(r_in = %s, tau_eff = %s, tau_eff_fit = %s)>""" % (
-                    str(self.r_in),
-                    str(self.tau_eff),
-                    str(self.tau_eff_fit),
-        )
+        return '%s\t%f\t%f\t%f' % (self.experiment.description, self.r_in, self.tau_eff, self.tau_eff_fit)
 
 def test():
     import pydesignlib;

@@ -191,12 +191,14 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
 #            else:
 #                print >> sys.stderr, "compartment %i in morphology %s has branchpoint_distance %f" % (compartment.compartment_id, morphology.name, parent_brachpoint_distance)
 #                self.harmonic_mean_branchpoint_distance   = float('nan')
-            
-            
+
         terminaltips_cross_section_area = 0
+        self.terminaltips_distance   = 0
         for compartment in self.leafs:
             terminaltip_cross_section_area  = 2* math.pi * compartment.radius
             terminaltips_cross_section_area += terminaltip_cross_section_area
+            self.terminaltips_distance += morphology.biggest.path_distance(compartment)
+        self.mean_terminaltips_distance   = self.terminaltips_distance / len(self.leafs)
         
         self.cylindric_surface_area = self.cylindric_lateral_area + terminaltips_cross_section_area
         self.frustum_surface_area   = self.frustum_lateral_area   + terminaltips_cross_section_area
