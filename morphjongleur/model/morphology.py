@@ -264,6 +264,8 @@ class Morphology(object):
         '''
         generator over compartments
         '''
+        if not vars(self).has_key('_root') or self._root == None:
+            self._create_tree()
         for compartment in self.compartments:
             if compartment.parent != None:
                 yield(compartment)
