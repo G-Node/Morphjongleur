@@ -250,13 +250,13 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
 
         h    = Hull([Vector.fromArray(x) for x in xs])
         self.convex_enveloping_polyhedron_surface_area, self.convex_enveloping_polyhedron_volume   = h.surface_area_and_volume()
-    
-def metric():
+
+if __name__ == '__main__':
     '''
     Parameter: files, not directories
 
-    cd data/amira/
-    pathto/metric_analysis.py *.swc
+    cd data/swc_files/
+    path_to/metric_analysis.py *.swc
     '''
     import sys
     import morphjongleur.util.parser.swc
@@ -265,16 +265,13 @@ def metric():
 
         m   = Morphology.swc_parse(swc, verbose=False)
         a   = MetricAnalysis(m)
-        (ks, vs)    = a.variable_table(['name', 'datetime_recording', 
+        (ks, vs)    = a.variable_table(['name', #'datetime_recording', 
         'compartments', 'number_of_branching_points', 
         'total_cell_length', 'surface_length_frustrum', 
         'cylindric_volume', 'cylindric_surface_area', 
         'frustum_volume', 'frustum_surface_area', 
         'pca_length_x', 'pca_length_y', 'pca_length_z', 
         'convex_enveloping_polyhedron_volume', 'convex_enveloping_polyhedron_surface_area', 
-
-        'cylindric_mean_cross_section_area', 'frustum_mean_cross_section_area', 
-        'mean_branchpoint_distance'
         ])
         
         if with_head:
@@ -282,6 +279,10 @@ def metric():
             with_head   = False
         print vs
         
+        m.plot(picture_file='/tmp/%s' % (m.name), picture_formats=['svg', 'png'])
+        m_pca   = m.pca()
+        m_pca.swc_write('/tmp/%s_pca.swc' % (m_pca.name) )
+        m_pca.plot(picture_file='/tmp/%s_pca' % (m_pca.name), picture_formats=['svg', 'png'])
         #print 80*'_'
         #print str(a)
         #print 80*'_'
@@ -290,21 +291,3 @@ def metric():
         #print m
         #print 80*'_'
     #a.convex_enveloping_polyeder_hull.Print()
-
-def pca():
-    import sys
-    import morphjongleur.util.parser.swc
-    for swc in sys.argv[1:]:#['../../data/test.swc']:#
-        xs = []
-        f = open(swc+'.pca.txt', 'w')
-        morphology   = Morphology.swc_parse(swc, verbose=False)
-        for compartment in morphology.getNonRootCompartments():
-            xs.append([compartment.x, compartment.y, compartment.z])
-        print swc
-        for x in mdp.pca( numpy.array(xs) ):
-            f.write("%f\t%f\t%f\n" % (x[0], x[1], x[2]))
-        f.close()
-
-if __name__ == '__main__':
-    metric()
-    #pca()

@@ -148,7 +148,7 @@ class Morphology(object):
         '''
         Constructor
         '''
-        assert len(compartments) == 0
+        #assert len(compartments) == 0
         #self.morphology_key     = morphology_key
         self.name               = name
         self.file_origin        = file_origin
@@ -291,6 +291,29 @@ class Morphology(object):
             todo_stack.extend( c.children )
             parts.extend( c.children )
         return parts
+    
+    def pca(self):
+        import numpy
+        import mdp
+        cs  = []
+        for compartment in self.compartments:
+            cs.append([compartment.x, compartment.y, compartment.z])
+        assert len(self.compartments) == len(cs)
+        pca_cs  = mdp.pca( numpy.array(cs) )
+        assert len(self.compartments) == len(pca_cs)
+        compartments    = []
+        for i in range(len(pca_cs)):
+            compartments.append(    # m.add_compartment(
+                Compartment( 
+                    self.compartments[i].compartment_id, 
+                    self.compartments[i].compartment_parent_id, 
+                    self.compartments[i].radius, 
+                    x=pca_cs[i][0],
+                    y=pca_cs[i][1],
+                    z=pca_cs[i][2]
+                ) 
+            )
+        return Morphology(self.name, self.file_origin, self.description, self.datetime_recording, compartments=compartments)
 
     def _create_tree(self):
         if vars(self).has_key('_compartments_map') and self._compartments_map != {}:
@@ -373,17 +396,17 @@ class Morphology(object):
         #parent.children[id] = compartment
 
     def plot_all_properties(self, morphologies=[], picture_file=None, picture_formats=['png', 'pdf', 'svg']):
-        self.plot(morphologies, quantity="cylindric_volume",                                                        picture_file=picture_file, picture_formats=picture_formats)
-        self.plot(morphologies, quantity="frustum_volume",       yaxis_description=u'volume [µm³]',                 picture_file=picture_file, picture_formats=picture_formats)
-        self.plot(morphologies, quantity="cylindric_surface_area",                                                  picture_file=picture_file, picture_formats=picture_formats)
-        self.plot(morphologies, quantity="frustum_surface_area", yaxis_description=u'surface area [µm²]',           picture_file=picture_file, picture_formats=picture_formats)
-        self.plot(morphologies, quantity="branches",             yaxis_description='#branches',                     picture_file=picture_file, picture_formats=picture_formats)
-        self.plot(morphologies, quantity="path_length",          yaxis_description=u'total cell length [µm]',       picture_file=picture_file, picture_formats=picture_formats)
-        self.plot(morphologies, quantity="cylindric_mcse",                                                          picture_file=picture_file, picture_formats=picture_formats)
-        self.plot(morphologies, quantity="frustum_mcse",         yaxis_description=u"mean cross-section area [µm]", picture_file=picture_file, picture_formats=picture_formats)
-        #TODO: self.plot(morphologies, quantity="spatial_strech", yaxis_description='spatial_strech [$\mu$m]',               picture_file=picture_file, picture_formats=picture_formats)
+        self.plot_property(morphologies, quantity="cylindric_volume",                                                        picture_file=picture_file, picture_formats=picture_formats)
+        self.plot_property(morphologies, quantity="frustum_volume",       yaxis_description=u'volume [µm³]',                 picture_file=picture_file, picture_formats=picture_formats)
+        self.plot_property(morphologies, quantity="cylindric_surface_area",                                                  picture_file=picture_file, picture_formats=picture_formats)
+        self.plot_property(morphologies, quantity="frustum_surface_area", yaxis_description=u'surface area [µm²]',           picture_file=picture_file, picture_formats=picture_formats)
+        self.plot_property(morphologies, quantity="branches",             yaxis_description='#branches',                     picture_file=picture_file, picture_formats=picture_formats)
+        self.plot_property(morphologies, quantity="path_length",          yaxis_description=u'total cell length [µm]',       picture_file=picture_file, picture_formats=picture_formats)
+        self.plot_property(morphologies, quantity="cylindric_mcse",                                                          picture_file=picture_file, picture_formats=picture_formats)
+        self.plot_property(morphologies, quantity="frustum_mcse",         yaxis_description=u"mean cross-section area [µm]", picture_file=picture_file, picture_formats=picture_formats)
+        #TODO: self.plot_property(morphologies, quantity="spatial_strech", yaxis_description='spatial_strech [$\mu$m]',               picture_file=picture_file, picture_formats=picture_formats)
 
-    def plot(self, morphologies=[], quantity='volumes', yaxis_description=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+    def plot_property(self, morphologies=[], quantity='volumes', yaxis_description=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
         import matplotlib.pyplot
         import numpy
         #matplotlib.rc('text', usetex=True): error with names
@@ -407,7 +430,6 @@ class Morphology(object):
         matplotlib.pyplot.grid(True, color='lightgrey')
         
         matplotlib.pyplot.bar(ind, values, width, color='black')#
-        
 
         if(picture_file != None):
             for picture_format in picture_formats:
@@ -456,6 +478,31 @@ class Morphology(object):
         if(picture_file != None):
             for picture_format in picture_formats:
                 matplotlib.pyplot.savefig(picture_file+'.'+picture_format,format=picture_format)
+        else:
+            matplotlib.pyplot.show()
+        matplotlib.pyplot.close()
+
+    def plot(self, x=0, y=1, color='#00ff00', picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+        import matplotlib.pyplot    # 00ff00 00800 00ffff 008080 
+        xs  = [] 
+        ys  = []
+        ss  = []
+        for c in self.compartments:
+            xyz = (c.x, c.y, c.z)
+            xs.append(xyz[x])
+            ys.append(xyz[y])
+            ss.append(c.radius)
+
+        matplotlib.pyplot.scatter(xs, ys, s=ss, c=color, marker='x')#'. o
+        
+        if(picture_file != None):
+            for picture_format in picture_formats:
+                try:
+                    matplotlib.pyplot.savefig(picture_file+'.'+picture_format,format=picture_format)
+                except Exception, e:
+                    import traceback
+                    print picture_format 
+                    print traceback.format_exc()
         else:
             matplotlib.pyplot.show()
         matplotlib.pyplot.close()
