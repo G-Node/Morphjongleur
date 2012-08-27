@@ -251,6 +251,99 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         h    = Hull([Vector.fromArray(x) for x in xs])
         self.convex_enveloping_polyhedron_surface_area, self.convex_enveloping_polyhedron_volume   = h.surface_area_and_volume()
 
+    @staticmethod
+    def plot_all_properties(morphologies=[], picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+        MetricAnalysis.plot_property(morphologies, quantity="cylindric_volume",                                                        picture_file=picture_file, picture_formats=picture_formats)
+        MetricAnalysis.plot_property(morphologies, quantity="frustum_volume",       yaxis_description=u'volume [µm³]',                 picture_file=picture_file, picture_formats=picture_formats)
+        MetricAnalysis.plot_property(morphologies, quantity="cylindric_surface_area",                                                  picture_file=picture_file, picture_formats=picture_formats)
+        MetricAnalysis.plot_property(morphologies, quantity="frustum_surface_area", yaxis_description=u'surface area [µm²]',           picture_file=picture_file, picture_formats=picture_formats)
+        MetricAnalysis.plot_property(morphologies, quantity="branches",             yaxis_description='#branches',                     picture_file=picture_file, picture_formats=picture_formats)
+        MetricAnalysis.plot_property(morphologies, quantity="path_length",          yaxis_description=u'total cell length [µm]',       picture_file=picture_file, picture_formats=picture_formats)
+        MetricAnalysis.plot_property(morphologies, quantity="cylindric_mcsa",                                                          picture_file=picture_file, picture_formats=picture_formats)
+        MetricAnalysis.plot_property(morphologies, quantity="frustum_mcsa",         yaxis_description=u"mean cross-section area [µm]", picture_file=picture_file, picture_formats=picture_formats)
+        #TODO: MetricAnalysis.plot_property(morphologies, quantity="spatial_strech", yaxis_description='spatial_strech [$\mu$m]',               picture_file=picture_file, picture_formats=picture_formats)
+
+    @staticmethod
+    def plot_property(morphologies=[], quantity='volumes', yaxis_description=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+        import matplotlib.pyplot
+        import numpy
+        #matplotlib.rc('text', usetex=True): error with names
+
+        values   = []
+        xticks      = []
+        for m in morphologies:
+            values.append( m.info.__dict__[quantity] )
+            xticks.append( m.name.replace('_',' ') )
+        ind = numpy.arange(len(morphologies))    # the x locations for the groups
+        width = 0.35       # the width of the bars: can also be len(x) sequence
+        
+        if yaxis_description == None:
+            matplotlib.pyplot.ylabel(quantity.replace('_',' '))
+        else:
+            matplotlib.pyplot.ylabel(yaxis_description)
+        matplotlib.pyplot.title('change: DB: %f, VB: %f' %(float(morphologies[1].info.__dict__[quantity])/morphologies[0].info.__dict__[quantity], float(morphologies[3].info.__dict__[quantity])/morphologies[2].info.__dict__[quantity]))#TODO: verallgemeinern, verifizierren!
+        print '%s change: DB: %f, VB: %f' %(quantity, float(morphologies[1].info.__dict__[quantity])/morphologies[0].info.__dict__[quantity], float(morphologies[3].info.__dict__[quantity])/morphologies[2].info.__dict__[quantity])
+        matplotlib.pyplot.xticks(ind+width, xticks,rotation=9)#
+        #matplotlib.pyplot.yticks(numpy.arange(0,81,10))
+        matplotlib.pyplot.grid(True, color='lightgrey')
+        
+        matplotlib.pyplot.bar(ind, values, width, color='black')#
+
+        if(picture_file != None):
+            for picture_format in picture_formats:
+                try:
+                    matplotlib.pyplot.savefig(picture_file+quantity+'.'+picture_format,format=picture_format)
+                except Exception, e:
+                    import traceback
+                    print picture_format 
+                    print traceback.format_exc()
+        else:
+            matplotlib.pyplot.show()
+        matplotlib.pyplot.close()
+
+    @staticmethod
+    def plot_endpoints_histogramm(morphology, xlim=None, ylim=None, color='black', picture_file=None, picture_formats=['png', 'pdf', 'svg']):  
+        import matplotlib.pyplot
+        import numpy
+        #matplotlib.rc('text', usetex=True): error with names
+
+        x   = []
+        for c in morphology.leafs:
+            #print "%i/%i\r" % (len(x),len(morphology.leafs)), 
+            x.append(c.path_distance(morphology.biggest))
+        mean   = numpy.mean(x)
+        std    = numpy.std(x)
+
+        #matplotlib.pyplot.title('Endpoints of %s' % (morphology.name.replace('_',' ')) )
+        print 'Endpoints of %s : mean=%f, std=%f' % (morphology.name, mean, std)
+        
+        matplotlib.pyplot.axvline(x=mean, color='black')
+        matplotlib.pyplot.grid(True, color='lightgrey')
+        if xlim != None:#TODO: isnumber
+            matplotlib.pyplot.hist(x, bins=range(xlim[0],xlim[1],(xlim[1]-xlim[0])/100), normed=0, color=color)#, label='my data'
+        else:
+            matplotlib.pyplot.hist(x, 20, normed=0, color=color)#, label='my data'
+
+        matplotlib.pyplot.ylabel('#')#%
+        if ylim != None:
+            matplotlib.pyplot.ylim(ylim)
+        matplotlib.pyplot.xlabel(u'distance [µm]')
+        if xlim != None:
+            matplotlib.pyplot.xlim(xlim)
+
+        xmin, xmax, ymin, ymax  = matplotlib.pyplot.axis()
+        width    = std / (xmax-xmin)
+        center    = (mean - xmin) / (xmax-xmin)
+        matplotlib.pyplot.axhline(y=.5*(ymax-ymin), xmin=center-.5*width, xmax=center+.5*width, color='red')#TODO: höhe der Line = mittelwert der bins
+        matplotlib.pyplot.legend( [ 'mean %f' % ( mean ), 'std %f' % ( std )  ] )
+
+        if(picture_file != None):
+            for picture_format in picture_formats:
+                matplotlib.pyplot.savefig(picture_file+'.'+picture_format,format=picture_format)
+        else:
+            matplotlib.pyplot.show()
+        matplotlib.pyplot.close()
+
 if __name__ == '__main__':
     '''
     Parameter: files, not directories
@@ -261,10 +354,12 @@ if __name__ == '__main__':
     import sys
     import morphjongleur.util.parser.swc
     with_head   = True
-    for swc in sys.argv[1:]:#['../../data/test.swc']:#
-
-        m   = Morphology.swc_parse(swc, verbose=False)
-        a   = MetricAnalysis(m)
+    for swc in ['/home/stransky/git/mitsubachi/data/mitsubachi/H060607VB_10_2(whole).swc']:#sys.argv[1:]:#['../../data/test.swc']:#
+# H060602DB_10_2(whole).swc  H060607DB_10_2(whole).swc  H060602VB_10_2(whole).swc  H060607VB_10_2(whole).swc
+# #00ff00 #008000 #00ff80 #008080
+        morphology   = Morphology.swc_parse(swc, verbose=False)
+        MetricAnalysis.plot_endpoints_histogramm(morphology, xlim=(0, 1000), ylim=(0, 50), color='#008080', picture_file='/tmp/endpointdistribution_'+str(morphology.name), picture_formats=['svg', 'png'])
+        a   = MetricAnalysis(morphology)
         (ks, vs)    = a.variable_table(['name', #'datetime_recording', 
         'compartments', 'number_of_branching_points', 
         'total_cell_length', 'surface_length_frustrum', 
@@ -279,8 +374,8 @@ if __name__ == '__main__':
             with_head   = False
         print vs
         
-        m.plot(picture_file='/tmp/%s' % (m.name), picture_formats=['svg', 'png'])
-        m_pca   = m.pca()
+        morphology.plot(picture_file='/tmp/%s' % (morphology.name), picture_formats=['svg', 'png'])
+        m_pca   = morphology.pca()
         m_pca.swc_write('/tmp/%s_pca.swc' % (m_pca.name) )
         m_pca.plot(picture_file='/tmp/%s_pca' % (m_pca.name), picture_formats=['svg', 'png'])
         #print 80*'_'
