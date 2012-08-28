@@ -201,7 +201,7 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         #    self.terminaltips_distance += morphology.biggest.path_distance(compartment)
         #self.mean_terminaltips_distance   = self.terminaltips_distance / len(self.leafs)
         self.mean_terminaltips_distance = numpy.average( [morphology.biggest.path_distance(compartment) for compartment in self.leafs]  )
-        terminaltips_cross_section_area = 2 * pi * numpy.sum( [compartment.radius for compartment in self.leafs])
+        terminaltips_cross_section_area = 2 * math.pi * numpy.sum( [compartment.radius for compartment in self.leafs])
         
         self.cylindric_surface_area = self.cylindric_lateral_area + terminaltips_cross_section_area
         self.frustum_surface_area   = self.frustum_lateral_area   + terminaltips_cross_section_area
@@ -254,19 +254,19 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         h    = Hull([Vector.fromArray(x) for x in xs])
         self.convex_enveloping_polyhedron_surface_area, self.convex_enveloping_polyhedron_volume   = h.surface_area_and_volume()
 
-    def mean_branchpoint_distance(self)
+    def mean_branchpoint_distance(self):
         ''' 
         [~m]
         '''
         pass
 
-    def frustum_mean_cross_section_area(self)
+    def frustum_mean_cross_section_area(self):
         '''
         [~m²]
         '''
         pass
         
-    def frustrum_volume/surface_area(self):
+    def frustrum_volume_div_surface_area(self):
         '''
         [~m]
         '''
@@ -286,7 +286,7 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         '''
         pass
     
-    def cep_volume/cep_surface area(self):
+    def cep_volume_div_cep_surface_area(self):
         '''
         convex_enveloping_polyhedron_volume / convex_enveloping_polyhedron_surface_area
         [m]
@@ -307,7 +307,7 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         '''
         pass    
                                                       
-    def cepn_frustrum_volume_/_surface_area(self):
+    def cepn_frustrum_volume_div_surface_area(self):
         '''
         cylindric / polygon (volume / surface area)
         [#]
@@ -417,12 +417,12 @@ if __name__ == '__main__':
     import sys
     import morphjongleur.util.parser.swc
     with_head   = True
-    for swc in ['/home/stransky/git/mitsubachi/data/mitsubachi/H060602DB_10_2(whole).swc']:#sys.argv[1:]:#['../../data/test.swc']:#
+    for swc in sys.argv[1:]:#['../../data/test.swc']:#['/home/stransky/git/mitsubachi/data/mitsubachi/H060602DB_10_2(whole).swc']:
 # H060602DB_10_2(whole).swc H060607DB_10_2(whole).swc H060602VB_10_2(whole).swc H060607VB_10_2(whole).swc
 # #00ff00 #008000 #00ff80 #008080
-        color='#00ff00'
+        color='#000000'
         morphology   = Morphology.swc_parse(swc, verbose=False)
-        MetricAnalysis.plot_endpoints_histogramm(morphology, xlim=(0, 900), ylim=(0, 42), color=color, picture_file='/tmp/endpointdistribution_'+str(morphology.name), picture_formats=['svg', 'png'])
+        MetricAnalysis.plot_endpoints_histogramm(morphology, xlim=(0, 850), ylim=(0, 43), color=color, picture_file='/tmp/endpointdistribution_'+str(morphology.name), picture_formats=['svg', 'png'])
         a   = MetricAnalysis(morphology)
         (ks, vs)    = a.variable_table(['name', #'datetime_recording', 
         'compartments', 'number_of_branching_points', 
