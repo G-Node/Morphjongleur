@@ -192,13 +192,16 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
 #                print >> sys.stderr, "compartment %i in morphology %s has branchpoint_distance %f" % (compartment.compartment_id, morphology.name, parent_brachpoint_distance)
 #                self.harmonic_mean_branchpoint_distance   = float('nan')
 
-        terminaltips_cross_section_area = 0
-        self.terminaltips_distance   = 0
-        for compartment in self.leafs:
-            terminaltip_cross_section_area  = 2* math.pi * compartment.radius
-            terminaltips_cross_section_area += terminaltip_cross_section_area
-            self.terminaltips_distance += morphology.biggest.path_distance(compartment)
-        self.mean_terminaltips_distance   = self.terminaltips_distance / len(self.leafs)
+        #TODO: check
+        #terminaltips_cross_section_area = 0
+        #self.terminaltips_distance   = 0
+        #for compartment in self.leafs:
+        #    terminaltip_cross_section_area  = 2* math.pi * compartment.radius
+        #    terminaltips_cross_section_area += terminaltip_cross_section_area
+        #    self.terminaltips_distance += morphology.biggest.path_distance(compartment)
+        #self.mean_terminaltips_distance   = self.terminaltips_distance / len(self.leafs)
+        self.mean_terminaltips_distance = numpy.average( [morphology.biggest.path_distance(compartment) for compartment in self.leafs]  )
+        terminaltips_cross_section_area = 2 * pi * numpy.sum( [compartment.radius for compartment in self.leafs])
         
         self.cylindric_surface_area = self.cylindric_lateral_area + terminaltips_cross_section_area
         self.frustum_surface_area   = self.frustum_lateral_area   + terminaltips_cross_section_area
@@ -250,6 +253,66 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
 
         h    = Hull([Vector.fromArray(x) for x in xs])
         self.convex_enveloping_polyhedron_surface_area, self.convex_enveloping_polyhedron_volume   = h.surface_area_and_volume()
+
+    def mean_branchpoint_distance(self)
+        ''' 
+        [~m]
+        '''
+        pass
+
+    def frustum_mean_cross_section_area(self)
+        '''
+        [~m²]
+        '''
+        pass
+        
+    def frustrum_volume/surface_area(self):
+        '''
+        [~m]
+        '''
+        pass
+    
+    def esn_surface_area(self):
+        '''
+        surface area / equal volume minial shere surface area
+        [#]
+        '''
+        pass
+
+    def esn_volume(self):
+        '''
+        volume / equal surface area sphere volume
+        [#]
+        '''
+        pass
+    
+    def cep_volume/cep_surface area(self):
+        '''
+        convex_enveloping_polyhedron_volume / convex_enveloping_polyhedron_surface_area
+        [m]
+        '''
+        pass
+        
+    def cepn_volume(self):
+        '''
+        frustrum volume / polygon volume
+        [#]
+        '''
+        pass    
+                                          
+    def cepn_frustrum_surface_area(self):
+        '''
+        frustrum surface area / polygon surface area
+        [#]
+        '''
+        pass    
+                                                      
+    def cepn_frustrum_volume_/_surface_area(self):
+        '''
+        cylindric / polygon (volume / surface area)
+        [#]
+        '''
+        pass
 
     @staticmethod
     def plot_all_properties(morphologies=[], picture_file=None, picture_formats=['png', 'pdf', 'svg']):
@@ -320,9 +383,9 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         matplotlib.pyplot.axvline(x=mean, color='black')
         matplotlib.pyplot.grid(True, color='lightgrey')
         if xlim != None:#TODO: isnumber
-            matplotlib.pyplot.hist(x, bins=range(xlim[0],xlim[1],(xlim[1]-xlim[0])/100), normed=0, color=color)#, label='my data'
+            matplotlib.pyplot.hist(x, bins=range(xlim[0],xlim[1],10), normed=0, color=color, edgecolor=color)#, label='my data'
         else:
-            matplotlib.pyplot.hist(x, 20, normed=0, color=color)#, label='my data'
+            matplotlib.pyplot.hist(x, 20, normed=0, color=color, edgecolor=color)#, label='my data'
 
         matplotlib.pyplot.ylabel('#')#%
         if ylim != None:
@@ -342,7 +405,7 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
                 matplotlib.pyplot.savefig(picture_file+'.'+picture_format,format=picture_format)
         else:
             matplotlib.pyplot.show()
-        matplotlib.pyplot.close()
+        matplotlib.pyplot.close('all')
 
 if __name__ == '__main__':
     '''
@@ -354,11 +417,12 @@ if __name__ == '__main__':
     import sys
     import morphjongleur.util.parser.swc
     with_head   = True
-    for swc in ['/home/stransky/git/mitsubachi/data/mitsubachi/H060607VB_10_2(whole).swc']:#sys.argv[1:]:#['../../data/test.swc']:#
-# H060602DB_10_2(whole).swc  H060607DB_10_2(whole).swc  H060602VB_10_2(whole).swc  H060607VB_10_2(whole).swc
+    for swc in ['/home/stransky/git/mitsubachi/data/mitsubachi/H060602DB_10_2(whole).swc']:#sys.argv[1:]:#['../../data/test.swc']:#
+# H060602DB_10_2(whole).swc H060607DB_10_2(whole).swc H060602VB_10_2(whole).swc H060607VB_10_2(whole).swc
 # #00ff00 #008000 #00ff80 #008080
+        color='#00ff00'
         morphology   = Morphology.swc_parse(swc, verbose=False)
-        MetricAnalysis.plot_endpoints_histogramm(morphology, xlim=(0, 1000), ylim=(0, 50), color='#008080', picture_file='/tmp/endpointdistribution_'+str(morphology.name), picture_formats=['svg', 'png'])
+        MetricAnalysis.plot_endpoints_histogramm(morphology, xlim=(0, 900), ylim=(0, 42), color=color, picture_file='/tmp/endpointdistribution_'+str(morphology.name), picture_formats=['svg', 'png'])
         a   = MetricAnalysis(morphology)
         (ks, vs)    = a.variable_table(['name', #'datetime_recording', 
         'compartments', 'number_of_branching_points', 
@@ -374,15 +438,8 @@ if __name__ == '__main__':
             with_head   = False
         print vs
         
-        morphology.plot(picture_file='/tmp/%s' % (morphology.name), picture_formats=['svg', 'png'])
+        morphology.plot(color=color, picture_file='/tmp/%s' % (morphology.name), picture_formats=['svg', 'png'])
         m_pca   = morphology.pca()
         m_pca.swc_write('/tmp/%s_pca.swc' % (m_pca.name) )
-        m_pca.plot(picture_file='/tmp/%s_pca' % (m_pca.name), picture_formats=['svg', 'png'])
-        #print 80*'_'
-        #print str(a)
-        #print 80*'_'
-        #print repr(a)
-        #print 80*'_'
-        #print m
-        #print 80*'_'
-    #a.convex_enveloping_polyeder_hull.Print()
+        m_pca.plot(color=color, picture_file='/tmp/%s_pca' % (m_pca.name), picture_formats=['svg', 'png'])
+        #a.convex_enveloping_polyeder_hull.Print()

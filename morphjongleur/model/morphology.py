@@ -406,7 +406,7 @@ class Morphology(object):
             ys.append(xyz[y])
             ss.append(c.radius)
 
-        matplotlib.pyplot.scatter(xs, ys, s=ss, c=color, marker='x')#'. o
+        matplotlib.pyplot.scatter(xs, ys, s=ss, c=color, marker='.', edgecolors=color)#'. o
         
         if(picture_file != None):
             for picture_format in picture_formats:
