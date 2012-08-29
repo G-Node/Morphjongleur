@@ -80,7 +80,7 @@ class Compartment(object):
         right   = compartment
         leftp = {};
         rightp = {};
-        while True:
+        while left != right:
             if(left.compartment_parent_id > 0):
                 left=left.parent
                 leftp[left.compartment_id] = True
@@ -91,6 +91,7 @@ class Compartment(object):
                 rightp[right.compartment_id] = True;
                 if(leftp.get(right.compartment_id) != None):
                     return right;
+        return left
 
     def neuron_create(self, parent, parent_location=1, self_location=0 ):
         '''
@@ -245,8 +246,9 @@ class Morphology(object):
 #                if len(c.children) == 0:
 #                    self._leafs.append(c)
                 if len(c.children) > 1:
-                    self._branching_points.append(c) 
+                    self._branching_points.append(c)
         return self._branching_points
+
     @branching_points.setter
     def branching_points(self, value):      raise AttributeError("cannot change calculated information")
     @branching_points.deleter
@@ -407,6 +409,7 @@ class Morphology(object):
             ss.append(c.radius)
 
         matplotlib.pyplot.scatter(xs, ys, s=ss, c=color, marker='.', edgecolors=color)#'. o
+        matplotlib.pyplot.axes().set_aspect('equal', 'datalim')
         
         if(picture_file != None):
             for picture_format in picture_formats:

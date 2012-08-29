@@ -205,9 +205,7 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         
         self.cylindric_surface_area = self.cylindric_lateral_area + terminaltips_cross_section_area
         self.frustum_surface_area   = self.frustum_lateral_area   + terminaltips_cross_section_area
-        
-        self.cylindric_mean_cross_section_area   = self.cylindric_volume / self.total_cell_length
-        self.frustum_mean_cross_section_area     = self.frustum_volume / self.total_cell_length
+
         self.arithmetic_mean_cross_section_area  /= self.compartments
         self.geometric_mean_cross_section_area   = math.pow(self.geometric_mean_cross_section_area, 1./self.compartments)
         self.harmonic_mean_cross_section_area    = self.compartments/self.harmonic_mean_cross_section_area
@@ -216,7 +214,7 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         self.geometric_mean_branchpoint_cross_section_area  = math.pow(self.geometric_mean_branchpoint_cross_section_area, 1./self.number_of_branching_points)
         self.harmonic_mean_branchpoint_cross_section_area   = self.number_of_branching_points / self.harmonic_mean_branchpoint_cross_section_area
         
-        self.mean_branchpoint_distance   = self.total_cell_length / self.number_of_leafs   #not self.number_of_branching_points
+        
         self.arithmetic_mean_branchpoint_distance    /= self.number_of_branching_points
         self.geometric_mean_branchpoint_distance    = math.pow(self.geometric_mean_branchpoint_distance, 1./self.number_of_branching_points)
         self.harmonic_mean_branchpoint_distance    = float('nan')#TODO: self.number_of_branching_points / self.harmonic_mean_branchpoint_distance
@@ -251,68 +249,129 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         '''
         #self.pca_rhombus =  self.pca_lengths[0] * numpy.sqrt(numpy.square(self.pca_lengths[2]) + numpy.square(self.pca_lengths[1]))
 
-        h    = Hull([Vector.fromArray(x) for x in xs])
-        self.convex_enveloping_polyhedron_surface_area, self.convex_enveloping_polyhedron_volume   = h.surface_area_and_volume()
+        self.convex_enveloping_polyhedron_hull    = Hull([Vector.fromArray(x) for x in xs])
+        self.convex_enveloping_polyhedron_surface_area, self.convex_enveloping_polyhedron_volume   = self.convex_enveloping_polyhedron_hull.surface_area_and_volume()
 
-    def mean_branchpoint_distance(self):
+    def _mean_branchpoint_distance(self):
         ''' 
         [~m]
         '''
-        pass
+        return self.total_cell_length / self.number_of_leafs   #not self.number_of_branching_points + 1
+    mean_branchpoint_distance = property(_mean_branchpoint_distance)
 
-    def frustum_mean_cross_section_area(self):
+    def _cylindric_mean_cross_section_area(self):
         '''
         [~m²]
         '''
-        pass
+        return self.cylindric_volume / self.total_cell_length
+    cylindric_mean_cross_section_area = property(_cylindric_mean_cross_section_area)
+
+    def _frustum_mean_cross_section_area(self):
+        '''
+        [~m²]
+        '''
+        return self.frustum_volume / self.total_cell_length
+    frustum_mean_cross_section_area = property(_frustum_mean_cross_section_area)
         
-    def frustrum_volume_div_surface_area(self):
+    def _frustrum_volume_div_surface_area(self):
         '''
         [~m]
         '''
-        pass
+        return self.frustum_volume / self.frustum_surface_area
+    frustrum_volume_div_surface_area = property(_frustrum_volume_div_surface_area)
     
-    def esn_surface_area(self):
+    def _es_volume(self):
+        '''
+        volume of minial shere with equal surface area
+        [~m³]
+        '''
+        return 4./3 * math.pi * ( self.frustum_surface_area / 4. / math.pi) ** (3./2)
+    es_volume = property(_es_volume)
+    
+    def _es__surface_area(self):
+        '''
+        surface area of minial shere with equal volume 
+        [~m³]
+        '''
+        return 4 * math.pi *  (3./4 * self.frustum_volume / math.pi) ** (2./3)
+    es_surface_area = property(_es__surface_area)
+
+    def _es_volume_div_surface(self):
+        '''
+        4/3 radius ?
+        [m]
+        '''
+        return self.es_frustrum_volume / self.es_frustrum_surface_area
+    es_volume_div_surface = property(_es_volume_div_surface)
+
+    def _esn_frustrum_surface_area(self):
         '''
         surface area / equal volume minial shere surface area
         [#]
         '''
-        pass
+        return self.frustum_surface_area / self.es_surface_area
+    esn_frustrum_surface_area = property(_esn_frustrum_surface_area)
 
-    def esn_volume(self):
+    def _esn_frustrum_volume(self):
         '''
         volume / equal surface area sphere volume
         [#]
         '''
-        pass
+        return self.frustum_volume / self.es_volume
+    esn_frustrum_volume = property(_esn_frustrum_volume)
+
+    def _esn_volume_div_surface(self):
+        '''
+        4/3 radius ?
+        [m]
+        TODO: == es ? 
+        '''
+        return self.esn_frustrum_volume / self.esn_frustrum_surface_area
+    esn_volume_div_surface = property(_esn_volume_div_surface)
+
+    def _esn_cep_volume(self):
+        return self.convex_enveloping_polyhedron_volume / self.es_volume
+    esn_cep_volume = property(_esn_cep_volume)
+
+    def _esn_cep_surface_area(self):
+        return self.convex_enveloping_polyhedron_surface_area / self.es_surface_area
+    esn_cep_surface_area = property(_esn_cep_surface_area)
     
-    def cep_volume_div_cep_surface_area(self):
+    def _esn_cep_volume_div_surface_area(self):
+        return self.esn_cep_volume / self.esn_cep_surface_area
+    esn_cep_volume_div_surface_area = property(_esn_cep_volume_div_surface_area)
+
+    def _cep_volume_div_cep_surface_area(self):
         '''
         convex_enveloping_polyhedron_volume / convex_enveloping_polyhedron_surface_area
         [m]
         '''
-        pass
+        return self.convex_enveloping_polyhedron_volume / self.convex_enveloping_polyhedron_surface_area
+    cep_volume_div_cep_surface_area = property(_cep_volume_div_cep_surface_area)
         
-    def cepn_volume(self):
+    def _cepn_volume(self):
         '''
         frustrum volume / polygon volume
         [#]
         '''
-        pass    
+        return self.frustum_volume / self.convex_enveloping_polyhedron_volume
+    cepn_volume = property(_cepn_volume)
                                           
-    def cepn_frustrum_surface_area(self):
+    def _cepn_frustrum_surface_area(self):
         '''
         frustrum surface area / polygon surface area
         [#]
         '''
-        pass    
+        return self.frustum_surface_area / self.convex_enveloping_polyhedron_surface_area
+    cepn_frustrum_surface_area = property(_cepn_frustrum_surface_area)
                                                       
-    def cepn_frustrum_volume_div_surface_area(self):
+    def _cepn_volume_div_surface_area(self):
         '''
-        cylindric / polygon (volume / surface area)
+        frustrum / polygon (volume / surface area)
         [#]
         '''
-        pass
+        return self.cepn_volume / self.cepn_frustrum_surface_area
+    cepn_volume_div_surface_area = property( _cepn_volume_div_surface_area)
 
     @staticmethod
     def plot_all_properties(morphologies=[], picture_file=None, picture_formats=['png', 'pdf', 'svg']):
@@ -365,34 +424,31 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         matplotlib.pyplot.close()
 
     @staticmethod
-    def plot_endpoints_histogramm(morphology, xlim=None, ylim=None, color='black', picture_file=None, picture_formats=['png', 'pdf', 'svg']):  
+    def plot_distance_distribution(compartment_iterable, center, name='', bins=20, xlim=None, ylim=None, color='black', picture_file=None, picture_formats=['png', 'pdf', 'svg']):  
         import matplotlib.pyplot
         import numpy
         #matplotlib.rc('text', usetex=True): error with names
 
-        x   = []
-        for c in morphology.leafs:
-            #print "%i/%i\r" % (len(x),len(morphology.leafs)), 
-            x.append(c.path_distance(morphology.biggest))
+        x   = [c.path_distance(center) for c in compartment_iterable]
         mean   = numpy.mean(x)
         std    = numpy.std(x)
 
-        #matplotlib.pyplot.title('Endpoints of %s' % (morphology.name.replace('_',' ')) )
-        print 'Endpoints of %s : mean=%f, std=%f' % (morphology.name, mean, std)
+        #matplotlib.pyplot.title('Endpoints of %s' % (name.replace('_',' ')) )
+        #print 'distribution of %s : mean=%f, std=%f' % (name, mean, std)
         
         matplotlib.pyplot.axvline(x=mean, color='black')
         matplotlib.pyplot.grid(True, color='lightgrey')
         if xlim != None:#TODO: isnumber
-            matplotlib.pyplot.hist(x, bins=range(xlim[0],xlim[1],10), normed=0, color=color, edgecolor=color)#, label='my data'
+            matplotlib.pyplot.hist(x, bins=range(0,xlim,bins), normed=0, color=color, edgecolor=color)#, label='my data'
         else:
-            matplotlib.pyplot.hist(x, 20, normed=0, color=color, edgecolor=color)#, label='my data'
+            matplotlib.pyplot.hist(x, bins, normed=0, color=color, edgecolor=color)#, label='my data'
 
         matplotlib.pyplot.ylabel('#')#%
         if ylim != None:
-            matplotlib.pyplot.ylim(ylim)
+            matplotlib.pyplot.ylim((0,ylim))
         matplotlib.pyplot.xlabel(u'distance [µm]')
         if xlim != None:
-            matplotlib.pyplot.xlim(xlim)
+            matplotlib.pyplot.xlim((0,xlim))
 
         xmin, xmax, ymin, ymax  = matplotlib.pyplot.axis()
         width    = std / (xmax-xmin)
@@ -417,13 +473,24 @@ if __name__ == '__main__':
     import sys
     import morphjongleur.util.parser.swc
     with_head   = True
-    for swc in sys.argv[1:]:#['../../data/test.swc']:#['/home/stransky/git/mitsubachi/data/mitsubachi/H060602DB_10_2(whole).swc']:
-# H060602DB_10_2(whole).swc H060607DB_10_2(whole).swc H060602VB_10_2(whole).swc H060607VB_10_2(whole).swc
-# #00ff00 #008000 #00ff80 #008080
-        color='#000000'
+    colors = ['#000000', '#00ff00','#008000','#00ff80','#008080']# H060602DB_10_2(whole).swc H060607DB_10_2(whole).swc H060602VB_10_2(whole).swc H060607VB_10_2(whole).swc
+    i = 0
+    for swc in sys.argv[1:]:#['../../data/test.swc']:#
+
+        color = colors[i]
+        i += 1
+
         morphology   = Morphology.swc_parse(swc, verbose=False)
-        MetricAnalysis.plot_endpoints_histogramm(morphology, xlim=(0, 850), ylim=(0, 43), color=color, picture_file='/tmp/endpointdistribution_'+str(morphology.name), picture_formats=['svg', 'png'])
+        morphology.plot(color=color, picture_file='/tmp/%s' % (morphology.name), picture_formats=['svg', 'png'])
+        m_pca   = morphology.pca()
+        #m_pca.swc_write('/tmp/%s_pca.swc' % (m_pca.name) )
+        m_pca.plot(color=color, picture_file='/tmp/%s_pca' % (m_pca.name), picture_formats=['svg', 'png'])        
+
+        MetricAnalysis.plot_distance_distribution(morphology.leafs, morphology.biggest, morphology.name, bins=20, xlim=850, ylim=75, color=color, picture_file='/tmp/endpoint_distribution_'+str(morphology.name), picture_formats=['svg', 'png'])#850, 43
+        MetricAnalysis.plot_distance_distribution(morphology.branching_points, morphology.biggest, morphology.name, bins=20, xlim=850, ylim=65, color=color, picture_file='/tmp/branchpoint_distribution_'+str(morphology.name), picture_formats=['svg', 'png'])
         a   = MetricAnalysis(morphology)
+        a.convex_enveloping_polyhedron_hull.write('/tmp/hull_'+str(morphology.name))
+
         (ks, vs)    = a.variable_table(['name', #'datetime_recording', 
         'compartments', 'number_of_branching_points', 
         'total_cell_length', 'surface_length_frustrum', 
@@ -431,15 +498,14 @@ if __name__ == '__main__':
         'frustum_volume', 'frustum_surface_area', 
         'pca_length_x', 'pca_length_y', 'pca_length_z', 
         'convex_enveloping_polyhedron_volume', 'convex_enveloping_polyhedron_surface_area', 
+        'mean_branchpoint_distance', 
+        'frustum_mean_cross_section_area', 'frustrum_volume_div_surface_area', 
+        'esn_frustrum_surface_area', 'esn_frustrum_volume', 'es_volume_div_surface', 
+        'cepn_volume','cepn_frustrum_surface_area', 'cep_volume_div_cep_surface_area',  
+        'cepn_volume_div_surface_area',
         ])
         
         if with_head:
             print ks
             with_head   = False
         print vs
-        
-        morphology.plot(color=color, picture_file='/tmp/%s' % (morphology.name), picture_formats=['svg', 'png'])
-        m_pca   = morphology.pca()
-        m_pca.swc_write('/tmp/%s_pca.swc' % (m_pca.name) )
-        m_pca.plot(color=color, picture_file='/tmp/%s_pca' % (m_pca.name), picture_formats=['svg', 'png'])
-        #a.convex_enveloping_polyeder_hull.Print()

@@ -208,11 +208,20 @@ class Hull:
 							(f.edge[j].endpts[0] == f.vertex[(i+1)%3]))) :
 							# Swap it with the one erroneously put into its place
 							(f.edge[i],f.edge[j]) = (f.edge[j],f.edge[i])
-	def Print(self):
-		print("solid points")
-		for f in self.faces:
-			print(f)
-		print("endsolid points")
+
+	def __str__(self):
+		str_list	= ['solid points'] 
+		str_list.extend( [str(f) for f in self.faces] )
+		str_list.append('endsolid points')
+		return '\n'.join(str_list)
+		
+	def write(self, f):
+		'''
+		http://www.subdude-site.com/WebPages_Local/RefInfo/Computer/Linux/LinuxGuidesByBlaze/apps3Dtools/3D_viewers-converters/3DviewersANDconverters_intro.htm
+		'''
+		stream  = open(f+'.stl', 'w')
+		stream.write(str(self))
+		stream.close()
 
 	def debug(self,msg=''):
 		s=[msg+'\n']
@@ -544,4 +553,4 @@ if __name__ == "__main__":
 	h=Hull(pyramide)
 	#h=Hull(sphere)
 	print(h.debug("#%i faces with %f surface area %f volume" % (len(h.faces), h.surface_area(), h.volume()) ))
-	h.Print()
+	h.write('/tmp/chull')
