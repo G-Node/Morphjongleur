@@ -15,14 +15,14 @@ def _return_dict(self):
                 if isinstance(self.__dict__[v], allowed_type): #http://docs.python.org/reference/datamodel.html#objects-values-and-types http://docs.python.org/library/types.html#types.FunctionType
                     dictionary[v] = self.__dict__[v]
                     filtered.remove(v)   # not filtered because of confenience
-    for v in vars(self.__class__):  #self.__class__    #SQLAlchemy:    m._sa_instance_state.dictionary
-        #self.__dict__.has_key(v) and # may not be mapped from DB
-        if (not v.startswith('_') or self.__show_hidden): #or isinstance(self.__dict__[v], types.MethodType) or isinstance(self.__dict__[v], types.BuiltinMethodType) ) #type __module__ =str, method instance
-            filtered.append(v)
-            for allowed_type in self.__list_of_types:
-                if isinstance(self.__class__.__dict__[v], allowed_type): #http://docs.python.org/reference/datamodel.html#objects-values-and-types http://docs.python.org/library/types.html#types.FunctionType
-                    dictionary[v] = getattr(self, '_'+v)()  #TODO: very bad hack assuming _name
-                    filtered.remove(v)   # not filtered because of confenience
+    #for v in vars(self.__class__):  #self.__class__    #SQLAlchemy:    m._sa_instance_state.dictionary
+    #    #self.__dict__.has_key(v) and # may not be mapped from DB
+    #    if (not v.startswith('_') or self.__show_hidden): #or isinstance(self.__dict__[v], types.MethodType) or isinstance(self.__dict__[v], types.BuiltinMethodType) ) #type __module__ =str, method instance
+    #        filtered.append(v)
+    #        for allowed_type in self.__list_of_types:
+    #            if isinstance(self.__class__.__dict__[v], allowed_type): #http://docs.python.org/reference/datamodel.html#objects-values-and-types http://docs.python.org/library/types.html#types.FunctionType
+    #                dictionary[v] = getattr(self, '_'+v)()  #TODO: very bad hack assuming _name
+    #                filtered.remove(v)   # not filtered because of confenience
     return (dictionary,filtered)
 
 def __repr__(self):

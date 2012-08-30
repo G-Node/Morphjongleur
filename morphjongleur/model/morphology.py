@@ -32,13 +32,8 @@ class Compartment(object):
     @property
     def info(self):
         if self._info[0] == None:
-            self._info[0]   = Compartment_info
+            self._info[0]   = Compartment_info()
         return self._info[0]
-    @info.setter
-    def info(self, value):  raise AttributeError("cannot change calculated information")
-    @info.deleter
-    def info(self):         del self._info
-    #info = property(get_info, set_info, del_info, "I'm the 'dict' property, containing calculated properties.")
 
     @property
     def parent_distance(self):
@@ -56,11 +51,6 @@ class Compartment(object):
                  +    ((self.parent.z - self.z) ** 2)
                  )
         return self._parent_distance
-    @parent_distance.setter
-    def parent_distance(self, value):  raise AttributeError("cannot change calculated information")
-    @parent_distance.deleter
-    def parent_distance(self):         del self._parent_distance
-    #parent_distance= property(get_info, set_info, del_info, "I'm the 'dict' property, containing calculated properties.")
 
     def path_distance(self, compartment):
         a = self.lca(compartment);
@@ -78,16 +68,16 @@ class Compartment(object):
     def lca(self, compartment):
         left    = self
         right   = compartment
-        leftp = {};
-        rightp = {};
+        leftp   = {left.compartment_id : True}
+        rightp  = {right.compartment_id : True}
         while left != right:
             if(left.compartment_parent_id > 0):
-                left=left.parent
+                left    = left.parent
                 leftp[left.compartment_id] = True
                 if(rightp.get(left.compartment_id) != None):
                     return left;
             if(right.compartment_parent_id > 0):
-                right=right.parent
+                right   = right.parent
                 rightp[right.compartment_id] = True;
                 if(leftp.get(right.compartment_id) != None):
                     return right;
@@ -115,6 +105,83 @@ class Compartment(object):
 #            self.neuron_h_Section.z3d = self.z
         self.neuron_h_Section.connect( parent.neuron_h_Section, parent_location, self_location) #connect c 0 with parent(1)
 
+    def plot(self, center={'x':0,'y':0,'z':0}, name='', xlim=None, ylim=None, color='#000000', picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+        Compartment.plot_distance([self], center=center, name=name, xlim=xlim, ylim=xlim, color=color, picture_file=picture_file, picture_formats=picture_formats)
+
+    @staticmethod
+    def plot_distance(compartment_iterable, center, name='', xlim=None, ylim=None, color='#000000', picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+        import scipy.stats.stats
+        import numpy
+        import matplotlib.pyplot
+        radii   = [c.radius for c in compartment_iterable]
+        distances   = [c.path_distance(center) for c in compartment_iterable]
+        matplotlib.pyplot.scatter(distances, radii, c=color, marker='.', edgecolors=color)
+
+        r_mean  = numpy.mean(radii)
+        r_std   = numpy.std(radii)
+        r_gmean = scipy.stats.stats.gmean(radii)
+        r_hmean = scipy.stats.stats.hmean(radii)
+        r_median= numpy.median(radii)
+        
+        matplotlib.pyplot.axhline(y=r_mean,     color='blue')
+        xmin, xmax, ymin, ymax  = matplotlib.pyplot.axis()
+        width    = r_std / (ymax-ymin)
+        center    = (r_mean - ymin) / (ymax-ymin)
+        matplotlib.pyplot.axvline(x=.5*(xmax-xmin), ymin=center-.5*width, ymax=center+.5*width, color='red')
+        matplotlib.pyplot.axhline(y=r_gmean,    color='violet')
+        matplotlib.pyplot.axhline(y=r_hmean,    color='orange')
+        matplotlib.pyplot.axhline(y=r_median,   color='black')
+        
+        d_mean  = numpy.mean(distances)
+        d_std   = numpy.std(distances)
+        if numpy.min(distances) <= 0:
+            d_gmean = 0
+            d_hmean = 0
+        else:
+            d_gmean = scipy.stats.stats.gmean(distances)
+            d_hmean = scipy.stats.stats.hmean(distances)
+        d_median= numpy.median(distances)
+        
+        matplotlib.pyplot.axvline(x=d_mean,     color='blue')
+        xmin, xmax, ymin, ymax  = matplotlib.pyplot.axis()
+        width    = d_std / (xmax-xmin)
+        center    = (d_mean - xmin) / (xmax-xmin)
+        matplotlib.pyplot.axhline(y=.5*(xmax-xmin), xmin=center-.5*width, xmax=center+.5*width, color='red')
+        matplotlib.pyplot.axvline(x=d_gmean,    color='violet')
+        matplotlib.pyplot.axvline(x=d_hmean,    color='orange')
+        matplotlib.pyplot.axvline(x=d_median,   color='black')
+
+        matplotlib.pyplot.legend( [ 
+            'r mean %f' % ( r_mean ), 
+            'r std %f' % ( r_std ), 
+            'r gmean %f' % ( r_gmean ),
+            'r hmean %f' % ( r_hmean ),
+            'r median %f' % ( r_median ),
+            'd mean %f' % ( d_mean ), 
+            'd std %f' % ( d_std ), 
+            'd gmean %f' % ( d_gmean ),
+            'd hmean %f' % ( d_hmean ),
+            'd median %f' % ( d_median ),
+            'compartments'
+        ] )
+        matplotlib.pyplot.ylabel(u'radius [µm]')
+        if ylim != None:
+            matplotlib.pyplot.ylim((0,ylim))
+        matplotlib.pyplot.xlabel(u'distance [µm]')
+        if xlim != None:
+            matplotlib.pyplot.xlim((0,xlim))
+        
+        if(picture_file != None):
+            for picture_format in picture_formats:
+                try:
+                    matplotlib.pyplot.savefig(picture_file+'.'+picture_format,format=picture_format)
+                except Exception, e:
+                    print picture_format 
+                    print traceback.format_exc()
+        else:
+            matplotlib.pyplot.show()
+        matplotlib.pyplot.close()
+
     def __repr__(self):
         return "Compartment(%i, %i, %f, %f,%f,%f)" % (
             self.compartment_id, self.compartment_parent_id, self.radius, self.x, self.y, self.z)
@@ -134,6 +201,7 @@ class Compartment(object):
             str( self.info if self.info != None else ''),
             "           ,\n".join(map(str, self._groups)),
             )
+
 
 class Morphology(object):
     '''
@@ -159,7 +227,6 @@ class Morphology(object):
             self.compartments   = []
         else:
             self.compartments   = compartments
-        self.info              = None
         self._info              = [None]
         self._groups            = []
 
@@ -171,151 +238,11 @@ class Morphology(object):
         #not orm mapped
         self._compartments_map  = {}
 
-#    @property
-#    def info(self):
-        #if self.info == None:
-#TODO:            self._info[0]   = Morphology_info()
-        #            pass
-#        return self.info
-#    @info.setter
-#    def info(self, value):  raise AttributeError("cannot change calculated information")
-#    @info.deleter
-#    def info(self):         del self._info
-    #info = property(get_info, set_info, del_info, "I'm the 'dict' property, containing calculated properties.")
-
     @property
-    def compartments_map(self):
-        if not vars(self).has_key('_compartments_map') or self._compartments_map == {}:
-            self._create_tree()
-        return self._compartments_map
-    @compartments_map.setter
-    def compartments_map(self, value):  raise AttributeError("cannot change calculated information")
-    @compartments_map.deleter
-    def compartments_map(self):         self._compartments_map  = {}#del self._compartments_map
-    #compartments_map    = property(get_compartments_map, set_compartments_map, del_compartments_map, "I'm the 'dict' property, containing compartments_map.")
-
-    @property
-    def root(self):
-        if not vars(self).has_key('_root') or self._root == None:
-            self._create_tree()
-        return self._root
-    @root.setter
-    def root(self, value):        raise AttributeError("cannot change calculated information")
-    @root.deleter
-    def root(self):        self._root        = None #del self._root
-    #root = property(get_root, set_root, del_root, "I'm the 'dict' property, containing the root property.")
-
-    @property
-    def biggest(self):
-        if not vars(self).has_key('_biggest') or self._biggest == None:
-            self._create_tree()
-        return self._biggest
-    @biggest.setter
-    def biggest(self, value):        raise AttributeError("cannot change calculated information")
-    @biggest.deleter
-    def biggest(self):               self._biggest   = None #del self._biggest
-    #biggest = property(get_biggest, set_biggest, del_biggest, "I'm the 'dict' property, containing the root property.")
-
-    @property
-    def leafs(self):
-        if not vars(self).has_key('_leafs'):
-            self._leafs = []
-            #self._branching_points = []
-        if self._leafs == []:
-            self._create_tree()
-            for c in self.compartments:
-                if len(c.children) == 0:
-                    self._leafs.append(c)
-#                elif len(c.children) > 1:
-#                    self.branching_points.append(c) 
-        return self._leafs
-    @leafs.setter
-    def leafs(self, value):        raise AttributeError("cannot change calculated information")
-    @leafs.deleter
-    def leafs(self):               self._leafs               = [] #del self._leafs
-    #leafs = property(get_leafs, set_leafs, del_leafs, "I'm the 'dict' property, containing the root property.")
-
-    @property
-    def branching_points(self):
-        if not vars(self).has_key('_branching_points'):
-            self._branching_points = []
-            #self._leafs = []
-        if self._branching_points == []:
-            self._create_tree()
-            for c in self.compartments:
-#                if len(c.children) == 0:
-#                    self._leafs.append(c)
-                if len(c.children) > 1:
-                    self._branching_points.append(c)
-        return self._branching_points
-
-    @branching_points.setter
-    def branching_points(self, value):      raise AttributeError("cannot change calculated information")
-    @branching_points.deleter
-    def branching_points(self):             self._branching_points               = [] #del self._branching_point
-    #branching_points = property(get_branching_points, set_branching_points, del_branching_points, "I'm the 'dict' property, containing the root property.")
-
-    def getCompartments(self):
-        '''
-        generator over compartments
-        '''
-        for compartment in self.compartments:
-            yield(compartment)
-
-    def getNonRootCompartments(self):
-        '''
-        generator over compartments
-        '''
-        if not vars(self).has_key('_root') or self._root == None:
-            self._create_tree()
-        for compartment in self.compartments:
-            if compartment.parent != None:
-                yield(compartment)
-
-    def getCompartment(self, compartment_id):
-        '''
-        in order to be conform with Model definition, it is possible to get an compartment by i.
-        '''
-        return self.compartments_map[ compartment_id ];
-
-    def getSubtree(self, compartment):
-        if not vars(self).has_key('_compartments_map') or self._compartments_map == {}:
-            self._create_tree()
-        if type(compartment) == type(1):
-            compartment = self.getCompartment(compartment)
-
-        parts   = []
-        todo_stack    = []
-        parts.append( compartment )
-        todo_stack.append( compartment )
-        while len( todo_stack ) > 0:
-            c   = todo_stack.pop()
-            todo_stack.extend( c.children )
-            parts.extend( c.children )
-        return parts
-    
-    def pca(self):
-        import numpy
-        import mdp
-        cs  = []
-        for compartment in self.compartments:
-            cs.append([compartment.x, compartment.y, compartment.z])
-        assert len(self.compartments) == len(cs)
-        pca_cs  = mdp.pca( numpy.array(cs) )
-        assert len(self.compartments) == len(pca_cs)
-        compartments    = []
-        for i in range(len(pca_cs)):
-            compartments.append(    # m.add_compartment(
-                Compartment( 
-                    self.compartments[i].compartment_id, 
-                    self.compartments[i].compartment_parent_id, 
-                    self.compartments[i].radius, 
-                    x=pca_cs[i][0],
-                    y=pca_cs[i][1],
-                    z=pca_cs[i][2]
-                ) 
-            )
-        return Morphology(self.name, self.file_origin, self.description, self.datetime_recording, compartments=compartments)
+    def info(self):
+        if self._info[0] == None:
+            self._info[0]   = Morphology_info()
+        return self._info[0]
 
     def _create_tree(self):
         if vars(self).has_key('_compartments_map') and self._compartments_map != {}:
@@ -362,32 +289,101 @@ class Morphology(object):
             c   = todo_stack.pop()
             c.neuron_create( c.parent, parent_location=1, self_location=0 ) #connect c 0 with parent(1)
             todo_stack.extend( c.children )
-             
-    def __repr__(self):
-        return "Morphology('%s', '%s', '%s', '%s')" % ( 
-            str(self.name), str(self.file_origin), str(self.description), str(self.datetime_recording) )
 
-    def __str__(self):
-        return """<Morphology(
- morphology_key         = '%s' 
- name                   = '%s' 
- file_origin            = '%s' 
- description            = '%s' 
- datetime_recording     = '%s'
-%s groups = [
-%s          ]
-%s
-)>""" % (
-            str(self.morphology_key if vars(self).has_key('morphology_key') else ''), 
-            str(self.name), 
-            str(self.file_origin), 
-            str(self.description), 
-            str(self.datetime_recording),
-            str( self.info if self.info != None else ''),
-#            "           ,\n".join(map(str, self._groups)) if self.__dict__.has_key('_groups') else '',
-            "           ,\n".join(map(str, self._groups)),
-            str( self.analysis if self.__dict__.has_key('analysis') else '')
-        )
+    @property
+    def compartments_map(self):
+        if not vars(self).has_key('_compartments_map') or self._compartments_map == {}:
+            self._create_tree()
+        return self._compartments_map
+
+    @property
+    def root(self):
+        if not vars(self).has_key('_root') or self._root == None:
+            self._create_tree()
+        return self._root
+
+    @property
+    def biggest(self):
+        if not vars(self).has_key('_biggest') or self._biggest == None:
+            self._create_tree()
+        return self._biggest
+
+    @property
+    def terminaltips(self):
+        if not vars(self).has_key('_leafs'):
+            self._leafs = []
+            #self._branching_points = []
+        if self._leafs == []:
+            self._create_tree()
+            for c in self.compartments:
+                if len(c.children) == 0:
+                    self._leafs.append(c)
+#                elif len(c.children) > 1:
+#                    self.branching_points.append(c)
+        for leaf in self._leafs:
+            yield(leaf)
+
+    @property
+    def number_of_terminaltips(self):
+        if not vars(self).has_key('_leafs') or self._leafs == []:
+            for l in self.terminaltips:
+                pass
+        return len(self._leafs)
+
+    @property
+    def branching_points(self):
+        if not vars(self).has_key('_branching_points'):
+            self._branching_points = []
+            #self._leafs = []
+        if self._branching_points == []:
+            self._create_tree()
+            for c in self.compartments:
+#                if len(c.children) == 0:
+#                    self._leafs.append(c)
+                if len(c.children) > 1:
+                    self._branching_points.append(c)
+
+        for branching_point in self._branching_points:
+            yield(branching_point)
+
+    @property
+    def number_of_branching_points(self):
+        if not vars(self).has_key('_branching_points') or self._branching_points == []:
+            for b in self.branching_points:
+                pass
+        return len(self._branching_points)
+
+    @property
+    def plebs(self):
+        for branching_point in self._branching_points:
+            if len(branching_point.children) > 2:
+                yield(branching_point)
+
+    def getCompartments(self):
+        '''
+        generator over compartments
+        '''
+        for compartment in self.compartments:
+            yield(compartment)
+    @property
+    def number_compartments(self):
+        return len(self.compartments)
+
+    def getNonRootCompartments(self):
+        '''
+        generator over compartments
+        '''
+        if not vars(self).has_key('_root') or self._root == None:
+            self._create_tree()
+        for compartment in self.compartments:
+            if compartment.parent != None:
+                yield(compartment)
+
+    def getCompartment(self, compartment_id):
+        '''
+        in order to be conform with Model definition, it is possible to get an compartment by i.
+        '''
+        return self.compartments_map[ compartment_id ];
 
     def add_compartment(self, compartment):
         """
@@ -396,6 +392,45 @@ class Morphology(object):
         self.compartments.append(compartment)
         #compartment = Compartment(parent, id, length)
         #parent.children[id] = compartment
+
+    def getSubtree(self, compartment):
+        if not vars(self).has_key('_compartments_map') or self._compartments_map == {}:
+            self._create_tree()
+        if type(compartment) == type(1):
+            compartment = self.getCompartment(compartment)
+
+        parts   = []
+        todo_stack    = []
+        parts.append( compartment )
+        todo_stack.append( compartment )
+        while len( todo_stack ) > 0:
+            c   = todo_stack.pop()
+            todo_stack.extend( c.children )
+            parts.extend( c.children )
+        return parts
+    
+    def pca(self):
+        import numpy
+        import mdp
+        cs  = []
+        for compartment in self.compartments:
+            cs.append([compartment.x, compartment.y, compartment.z])
+        assert len(self.compartments) == len(cs)
+        pca_cs  = mdp.pca( numpy.array(cs) )
+        assert len(self.compartments) == len(pca_cs)
+        compartments    = []
+        for i in range(len(pca_cs)):
+            compartments.append(    # m.add_compartment(
+                Compartment( 
+                    self.compartments[i].compartment_id, 
+                    self.compartments[i].compartment_parent_id, 
+                    self.compartments[i].radius, 
+                    x=pca_cs[i][0],
+                    y=pca_cs[i][1],
+                    z=pca_cs[i][2]
+                ) 
+            )
+        return Morphology(self.name, self.file_origin, self.description, self.datetime_recording, compartments=compartments)
 
     def plot(self, x=0, y=1, color='#000000', picture_file=None, picture_formats=['png', 'pdf', 'svg']):
         import matplotlib.pyplot    # 00ff00 00800 00ff80 008080
@@ -422,6 +457,32 @@ class Morphology(object):
         else:
             matplotlib.pyplot.show()
         matplotlib.pyplot.close()
+             
+    def __repr__(self):
+        return "Morphology('%s', '%s', '%s', '%s')" % ( 
+            str(self.name), str(self.file_origin), str(self.description), str(self.datetime_recording) )
+
+    def __str__(self):
+        return """<Morphology(
+ morphology_key         = '%s' 
+ name                   = '%s' 
+ file_origin            = '%s' 
+ description            = '%s' 
+ datetime_recording     = '%s'
+%s groups = [
+%s          ]
+%s
+)>""" % (
+            str(self.morphology_key if vars(self).has_key('morphology_key') else ''), 
+            str(self.name), 
+            str(self.file_origin), 
+            str(self.description), 
+            str(self.datetime_recording),
+            str( self.info if self.info != None else ''),
+#            "           ,\n".join(map(str, self._groups)) if self.__dict__.has_key('_groups') else '',
+            "           ,\n".join(map(str, self._groups)),
+            str( self.analysis if self.__dict__.has_key('analysis') else '')
+        )
 
 class Star(Morphology):
     '''
