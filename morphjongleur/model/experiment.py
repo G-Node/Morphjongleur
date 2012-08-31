@@ -429,7 +429,7 @@ class TauFit(object):
             'time_frame': time_frame,
             'fit_frame': fit_frame}
 
-    def plot(self, dt=0.001, pic_dir=None, picture_formats=['png', 'pdf', 'svg']):
+    def plot(self, dt=0.001, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
         """
         only one clamp allowed
         show and save impossible
@@ -469,11 +469,11 @@ class TauFit(object):
             ], loc='best');
 
         #matplotlib.pyplot.axis('image');
-        matplotlib.pyplot.grid();
+        matplotlib.pyplot.grid(True, which='both', color='lightgrey')
 
-        if(pic_dir != None):
+        if(picture_file != None):
             for picture_format in picture_formats:
-                matplotlib.pyplot.savefig(pic_dir+self.__class__.__name__+'.'+picture_format,format=picture_format)
+                matplotlib.pyplot.savefig(picture_file+'.'+picture_format,format=picture_format)
         else:
             matplotlib.pyplot.show()
         matplotlib.pyplot.close()

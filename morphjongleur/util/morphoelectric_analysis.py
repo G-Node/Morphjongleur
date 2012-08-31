@@ -44,4 +44,4 @@ if __name__ == '__main__':
         #print m
         result = experiment(morphology=m)
         print result
-        #result.plot(pic_dir='/tmp/', picture_formats=['png'])
+        result.plot(picture_file='/tmp/taufit_%s' % (m.name), picture_formats=['png','svg'])

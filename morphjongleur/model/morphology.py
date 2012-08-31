@@ -430,19 +430,15 @@ class Morphology(object):
     
     def pca(self):
         import mdp
-        cs  = []
-        for compartment in self.compartments:
-            cs.append([compartment.x, compartment.y, compartment.z])
-        assert len(self.compartments) == len(cs)
-        pca_cs  = mdp.pca( numpy.array(cs) )
-        assert len(self.compartments) == len(pca_cs)
+        pca_cs  = mdp.pca( numpy.array([ [c.x, c.y, c.z] for c in self.compartments ] ) )
+        assert self.number_of_compartments == len(pca_cs)
         compartments    = []
-        for i in range(len(pca_cs)):
+        for i in range( self.number_of_compartments ):
             compartments.append(    # m.add_compartment(
                 Compartment( 
-                    self.compartments[i].compartment_id, 
-                    self.compartments[i].compartment_parent_id, 
-                    self.compartments[i].radius, 
+                    self._compartments[i].compartment_id, 
+                    self._compartments[i].compartment_parent_id, 
+                    self._compartments[i].radius, 
                     x=pca_cs[i][0],
                     y=pca_cs[i][1],
                     z=pca_cs[i][2]
@@ -460,7 +456,13 @@ class Morphology(object):
             xs.append(xyz[x])
             ys.append(xyz[y])
             ss.append(c.radius)
-
+            matplotlib.pyplot.axes().add_artist(
+                matplotlib.patches.Circle(xy=(c.x, c.y),
+                  color=color,
+                  radius=c.radius
+                )
+            )
+        #ss = numpy.diff(matplotlib.pyplot.axes().transData.transform(zip([0]*len(ss), ss))) 
         matplotlib.pyplot.scatter(xs, ys, s=ss, c=color, marker='.', edgecolors=color)#'. o
         matplotlib.pyplot.axes().set_aspect('equal', 'datalim')
         

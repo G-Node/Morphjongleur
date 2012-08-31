@@ -120,7 +120,7 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         self.datetime_recording = morphology.datetime_recording
         self.compartments       = morphology.number_of_compartments
         
-        self.number_of_terminaltips    = morphology.number_of_terminaltips
+        self.number_of_terminaltips     = morphology.number_of_terminaltips
         self.number_of_branching_points = morphology.number_of_branching_points
 #        if self.number_of_terminaltips != self.number_of_branching_points + 1:
 #            print >> sys.stderr, "#terminaltips %i > #branching points %i +1, because of %s" % (self.number_of_terminaltips, self.number_of_branching_points, ["%i:%i"%(pleb.compartment_id,len(pleb.children)) for pleb in morphology.plebs])
@@ -391,7 +391,7 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         matplotlib.pyplot.close('all')
 
     @staticmethod
-    def bars_plot(v, bars, xs, colors, y_label='change', picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+    def bars_plot(v, bars, xs, colors, y_label='', rotation=0, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
         v_means = {}
         v_stds  = {}
         for b in bars:
@@ -417,10 +417,10 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         matplotlib.pyplot.ylabel(y_label)
         #matplotlib.pyplot.title('titel')
         #matplotlib.pyplot.legend([""], loc='best')
-        matplotlib.pyplot.ylim((0,2))
-        matplotlib.pyplot.xticks(ind + (len(bars)-1)*width+width/2., xs , rotation=17)
-        matplotlib.pyplot.grid(True, color='lightgrey')
-        matplotlib.pyplot.axhline(y=1, color='red')
+        matplotlib.pyplot.ylim(ymin=-1)
+        matplotlib.pyplot.xticks(ind + (len(bars)-1)*width+width/2., xs, rotation=rotation )
+        matplotlib.pyplot.grid(True, axis='y', color='lightgrey')
+        matplotlib.pyplot.axhline(y=0, color='black')
 
         matplotlib.pyplot.legend( tuple(rects), tuple(map(str, bars)), loc='best')
         if(picture_file != None):
@@ -441,27 +441,27 @@ if __name__ == '__main__':
     import morphjongleur.util.parser.swc
 
     with_head   = True
-    colors = ['#000000', '#00ff00','#008000','#00ff80','#008080']# H060602DB_10_2(whole).swc H060607DB_10_2(whole).swc H060602VB_10_2(whole).swc H060607VB_10_2(whole).swc
+    colors = ['#000000', '#00ff00','#008000','#0000ff','#000080']# H060602DB_10_2(whole).swc H060607DB_10_2(whole).swc H060602VB_10_2(whole).swc H060607VB_10_2(whole).swc
     i = 0
     for swc in sys.argv[1:]:#['../../data/test.swc']:#
-
+        continue
         color = colors[i % len(colors)]
         i += 1
 
         morphology   = Morphology.swc_parse(swc, verbose=False)
         morphology.plot(color=color, picture_file='/tmp/%s' % (morphology.name), picture_formats=['png', 'svg'])
-        continue
+
         m_pca   = morphology.pca()
         m_pca.swc_write('/tmp/%s_pca.swc' % (m_pca.name) )
         m_pca.plot(color=color, picture_file='/tmp/%s_pca' % (m_pca.name), picture_formats=['png', 'svg'])        
-        
-        Compartment.plot_distance([c for c in morphology.compartments],       morphology.biggest, morphology.name,            xlim=850, ylim=8,   color=color, picture_file='/tmp/distance_'+str(morphology.name),                            picture_formats=['png'])
+
+        Compartment.plot_distance([c for c in morphology.compartments],       morphology.biggest, morphology.name,            xlim=850, ylim=8,   color=color, picture_file='/tmp/distance_compartments_'+str(morphology.name),                            picture_formats=['png'])
         Compartment.plot_distance([c for c in morphology.branching_points],   morphology.biggest, morphology.name,            xlim=850, ylim=8,   color=color, picture_file='/tmp/distance_branchpoints_'+str(morphology.name),               picture_formats=['png'])
         Compartment.plot_distance([c for c in morphology.terminaltips],       morphology.biggest, morphology.name,            xlim=850, ylim=8,   color=color, picture_file='/tmp/distance_terminaltips_'+str(morphology.name),               picture_formats=['png'])
 
-        MetricAnalysis.plot_distance_distribution(morphology.compartments,                      morphology.biggest, morphology.name, bins=20,   xlim=850, ylim=900, color=color, picture_file='/tmp/distance_distribution_'+str(morphology.name),               picture_formats=['png'])
+        MetricAnalysis.plot_distance_distribution(morphology.compartments,                      morphology.biggest, morphology.name, bins=20,   xlim=850, ylim=900, color=color, picture_file='/tmp/distance_distribution_compartments_'+str(morphology.name),               picture_formats=['png'])
         MetricAnalysis.plot_distance_distribution(morphology.branching_points,                  morphology.biggest, morphology.name, bins=20,   xlim=850, ylim=65,  color=color, picture_file='/tmp/distance_distribution_branchpoints_'+str(morphology.name),  picture_formats=['png'])
-        MetricAnalysis.plot_distance_distribution(morphology.terminaltips,                      morphology.biggest, morphology.name, bins=20,   xlim=850, ylim=75,  color=color, picture_file='/tmp/distance_distribution_terminaltips_'+str(morphology.name),  picture_formats=['png'])#850, 43
+        MetricAnalysis.plot_distance_distribution(morphology.terminaltips,                      morphology.biggest, morphology.name, bins=20,   xlim=850, ylim=70,  color=color, picture_file='/tmp/distance_distribution_terminaltips_'+str(morphology.name),  picture_formats=['png'])#850, 43
 
 
         a   = MetricAnalysis(morphology)
@@ -495,7 +495,57 @@ if __name__ == '__main__':
             with_head   = False
         print vs
 
-    sys.exit(0)
+
+
+    morphologies    = [Morphology.swc_parse(swc, verbose=False) for swc in sys.argv[2:4]]
+    morphologies[0].name    = 'nurse'
+    morphologies[1].name    = 'forager'
+    MetricAnalysis.plot_distance_distributions(
+        [morphology.terminaltips for morphology in morphologies],
+        [morphology.biggest for morphology in morphologies], 
+        [morphology.name for morphology in morphologies], 
+        colors=['#00ff00','#008000'], 
+        bins=20,   xlim=850, ylim=70, 
+        picture_file='/tmp/distance_distribution_terminaltips_db',               
+        picture_formats=['png','svg']
+    )
+    morphologies    = [Morphology.swc_parse(swc, verbose=False) for swc in sys.argv[4:6]]
+    morphologies[0].name    = 'nurse'
+    morphologies[1].name    = 'forager'
+    MetricAnalysis.plot_distance_distributions(
+        [morphology.terminaltips for morphology in morphologies],
+        [morphology.biggest for morphology in morphologies], 
+        [morphology.name for morphology in morphologies], 
+        colors=['#0000ff','#000080'], 
+        bins=20,   xlim=600, ylim=40, 
+        picture_file='/tmp/distance_distribution_terminaltips_vb',               
+        picture_formats=['png','svg']
+    )
+
+    morphologies    = [Morphology.swc_parse(swc, verbose=False) for swc in sys.argv[2:4]]
+    morphologies[0].name    = 'nurse'
+    morphologies[1].name    = 'forager'
+    MetricAnalysis.plot_distance_distributions(
+        [morphology.branching_points for morphology in morphologies],
+        [morphology.biggest for morphology in morphologies], 
+        [morphology.name for morphology in morphologies], 
+        colors=['#00ff00','#008000'], 
+        bins=20,   xlim=850, ylim=65, 
+        picture_file='/tmp/distance_distribution_branchpoints_db',               
+        picture_formats=['png','svg']
+    )
+    morphologies    = [Morphology.swc_parse(swc, verbose=False) for swc in sys.argv[4:6]]
+    morphologies[0].name    = 'nurse'
+    morphologies[1].name    = 'forager'
+    MetricAnalysis.plot_distance_distributions(
+        [morphology.branching_points for morphology in morphologies],
+        [morphology.biggest for morphology in morphologies], 
+        [morphology.name for morphology in morphologies], 
+        colors=['#0000ff','#000080'], 
+        bins=20,   xlim=600, ylim=40, 
+        picture_file='/tmp/distance_distribution_branchpoints_vb',               
+        picture_formats=['png','svg']
+    )
 
     morphologies    = [Morphology.swc_parse(swc, verbose=False) for swc in sys.argv[2:4]]
     morphologies[0].name    = 'nurse'
@@ -506,10 +556,9 @@ if __name__ == '__main__':
         [morphology.name for morphology in morphologies], 
         colors=['#00ff00','#008000'], 
         bins=20,   xlim=850, ylim=900, 
-        picture_file='/tmp/distance_distribution_db',               
+        picture_file='/tmp/distance_distribution_compartments_db',               
         picture_formats=['png','svg']
     )
-
     morphologies    = [Morphology.swc_parse(swc, verbose=False) for swc in sys.argv[4:6]]
     morphologies[0].name    = 'nurse'
     morphologies[1].name    = 'forager'
@@ -519,33 +568,35 @@ if __name__ == '__main__':
         [morphology.name for morphology in morphologies], 
         colors=['#0000ff','#000080'], 
         bins=20,   xlim=600, ylim=700, 
-        picture_file='/tmp/distance_distribution_vb',               
+        picture_file='/tmp/distance_distribution_compartments_vb',               
         picture_formats=['png','svg']
     )
 
-    v   = {'dorsal branch': {'R_in':2.0174950313,'tau_eff_fit':0.9136783213},
-           'ventral branch':{'R_in':1.1878058363,'tau_eff_fit':1.0029501989}}
+    sys.exit(0)
+    
+    v   = {'dorsal branch': {'R_in':2.0174950313-1,'tau_eff_fit':0.9136783213-1},
+           'ventral branch':{'R_in':1.1878058363-1,'tau_eff_fit':1.0029501989-1}}
     bars= sorted(v.keys())
     xs  = ['R_in','tau_eff_fit']
-    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], y_label='change', picture_file='/tmp/change_tau', picture_formats=['png','svg'])
-    v   = {'dorsal branch': {'u':0.500012549,'t':0.7644018509},
-           'ventral branch':{'u':1.821582116,'t':1.2271185372}}
+    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], y_label='change: forager / nurse', picture_file='/tmp/change_tau', picture_formats=['png','svg'])
+    v   = {'dorsal branch': {'u':0.500012549-1,'t':0.7644018509-1},
+           'ventral branch':{'u':1.821582116-1,'t':1.2271185372-1}}
     bars= sorted(v.keys())
     xs  = ['u','t']
-    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], y_label='change', picture_file='/tmp/change_lowpassfilter', picture_formats=['png','svg'])
+    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], y_label='change: forager / nurse', picture_file='/tmp/change_lowpassfilter', picture_formats=['png','svg'])
 
     morphologies    = [Morphology.swc_parse(swc, verbose=False) for swc in sys.argv[2:6]]
     a   = [MetricAnalysis(ma).variable_map()[0] for ma in morphologies]
     db  = {}
     vb  = {}
     for key in ['number_of_branching_points','total_cell_length','frustum_volume','frustum_surface_area','frustum_volume_div_surface_area', 'esn_frustum_volume','esn_frustum_surface_area','esn_volume_div_surface','cepn_volume','cepn_surface_area','cepn_volume_div_surface_area','esn_cep_volume','esn_cep_surface_area','esn_cep_volume_div_surface_area']:#a[0].keys():#more time efficient with properties and only needed
-        db[key] = a[1][key] / a[0][key]
-        vb[key] = a[3][key] / a[2][key]
+        db[key] = float(a[1][key]) / a[0][key] - 1
+        vb[key] = float(a[3][key]) / a[2][key] - 1
     v   = {'dorsal branch':db, 'ventral branch':vb}
     bars= sorted(v.keys())
 
-    xs  = ['number_of_branching_points','total_cell_length','frustum_volume','frustum_surface_area','frustum_volume_div_surface_area']#['u','t']
-    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], y_label='change', picture_file='/tmp/change_direct', picture_formats=['png','svg'])
+    xs  = ['number_of_branching_points','total_cell_length','frustum_volume','frustum_surface_area','frustum_volume_div_surface_area', 'cepn_volume','cepn_surface_area']
+    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], y_label='change: forager / nurse', rotation=17, picture_file='/tmp/change_direct', picture_formats=['png','svg'])
 
-    xs  = ['cepn_volume','cepn_surface_area','esn_cep_volume','esn_cep_surface_area']
-    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], y_label='change', picture_file='/tmp/change_derived', picture_formats=['png','svg'])
+    #xs  = ['cepn_volume','cepn_surface_area','esn_cep_volume','esn_cep_surface_area']
+    #MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], y_label='change: forager / nurse', rotation=17, picture_file='/tmp/change_derived', picture_formats=['png','svg'])
