@@ -4,7 +4,7 @@
 @see http://www.skymind.com/~ocrow/python_string/
 '''
 
-def _return_dict(self):
+def variable_map(self):
     dictionary = {}
     filtered = []
     for v in vars(self):  #self.__class__    #SQLAlchemy:    m._sa_instance_state.dictionary
@@ -25,8 +25,16 @@ def _return_dict(self):
     #                filtered.remove(v)   # not filtered because of confenience
     return (dictionary,filtered)
 
+def variable_table(self, keys=None):
+    (dictionary, _)    = self.variable_map() 
+    if keys == None:
+        keys    = sorted(dictionary.keys())
+    ks  = "\t".join(["%s" % (str(key))                for key in keys])
+    vs  = "\t".join(["%s" % (str(dictionary[key]))    for key in keys])
+    return (ks,vs)
+
 def __repr__(self):
-    (dictionary, _)    = self._return_dict()
+    (dictionary, _)    = self.variable_map()
     str_list = ['<', self.__class__.__name__ , '(']
     for key in sorted(dictionary.keys()):
             str_list.append("%s = %s, " % (key, dictionary[key]))
@@ -34,7 +42,7 @@ def __repr__(self):
     return ''.join(str_list)
 
 def __str__(self):
-    (dictionary, _)    = self._return_dict()
+    (dictionary, _)    = self.variable_map()
     max_key_length  = 0
     for key in dictionary.keys():
         if len(key) > max_key_length:
@@ -42,19 +50,11 @@ def __str__(self):
     format_string  = "%%%is = %%s\n" % (max_key_length)
     return ''.join([format_string % (key, dictionary[key]) for key in sorted(dictionary.keys())])
 
-def variable_table(self, keys=None):
-    (dictionary, _)    = self._return_dict() 
-    if keys == None:
-        keys    = sorted(dictionary.keys())
-    ks  = "\t".join(["%s" % (str(key))                for key in keys])
-    vs  = "\t".join(["%s" % (str(dictionary[key]))    for key in keys])
-    return (ks,vs)
-
 def auto_string(cls):
     import numbers, types
     cls.__show_hidden    = False
     cls.__list_of_types   =[numbers.Number, types.StringTypes, types.TupleType, property]
-    cls._return_dict    = _return_dict
+    cls.variable_map    = variable_map
     cls.__repr__        = __repr__
     cls.__str__         = __str__
     cls.variable_table  = variable_table

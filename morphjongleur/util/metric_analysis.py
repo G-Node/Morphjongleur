@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 '''
-frustrum v.s. cylinder
+frustum v.s. cylinder
 
 @author: stransky
 '''
@@ -12,14 +12,14 @@ import scipy.stats.stats #import gmean, hmean#, mean, median, medianscore, mode
 import matplotlib.pyplot
 import numpy
 import chull
-from morphjongleur.model.morphology import MorphologyInfo, Morphology
+from morphjongleur.model.morphology import MorphologyInfo,Morphology,Compartment
 import traceback
 
 class MetricAnalysis(MorphologyInfo):
     '''
     classdocs
     total cell length = sum of all paths (based on center of each compartment)
-    surface_length_frustum    total cell length running over the surface of an frustrum
+    surface_length_frustum    total cell length running over the surface of an frustum
     
     
     polyeder    #konvexen polyeder zur not emal in mathesoftware
@@ -118,7 +118,7 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         self.file_origin        = morphology.file_origin
         self.description        = morphology.description
         self.datetime_recording = morphology.datetime_recording
-        self.compartments       = len(morphology.compartments)
+        self.compartments       = morphology.number_of_compartments
         
         self.number_of_terminaltips    = morphology.number_of_terminaltips
         self.number_of_branching_points = morphology.number_of_branching_points
@@ -129,15 +129,15 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         terminaltips_cross_section_area = 2 * math.pi * numpy.sum( terminaltips_radii )
 
         self.total_cell_length      = 0.
-        self.surface_length_frustrum= 0.
+        self.surface_length_frustum= 0.
         self.cylindric_volume       = 0.
         self.cylindric_lateral_area = 0.
         self.frustum_volume         = 0.
         self.frustum_lateral_area   = 0.
-        for compartment in morphology.getNonRootCompartments():
+        for compartment in morphology.non_root_compartments():
             self.total_cell_length  += compartment.parent_distance
             compartment.frustum_length  = math.sqrt( (compartment.parent.radius - compartment.radius)**2 + compartment.parent_distance**2)
-            self.surface_length_frustrum+= compartment.frustum_length
+            self.surface_length_frustum+= compartment.frustum_length
 
             self.cylindric_volume   += compartment.radius**2 * compartment.parent_distance
             self.cylindric_lateral_area += compartment.radius * compartment.parent_distance
@@ -151,11 +151,11 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         self.frustum_volume         *= math.pi/3
         self.frustum_lateral_area   *= math.pi
         self.frustum_surface_area   = self.frustum_lateral_area   + terminaltips_cross_section_area
-        self.frustrum_volume_div_surface_area   = self.frustum_volume / self.frustum_surface_area
+        self.frustum_volume_div_surface_area   = self.frustum_volume / self.frustum_surface_area
 
         self.cylindric_mean_cross_section_area  = self.cylindric_volume / self.total_cell_length
         self.frustum_mean_cross_section_area    = self.frustum_volume / self.total_cell_length
-        compartment_radii    = [compartment.radius for compartment in morphology.getCompartments()]
+        compartment_radii    = [compartment.radius for compartment in morphology.compartments]
         self.arithmetic_mean_cross_section_area = 2 * math.pi * numpy.mean(compartment_radii)
         self.geometric_mean_cross_section_area  = 2 * math.pi * scipy.stats.stats.gmean(compartment_radii)
         self.harmonic_mean_cross_section_area   = 2 * math.pi * scipy.stats.stats.hmean(compartment_radii)
@@ -202,7 +202,7 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
 
         mins   = [float('inf'), float('inf'), float('inf')]
         maxs   = [float('-inf'),float('-inf'),float('-inf')]
-        for x in mdp.pca( numpy.array([[compartment.x, compartment.y, compartment.z] for compartment in morphology.getCompartments()]) ):
+        for x in mdp.pca( numpy.array([[compartment.x, compartment.y, compartment.z] for compartment in morphology.compartments]) ):
             for d in range(3):
                 if x[d] < mins[d]:
                     mins[d]     = x[d]
@@ -230,7 +230,7 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         '''
         #self.pca_rhombus =  self.pca_lengths[0] * numpy.sqrt(numpy.square(self.pca_lengths[2]) + numpy.square(self.pca_lengths[1]))
 
-        self.cep_hull    = chull.Hull([chull.Vector.fromArray([compartment.x, compartment.y, compartment.z]) for compartment in morphology.getCompartments()])
+        self.cep_hull    = chull.Hull([chull.Vector.fromArray([compartment.x, compartment.y, compartment.z]) for compartment in morphology.compartments])
         convex_enveloping_polyhedron_surface_area, convex_enveloping_polyhedron_volume   = self.cep_hull.surface_area_and_volume()
         self.cep_surface_area  = convex_enveloping_polyhedron_surface_area
         self.cep_volume        = convex_enveloping_polyhedron_volume
@@ -251,20 +251,20 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         [m]
         TODO: == es ? 
         '''
-        self.esn_frustrum_surface_area  = self.frustum_surface_area / self.es_surface_area
-        self.esn_frustrum_volume        = self.frustum_volume / self.es_volume
-        self.esn_volume_div_surface     = self.esn_frustrum_volume / self.esn_frustrum_surface_area
+        self.esn_frustum_surface_area  = self.frustum_surface_area / self.es_surface_area
+        self.esn_frustum_volume        = self.frustum_volume / self.es_volume
+        self.esn_volume_div_surface     = self.esn_frustum_volume / self.esn_frustum_surface_area
     
         '''
         convex_enveloping_polyhedron_volume / convex_enveloping_polyhedron_surface_area        [m]
-        frustrum volume / polygon volume        [#]
-        frustrum surface area / polygon surface area        [#]
-        frustrum / polygon (volume / surface area)        [#]
+        frustum volume / polygon volume        [#]
+        frustum surface area / polygon surface area        [#]
+        frustum / polygon (volume / surface area)        [#]
         '''
         self.cep_volume_div_cep_surface_area    = self.cep_volume / self.cep_surface_area
         self.cepn_volume    = self.frustum_volume / self.cep_volume
-        self.cepn_frustrum_surface_area     = self.frustum_surface_area / self.cep_surface_area
-        self.cepn_volume_div_surface_area   = self.cepn_volume / self.cepn_frustrum_surface_area
+        self.cepn_surface_area     = self.frustum_surface_area / self.cep_surface_area
+        self.cepn_volume_div_surface_area   = self.cepn_volume / self.cepn_surface_area
     
         self.esn_cep_volume     = self.cep_volume / self.es_volume
         self.esn_cep_surface_area   = self.cep_surface_area / self.es_surface_area
@@ -355,6 +355,81 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
             matplotlib.pyplot.show()
         matplotlib.pyplot.close('all')
 
+    @staticmethod
+    def plot_distance_distributions(compartment_iterables, centers, names=[''], colors=['#000000'], bins=20, xlim=None, ylim=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):  
+        #matplotlib.rc('text', usetex=True): error with names
+        legends = []
+        for (compartment_iterable,center,color,name) in zip(compartment_iterables,centers,colors,names):
+            x   = [c.path_distance(center) for c in compartment_iterable]
+            mean   = numpy.mean(x)
+            legends.append(u"%7s: %i µm" % (name, mean))
+            std    = numpy.std(x)
+            matplotlib.pyplot.axvline(x=mean, color=color, label='mean'+name)
+            if xlim != None:#TODO: isnumber
+                matplotlib.pyplot.hist(x, bins=range(0,xlim,bins), normed=0, color=color, edgecolor=color, alpha=0.6)
+            else:
+                matplotlib.pyplot.hist(x, bins, normed=0, color=color, edgecolor=color, alpha=0.6)
+
+        #matplotlib.pyplot.title('Endpoints of %s' % (name.replace('_',' ')) )
+        #print 'distribution of %s : mean=%f, std=%f' % (name, mean, std)
+
+
+        matplotlib.pyplot.grid(True, color='lightgrey')
+        matplotlib.pyplot.ylabel('#')#%
+        if ylim != None:
+            matplotlib.pyplot.ylim((0,ylim))
+        matplotlib.pyplot.xlabel(u'distance [µm]')
+        if xlim != None:
+            matplotlib.pyplot.xlim((0,xlim))
+        matplotlib.pyplot.legend( legends )
+
+        if(picture_file != None):
+            for picture_format in picture_formats:
+                matplotlib.pyplot.savefig(picture_file+'.'+picture_format,format=picture_format)
+        else:
+            matplotlib.pyplot.show()
+        matplotlib.pyplot.close('all')
+
+    @staticmethod
+    def bars_plot(v, bars, xs, colors, y_label='change', picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+        v_means = {}
+        v_stds  = {}
+        for b in bars:
+            v_means[b]  = [ numpy.mean( v[b][x] ) for x in xs ]
+            v_stds[b]   = [ numpy.std( v[b][x] ) for x in xs ]
+
+        ind = numpy.arange( len(xs) )  # the x locations for the groups*width
+        width = 1.0/(len(bars)+1)      # the width of the bars
+
+        matplotlib.pyplot.subplot(111)
+        rects   = []
+        for i in range(len(bars)):
+            rect    = matplotlib.pyplot.bar(ind+i*width+width/2., 
+                            v_means[ bars[i] ],#TODO: (numpy.mean( v[b][x] ) for x in xs) 
+                            width,
+                            color=colors[i],
+                            #yerr=v_stds[ bars[i] ],#(numpy.std( v[b][x] ) for x in xs)
+                            #error_kw=dict(elinewidth=6, ecolor='red')
+                            )
+            rects.append(rect[0])
+
+        # add some
+        matplotlib.pyplot.ylabel(y_label)
+        #matplotlib.pyplot.title('titel')
+        #matplotlib.pyplot.legend([""], loc='best')
+        matplotlib.pyplot.ylim((0,2))
+        matplotlib.pyplot.xticks(ind + (len(bars)-1)*width+width/2., xs , rotation=17)
+        matplotlib.pyplot.grid(True, color='lightgrey')
+        matplotlib.pyplot.axhline(y=1, color='red')
+
+        matplotlib.pyplot.legend( tuple(rects), tuple(map(str, bars)), loc='best')
+        if(picture_file != None):
+            for picture_format in picture_formats:
+                matplotlib.pyplot.savefig(picture_file+'.'+picture_format,format=picture_format)
+        else:
+            matplotlib.pyplot.show()
+        matplotlib.pyplot.close()
+
 if __name__ == '__main__':
     '''
     Parameter: files, not directories
@@ -364,6 +439,7 @@ if __name__ == '__main__':
     '''
     import sys
     import morphjongleur.util.parser.swc
+
     with_head   = True
     colors = ['#000000', '#00ff00','#008000','#00ff80','#008080']# H060602DB_10_2(whole).swc H060607DB_10_2(whole).swc H060602VB_10_2(whole).swc H060607VB_10_2(whole).swc
     i = 0
@@ -373,25 +449,30 @@ if __name__ == '__main__':
         i += 1
 
         morphology   = Morphology.swc_parse(swc, verbose=False)
-        #morphology.plot(color=color, picture_file='/tmp/%s' % (morphology.name), picture_formats=['svg', 'png'])
-        #m_pca   = morphology.pca()
-        #m_pca.swc_write('/tmp/%s_pca.swc' % (m_pca.name) )
-        #m_pca.plot(color=color, picture_file='/tmp/%s_pca' % (m_pca.name), picture_formats=['svg', 'png'])        
-        
-        morphjongleur.model.morphology.Compartment.plot_distance(morphology.compartments, morphology.biggest, morphology.name, xlim=900, ylim=8, color=color, picture_file='/tmp/distance_'+str(morphology.name), picture_formats=['png'])
-        #MetricAnalysis.plot_distance_distribution(morphology.terminaltips, morphology.biggest, morphology.name, bins=20, xlim=850, ylim=75, color=color, picture_file='/tmp/distance_distribution_terminaltips_'+str(morphology.name), picture_formats=['svg', 'png'])#850, 43
-        #MetricAnalysis.plot_distance_distribution(morphology.branching_points, morphology.biggest, morphology.name, bins=20, xlim=850, ylim=65, color=color, picture_file='/tmp/distance_distribution_branchpoints_'+str(morphology.name), picture_formats=['svg', 'png'])
+        morphology.plot(color=color, picture_file='/tmp/%s' % (morphology.name), picture_formats=['png', 'svg'])
         continue
+        m_pca   = morphology.pca()
+        m_pca.swc_write('/tmp/%s_pca.swc' % (m_pca.name) )
+        m_pca.plot(color=color, picture_file='/tmp/%s_pca' % (m_pca.name), picture_formats=['png', 'svg'])        
         
+        Compartment.plot_distance([c for c in morphology.compartments],       morphology.biggest, morphology.name,            xlim=850, ylim=8,   color=color, picture_file='/tmp/distance_'+str(morphology.name),                            picture_formats=['png'])
+        Compartment.plot_distance([c for c in morphology.branching_points],   morphology.biggest, morphology.name,            xlim=850, ylim=8,   color=color, picture_file='/tmp/distance_branchpoints_'+str(morphology.name),               picture_formats=['png'])
+        Compartment.plot_distance([c for c in morphology.terminaltips],       morphology.biggest, morphology.name,            xlim=850, ylim=8,   color=color, picture_file='/tmp/distance_terminaltips_'+str(morphology.name),               picture_formats=['png'])
+
+        MetricAnalysis.plot_distance_distribution(morphology.compartments,                      morphology.biggest, morphology.name, bins=20,   xlim=850, ylim=900, color=color, picture_file='/tmp/distance_distribution_'+str(morphology.name),               picture_formats=['png'])
+        MetricAnalysis.plot_distance_distribution(morphology.branching_points,                  morphology.biggest, morphology.name, bins=20,   xlim=850, ylim=65,  color=color, picture_file='/tmp/distance_distribution_branchpoints_'+str(morphology.name),  picture_formats=['png'])
+        MetricAnalysis.plot_distance_distribution(morphology.terminaltips,                      morphology.biggest, morphology.name, bins=20,   xlim=850, ylim=75,  color=color, picture_file='/tmp/distance_distribution_terminaltips_'+str(morphology.name),  picture_formats=['png'])#850, 43
+
+
         a   = MetricAnalysis(morphology)
         #a.cep_hull.write('/tmp/hull_'+str(morphology.name))
 
         (ks, vs)    = a.variable_table(['name', 'compartments', #'datetime_recording', 
-        'total_cell_length', 'surface_length_frustrum', 
+        'total_cell_length', 'surface_length_frustum', 
         'number_of_branching_points', 'number_of_terminaltips', 
 
         'cylindric_volume', 'cylindric_surface_area', 'cylindric_volume_div_surface_area', 
-        'frustum_volume', 'frustum_surface_area', 'frustrum_volume_div_surface_area', 
+        'frustum_volume', 'frustum_surface_area', 'frustum_volume_div_surface_area', 
         
         'cylindric_mean_cross_section_area', 'frustum_mean_cross_section_area', 
         'arithmetic_mean_cross_section_area', 'geometric_mean_cross_section_area', 'harmonic_mean_cross_section_area', 'median_cross_section_area',
@@ -403,9 +484,9 @@ if __name__ == '__main__':
 
         'pca_length_x', 'pca_length_y', 'pca_length_z', 
         'es_volume', 'es_surface_area', 'es_volume_div_surface', 
-        'esn_frustrum_surface_area', 'esn_frustrum_volume', 'es_volume_div_surface',
+        'esn_frustum_surface_area', 'esn_frustum_volume', 'es_volume_div_surface',
         'cep_volume', 'cep_surface_area', 'cep_volume_div_cep_surface_area', 
-        'cepn_volume','cepn_frustrum_surface_area', 'cepn_volume_div_surface_area',
+        'cepn_volume','cepn_surface_area', 'cepn_volume_div_surface_area',
         'esn_cep_volume', 'esn_cep_surface_area', 'esn_cep_volume_div_surface_area'
         ])
         
@@ -413,3 +494,58 @@ if __name__ == '__main__':
             print ks
             with_head   = False
         print vs
+
+    sys.exit(0)
+
+    morphologies    = [Morphology.swc_parse(swc, verbose=False) for swc in sys.argv[2:4]]
+    morphologies[0].name    = 'nurse'
+    morphologies[1].name    = 'forager'
+    MetricAnalysis.plot_distance_distributions(
+        [morphology.compartments for morphology in morphologies],
+        [morphology.biggest for morphology in morphologies], 
+        [morphology.name for morphology in morphologies], 
+        colors=['#00ff00','#008000'], 
+        bins=20,   xlim=850, ylim=900, 
+        picture_file='/tmp/distance_distribution_db',               
+        picture_formats=['png','svg']
+    )
+
+    morphologies    = [Morphology.swc_parse(swc, verbose=False) for swc in sys.argv[4:6]]
+    morphologies[0].name    = 'nurse'
+    morphologies[1].name    = 'forager'
+    MetricAnalysis.plot_distance_distributions(
+        [morphology.compartments for morphology in morphologies],
+        [morphology.biggest for morphology in morphologies], 
+        [morphology.name for morphology in morphologies], 
+        colors=['#0000ff','#000080'], 
+        bins=20,   xlim=600, ylim=700, 
+        picture_file='/tmp/distance_distribution_vb',               
+        picture_formats=['png','svg']
+    )
+
+    v   = {'dorsal branch': {'R_in':2.0174950313,'tau_eff_fit':0.9136783213},
+           'ventral branch':{'R_in':1.1878058363,'tau_eff_fit':1.0029501989}}
+    bars= sorted(v.keys())
+    xs  = ['R_in','tau_eff_fit']
+    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], y_label='change', picture_file='/tmp/change_tau', picture_formats=['png','svg'])
+    v   = {'dorsal branch': {'u':0.500012549,'t':0.7644018509},
+           'ventral branch':{'u':1.821582116,'t':1.2271185372}}
+    bars= sorted(v.keys())
+    xs  = ['u','t']
+    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], y_label='change', picture_file='/tmp/change_lowpassfilter', picture_formats=['png','svg'])
+
+    morphologies    = [Morphology.swc_parse(swc, verbose=False) for swc in sys.argv[2:6]]
+    a   = [MetricAnalysis(ma).variable_map()[0] for ma in morphologies]
+    db  = {}
+    vb  = {}
+    for key in ['number_of_branching_points','total_cell_length','frustum_volume','frustum_surface_area','frustum_volume_div_surface_area', 'esn_frustum_volume','esn_frustum_surface_area','esn_volume_div_surface','cepn_volume','cepn_surface_area','cepn_volume_div_surface_area','esn_cep_volume','esn_cep_surface_area','esn_cep_volume_div_surface_area']:#a[0].keys():#more time efficient with properties and only needed
+        db[key] = a[1][key] / a[0][key]
+        vb[key] = a[3][key] / a[2][key]
+    v   = {'dorsal branch':db, 'ventral branch':vb}
+    bars= sorted(v.keys())
+
+    xs  = ['number_of_branching_points','total_cell_length','frustum_volume','frustum_surface_area','frustum_volume_div_surface_area']#['u','t']
+    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], y_label='change', picture_file='/tmp/change_direct', picture_formats=['png','svg'])
+
+    xs  = ['cepn_volume','cepn_surface_area','esn_cep_volume','esn_cep_surface_area']
+    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], y_label='change', picture_file='/tmp/change_derived', picture_formats=['png','svg'])

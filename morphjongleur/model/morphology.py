@@ -3,7 +3,7 @@
 :Author: stransky
 '''
 import morphjongleur.util.auto_string
-
+import numpy
 
 class Compartment(object):
     '''
@@ -14,26 +14,86 @@ class Compartment(object):
         '''
         classdocs
         '''
-        #self.compartment_key   = compartment_key
-        #self.morphology_key    = morphology_key
-        self.compartment_id     = int(compartment_id)
+        self.compartment_id = int(compartment_id)
         self.compartment_parent_id  = int(compartment_parent_id)
-        self.radius  = float(radius)
-        self.x  = float(x)
-        self.y  = float(y)
-        self.z  = float(z)
+        self.radius         = float(radius)
+        self.xyz            = numpy.array([float(x), float(y), float(z)])
+
         self.parent         = None  #parent automatisch mappen lassen
+        self.children       = [] #necessary for Morphology._crate_tree()
+
         self._morphology    = morphology
         self._info          = [None]
         self._groups        = []
-        self.children       = [] #necessary for Morphology._crate_tree()
+
         self.synapse        = None
+
+    def neuron_create(self, parent, parent_location=1, self_location=0 ):
+        '''
+        @see http://web.mit.edu/neuron_v7.1/doc/help/neuron/neuron/geometry.html
+        '''
+        import neuron
+        self.neuron_h_Section = neuron.h.Section()
+        #??? must be defined BEOFRE to many connections !!!
+        if self.length == 0:
+            self.length = numpy.finfo(self.length).tiny
+            import sys
+            print >> sys.stderr, "distance from %s to its parent %s = 0" %(self.__repr__(), self.parent.__repr__())#oder neu einhängen
+        self.neuron_h_Section.L     = self.length
+        self.neuron_h_Section.diam  = 2 * self.radius
+#        self.neuron_h_Section.Ra    = 
+#        self.neuron_h_Section.ri    =
+#TODO:        if not ( numpy.isnan(self.x) and numpy.isnan(self.y) and numpy.isnan(self.z) ) :
+#            self.neuron_h_Section.x3d = self.x
+#            self.neuron_h_Section.y3d = self.y
+#            self.neuron_h_Section.z3d = self.z
+        self.neuron_h_Section.connect( parent.neuron_h_Section, parent_location, self_location) #connect c 0 with parent(1)
 
     @property
     def info(self):
         if self._info[0] == None:
             self._info[0]   = Compartment_info()
         return self._info[0]
+
+    @property
+    def x(self):
+        return self.xyz[0]
+    @x.setter
+    def x(self, x):
+        self.xyz[0]  = x
+    @property
+    def y(self):
+        return self.xyz[1]
+    @y.setter
+    def y(self, y):
+        self.xyz[1]  = y
+    @property
+    def z(self):
+        return self.xyz[2]
+    @z.setter
+    def z(self, z):
+        self.xyz[2]  = z
+
+    def lca(self, compartment):
+        '''
+        lowest common ancestor
+        '''
+        left    = self
+        right   = compartment
+        leftp   = {left.compartment_id : True}
+        rightp  = {right.compartment_id : True}
+        while left != right:
+            if(left.compartment_parent_id > 0):
+                left    = left.parent
+                leftp[left.compartment_id] = True
+                if(rightp.get(left.compartment_id) != None):
+                    return left;
+            if(right.compartment_parent_id > 0):
+                right   = right.parent
+                rightp[right.compartment_id] = True;
+                if(leftp.get(right.compartment_id) != None):
+                    return right;
+        return left
 
     @property
     def parent_distance(self):
@@ -63,47 +123,7 @@ class Compartment(object):
         while(right != a):
             dist    +=right.parent_distance
             right   = right.parent
-        return dist;
-
-    def lca(self, compartment):
-        left    = self
-        right   = compartment
-        leftp   = {left.compartment_id : True}
-        rightp  = {right.compartment_id : True}
-        while left != right:
-            if(left.compartment_parent_id > 0):
-                left    = left.parent
-                leftp[left.compartment_id] = True
-                if(rightp.get(left.compartment_id) != None):
-                    return left;
-            if(right.compartment_parent_id > 0):
-                right   = right.parent
-                rightp[right.compartment_id] = True;
-                if(leftp.get(right.compartment_id) != None):
-                    return right;
-        return left
-
-    def neuron_create(self, parent, parent_location=1, self_location=0 ):
-        '''
-        @see http://web.mit.edu/neuron_v7.1/doc/help/neuron/neuron/geometry.html
-        '''
-        import neuron
-        import numpy
-        self.neuron_h_Section = neuron.h.Section()
-        #??? must be defined BEOFRE to many connections !!!
-        if self.length == 0:
-            self.length = numpy.finfo(self.length).tiny
-            import sys
-            print >> sys.stderr, "distance from %s to its parent %s = 0" %(self.__repr__(), self.parent.__repr__())#oder neu einhängen
-        self.neuron_h_Section.L     = self.length
-        self.neuron_h_Section.diam  = 2 * self.radius
-#        self.neuron_h_Section.Ra    = 
-#        self.neuron_h_Section.ri    =
-#TODO:        if not ( numpy.isnan(self.x) and numpy.isnan(self.y) and numpy.isnan(self.z) ) :
-#            self.neuron_h_Section.x3d = self.x
-#            self.neuron_h_Section.y3d = self.y
-#            self.neuron_h_Section.z3d = self.z
-        self.neuron_h_Section.connect( parent.neuron_h_Section, parent_location, self_location) #connect c 0 with parent(1)
+        return dist
 
     def plot(self, center={'x':0,'y':0,'z':0}, name='', xlim=None, ylim=None, color='#000000', picture_file=None, picture_formats=['png', 'pdf', 'svg']):
         Compartment.plot_distance([self], center=center, name=name, xlim=xlim, ylim=xlim, color=color, picture_file=picture_file, picture_formats=picture_formats)
@@ -111,7 +131,6 @@ class Compartment(object):
     @staticmethod
     def plot_distance(compartment_iterable, center, name='', xlim=None, ylim=None, color='#000000', picture_file=None, picture_formats=['png', 'pdf', 'svg']):
         import scipy.stats.stats
-        import numpy
         import matplotlib.pyplot
         radii   = [c.radius for c in compartment_iterable]
         distances   = [c.path_distance(center) for c in compartment_iterable]
@@ -224,9 +243,9 @@ class Morphology(object):
         self.description        = description
         self.datetime_recording = datetime_recording
         if compartments == []:#or list(compartments) to prevent static list
-            self.compartments   = []
+            self._compartments  = []
         else:
-            self.compartments   = compartments
+            self._compartments  = compartments
         self._info              = [None]
         self._groups            = []
 
@@ -248,7 +267,7 @@ class Morphology(object):
         if vars(self).has_key('_compartments_map') and self._compartments_map != {}:
             return
         self._compartments_map  = {}
-        self._biggest   = self.compartments[0] if self.compartments[0].compartment_parent_id != -1 else self.compartments[1]
+        self._biggest   = self._compartments[0] if self._compartments[0].compartment_parent_id != -1 else self._compartments[1]
 
         for c in self.compartments:
             self._compartments_map[ c.compartment_id ] = c
@@ -359,17 +378,18 @@ class Morphology(object):
             if len(branching_point.children) > 2:
                 yield(branching_point)
 
-    def getCompartments(self):
+    @property
+    def compartments(self):
         '''
         generator over compartments
         '''
-        for compartment in self.compartments:
+        for compartment in self._compartments:
             yield(compartment)
     @property
-    def number_compartments(self):
-        return len(self.compartments)
+    def number_of_compartments(self):
+        return len(self._compartments)
 
-    def getNonRootCompartments(self):
+    def non_root_compartments(self):
         '''
         generator over compartments
         '''
@@ -379,7 +399,7 @@ class Morphology(object):
             if compartment.parent != None:
                 yield(compartment)
 
-    def getCompartment(self, compartment_id):
+    def get_compartment(self, compartment_id):
         '''
         in order to be conform with Model definition, it is possible to get an compartment by i.
         '''
@@ -389,28 +409,26 @@ class Morphology(object):
         """
         doc-string to be added.
         """
-        self.compartments.append(compartment)
+        self._compartments.append(compartment)
         #compartment = Compartment(parent, id, length)
         #parent.children[id] = compartment
 
-    def getSubtree(self, compartment):
+    def subtree(self, compartment):
         if not vars(self).has_key('_compartments_map') or self._compartments_map == {}:
             self._create_tree()
         if type(compartment) == type(1):
-            compartment = self.getCompartment(compartment)
+            compartment = self.get_compartment(compartment)
 
-        parts   = []
         todo_stack    = []
-        parts.append( compartment )
+        yield( compartment )
         todo_stack.append( compartment )
         while len( todo_stack ) > 0:
             c   = todo_stack.pop()
             todo_stack.extend( c.children )
-            parts.extend( c.children )
-        return parts
+            for cc in c.children:
+                yield( cc )
     
     def pca(self):
-        import numpy
         import mdp
         cs  = []
         for compartment in self.compartments:
@@ -549,7 +567,7 @@ class Star(Morphology):
             
         self.init_helper()
 
-    def getCompartment(self, compartment_id):
+    def get_compartment(self, compartment_id):
         '''
         in order to be conform with Model definition, it is possible to get an compartment by i.
         compartment_id = 0 returns soma

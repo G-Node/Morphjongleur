@@ -12,7 +12,7 @@ def swc_parse_stream(cls, stream, name='', file_origin='', description='', time=
       description           = '',
       datetime_recording    = time
     )
-    assert len(m.compartments) == 0
+    assert len(m._compartments) == 0
     unparsables  = 0
     errors  = 0
     for row in stream:
