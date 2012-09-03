@@ -96,21 +96,20 @@ class Compartment(object):
         return left
 
     @property
-    def parent_distance(self):
+    def length(self):
         """
-        mapped & property
+        parent_distance
         """
-        if not vars(self).has_key('_parent_distance'):
-            import numpy
+        if not vars(self).has_key('_length') or self._length == None:
             if self.parent == None:
-                self._parent_distance   = 0
+                self._length    = 0
             else:
-                self._parent_distance   =  numpy.sqrt(
+                self._length    =  (
                       ((self.parent.x - self.x) ** 2)
                  +    ((self.parent.y - self.y) ** 2)
                  +    ((self.parent.z - self.z) ** 2)
-                 )
-        return self._parent_distance
+                 )**0.5
+        return self._length
 
     def path_distance(self, compartment):
         a = self.lca(compartment);
@@ -118,89 +117,136 @@ class Compartment(object):
         right   = compartment
         dist = 0;
         while(left  != a):
-            dist    +=left.parent_distance
+            dist    +=left.length
             left    = left.parent
         while(right != a):
-            dist    +=right.parent_distance
+            dist    +=right.length
             right   = right.parent
         return dist
 
-    def plot(self, center={'x':0,'y':0,'z':0}, name='', xlim=None, ylim=None, color='#000000', picture_file=None, picture_formats=['png', 'pdf', 'svg']):
-        Compartment.plot_distance([self], center=center, name=name, xlim=xlim, ylim=xlim, color=color, picture_file=picture_file, picture_formats=picture_formats)
-
     @staticmethod
-    def plot_distance(compartment_iterable, center, name='', xlim=None, ylim=None, color='#000000', picture_file=None, picture_formats=['png', 'pdf', 'svg']):
-        import scipy.stats.stats
-        import matplotlib.pyplot
-        radii   = [c.radius for c in compartment_iterable]
-        distances   = [c.path_distance(center) for c in compartment_iterable]
-        matplotlib.pyplot.scatter(distances, radii, c=color, marker='.', edgecolors=color)
-
-        r_mean  = numpy.mean(radii)
-        r_std   = numpy.std(radii)
-        r_gmean = scipy.stats.stats.gmean(radii)
-        r_hmean = scipy.stats.stats.hmean(radii)
-        r_median= numpy.median(radii)
+    def plot(compartment_iterables, colors, x=0, y=1, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+        import matplotlib.pyplot    # 00ff00 00800 00ff80 008080
         
-        matplotlib.pyplot.axhline(y=r_mean,     color='blue')
-        xmin, xmax, ymin, ymax  = matplotlib.pyplot.axis()
-        width    = r_std / (ymax-ymin)
-        center    = (r_mean - ymin) / (ymax-ymin)
-        matplotlib.pyplot.axvline(x=.5*(xmax-xmin), ymin=center-.5*width, ymax=center+.5*width, color='red')
-        matplotlib.pyplot.axhline(y=r_gmean,    color='violet')
-        matplotlib.pyplot.axhline(y=r_hmean,    color='orange')
-        matplotlib.pyplot.axhline(y=r_median,   color='black')
-        
-        d_mean  = numpy.mean(distances)
-        d_std   = numpy.std(distances)
-        if numpy.min(distances) <= 0:
-            d_gmean = 0
-            d_hmean = 0
-        else:
-            d_gmean = scipy.stats.stats.gmean(distances)
-            d_hmean = scipy.stats.stats.hmean(distances)
-        d_median= numpy.median(distances)
-        
-        matplotlib.pyplot.axvline(x=d_mean,     color='blue')
-        xmin, xmax, ymin, ymax  = matplotlib.pyplot.axis()
-        width    = d_std / (xmax-xmin)
-        center    = (d_mean - xmin) / (xmax-xmin)
-        matplotlib.pyplot.axhline(y=.5*(xmax-xmin), xmin=center-.5*width, xmax=center+.5*width, color='red')
-        matplotlib.pyplot.axvline(x=d_gmean,    color='violet')
-        matplotlib.pyplot.axvline(x=d_hmean,    color='orange')
-        matplotlib.pyplot.axvline(x=d_median,   color='black')
-
-        matplotlib.pyplot.legend( [ 
-            'r mean %f' % ( r_mean ), 
-            'r std %f' % ( r_std ), 
-            'r gmean %f' % ( r_gmean ),
-            'r hmean %f' % ( r_hmean ),
-            'r median %f' % ( r_median ),
-            'd mean %f' % ( d_mean ), 
-            'd std %f' % ( d_std ), 
-            'd gmean %f' % ( d_gmean ),
-            'd hmean %f' % ( d_hmean ),
-            'd median %f' % ( d_median ),
-            'compartments'
-        ] )
-        matplotlib.pyplot.ylabel(u'radius [µm]')
-        if ylim != None:
-            matplotlib.pyplot.ylim((0,ylim))
-        matplotlib.pyplot.xlabel(u'distance [µm]')
-        if xlim != None:
-            matplotlib.pyplot.xlim((0,xlim))
+        for i in range(len(compartment_iterables)):
+            xs  = [] 
+            ys  = []
+            ss  = []
+            for c in compartment_iterables[i]:
+                xyz = (c.x, c.y, c.z)
+                xs.append(xyz[x])
+                ys.append(xyz[y])
+                ss.append(c.radius)
+                matplotlib.pyplot.axes().add_artist(
+                    matplotlib.patches.Circle(xy=(c.x, c.y),
+                      color=colors[i],
+                      radius=c.radius
+                    )
+                )
+            #ss = numpy.diff(matplotlib.pyplot.axes().transData.transform(zip([0]*len(ss), ss))) 
+            matplotlib.pyplot.scatter(xs, ys, s=ss, c=colors[i], marker='.', edgecolors=colors[i])#'. o
+        matplotlib.pyplot.axes().set_aspect('equal', 'datalim')
+        #matplotlib.pyplot.axes().yaxis.set_ticks([])
+        #matplotlib.pyplot.axes().xaxis.set_ticks([])
+        #for spine in matplotlib.pyplot.axes().spines.values():
+        #    spine.set_visible(spines_visible)
         
         if(picture_file != None):
             for picture_format in picture_formats:
                 try:
-                    matplotlib.pyplot.savefig(picture_file+'.'+picture_format,format=picture_format)
+                    matplotlib.pyplot.savefig(picture_file+'.'+picture_format, format=picture_format, transparent=True)
                 except Exception, e:
+                    import traceback
                     print picture_format 
                     print traceback.format_exc()
         else:
             matplotlib.pyplot.show()
         matplotlib.pyplot.close()
 
+
+    def plot_distance(self, compartment_iterable, name='', xlim=None, ylim=None, color='#000000', picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+        Compartment.plot_distances([compartment_iterable], [self], [name], xlim, ylim, [color], picture_file, picture_formats)
+
+    @staticmethod
+    def plot_distances(compartment_iterables, centers, names, xlim=None, ylim=None, colors=['#000000'],  picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+        import scipy.stats.stats
+        import matplotlib.pyplot
+        legends = []
+        for (compartment_iterable,center,color,name) in zip(compartment_iterables,centers,colors,names):
+            import itertools
+            compartment_iterable, compartment_iterable2 = itertools.tee(compartment_iterable)
+            radii   = [c.radius for c in compartment_iterable]
+            distances   = [c.path_distance(center) for c in compartment_iterable2]
+            matplotlib.pyplot.scatter(distances, radii, c=color, marker='.', edgecolors=color)
+            legends.append("%s" % (name))
+
+            if False:
+                r_mean  = numpy.mean(radii)
+                r_std   = numpy.std(radii)
+                r_gmean = scipy.stats.stats.gmean(radii)
+                r_hmean = scipy.stats.stats.hmean(radii)
+                r_median= numpy.median(radii)
+                
+                matplotlib.pyplot.axhline(y=r_mean,     color='blue')
+                xmin, xmax, ymin, ymax  = matplotlib.pyplot.axis()
+                width    = r_std / (ymax-ymin)
+                center    = (r_mean - ymin) / (ymax-ymin)
+                matplotlib.pyplot.axvline(x=.5*(xmax-xmin), ymin=center-.5*width, ymax=center+.5*width, color='red')
+                matplotlib.pyplot.axhline(y=r_gmean,    color='violet')
+                matplotlib.pyplot.axhline(y=r_hmean,    color='orange')
+                matplotlib.pyplot.axhline(y=r_median,   color='black')
+            
+                d_mean  = numpy.mean(distances)
+                d_std   = numpy.std(distances)
+                if numpy.min(distances) <= 0:
+                    d_gmean = 0
+                    d_hmean = 0
+                else:
+                    d_gmean = scipy.stats.stats.gmean(distances)
+                    d_hmean = scipy.stats.stats.hmean(distances)
+                d_median= numpy.median(distances)
+                
+                matplotlib.pyplot.axvline(x=d_mean,     color='blue')
+                xmin, xmax, ymin, ymax  = matplotlib.pyplot.axis()
+                width    = d_std / (xmax-xmin)
+                center    = (d_mean - xmin) / (xmax-xmin)
+                matplotlib.pyplot.axhline(y=.5*(xmax-xmin), xmin=center-.5*width, xmax=center+.5*width, color='red')
+                matplotlib.pyplot.axvline(x=d_gmean,    color='violet')
+                matplotlib.pyplot.axvline(x=d_hmean,    color='orange')
+                matplotlib.pyplot.axvline(x=d_median,   color='black')
+    
+                matplotlib.pyplot.legend( [ 
+                    'r mean %f' % ( r_mean ), 
+                    'r std %f' % ( r_std ), 
+                    'r gmean %f' % ( r_gmean ),
+                    'r hmean %f' % ( r_hmean ),
+                    'r median %f' % ( r_median ),
+                    'd mean %f' % ( d_mean ), 
+                    'd std %f' % ( d_std ), 
+                    'd gmean %f' % ( d_gmean ),
+                    'd hmean %f' % ( d_hmean ),
+                    'd median %f' % ( d_median ),
+                    'compartments'
+                ] )
+
+        matplotlib.pyplot.ylabel(u'radius [µm]')
+        if ylim != None:
+            matplotlib.pyplot.ylim((0,ylim))
+        matplotlib.pyplot.xlabel(u'distance [µm]')
+        if xlim != None:
+            matplotlib.pyplot.xlim((0,xlim))
+        matplotlib.pyplot.legend( legends )
+        
+        if(picture_file != None):
+            for picture_format in picture_formats:
+                try:
+                    matplotlib.pyplot.savefig(picture_file+'.'+picture_format, format=picture_format, transparent=True)
+                except Exception, e:
+                    print picture_format 
+                    print traceback.format_exc()
+        else:
+            matplotlib.pyplot.show()
+        matplotlib.pyplot.close()
     def __repr__(self):
         return "Compartment(%i, %i, %f, %f,%f,%f)" % (
             self.compartment_id, self.compartment_parent_id, self.radius, self.x, self.y, self.z)
@@ -280,7 +326,6 @@ class Morphology(object):
             if c.compartment_parent_id != -1:
                 c.parent  = self._compartments_map[ c.compartment_parent_id ]
                 c.parent.children.append( c )
-                c.length  = ( (c.x - c.parent.x)**2 + (c.y - c.parent.y)**2 + (c.z - c.parent.z)**2 )**0.5   #TODO: use .info from DB?
             else:
                 if vars(self).has_key('_root') and self._root != None:
                     import sys
@@ -320,6 +365,16 @@ class Morphology(object):
         if not vars(self).has_key('_root') or self._root == None:
             self._create_tree()
         return self._root
+
+    @property
+    def root_biggest_child(self):
+        if not vars(self).has_key('_root_biggest_child') or self._root_biggest_child == None:
+            self._create_tree()
+            self._root_biggest_child    = self._root.children[0]
+            for c in self._root.children:
+                if(c.radius > self._root_biggest_child):
+                    self._root_biggest_child   = c
+        return self._root_biggest_child
 
     @property
     def biggest(self):
@@ -446,6 +501,45 @@ class Morphology(object):
             )
         return Morphology(self.name, self.file_origin, self.description, self.datetime_recording, compartments=compartments)
 
+    def plot_distance_distribution(self, center, name='', xlim=None, ylim=None, color='#000000', bins=20, picture_file=None, picture_formats=['png', 'pdf', 'svg']):  
+        Morphology.plot_distance_distributions([self.compartments], [center], [name], [color], bins, xlim, ylim, picture_file, picture_formats)
+
+    @staticmethod
+    def plot_distance_distributions(compartment_iterables, centers, names=[''], colors=['#000000'], bins=20, xlim=None, ylim=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):  
+        import matplotlib
+        #matplotlib.rc('text', usetex=True): error with names
+        legends = []
+        for (compartment_iterable,center,color,name) in zip(compartment_iterables,centers,colors,names):
+            x   = [c.path_distance(center) for c in compartment_iterable]
+            mean   = numpy.mean(x)
+            legends.append(u"%7s: %i µm" % (name, mean))
+            std    = numpy.std(x)
+            matplotlib.pyplot.axvline(x=mean, color=color, label='mean'+name)
+            if xlim != None:#TODO: isnumber
+                matplotlib.pyplot.hist(x, bins=range(0,xlim,bins), normed=0, color=color, edgecolor=color, alpha=0.6)
+            else:
+                matplotlib.pyplot.hist(x, bins, normed=0, color=color, edgecolor=color, alpha=0.6)
+
+        #matplotlib.pyplot.title('Endpoints of %s' % (name.replace('_',' ')) )
+        #print 'distribution of %s : mean=%f, std=%f' % (name, mean, std)
+
+
+        matplotlib.pyplot.grid(True, color='lightgrey')
+        matplotlib.pyplot.ylabel('#')#%
+        if ylim != None:
+            matplotlib.pyplot.ylim((0,ylim))
+        matplotlib.pyplot.xlabel(u'distance [µm]')
+        if xlim != None:
+            matplotlib.pyplot.xlim((0,xlim))
+        matplotlib.pyplot.legend( legends )
+
+        if(picture_file != None):
+            for picture_format in picture_formats:
+                matplotlib.pyplot.savefig(picture_file+'.'+picture_format, format=picture_format, transparent=True)
+        else:
+            matplotlib.pyplot.show()
+        matplotlib.pyplot.close('all')
+
     def plot(self, x=0, y=1, color='#000000', picture_file=None, picture_formats=['png', 'pdf', 'svg']):
         import matplotlib.pyplot    # 00ff00 00800 00ff80 008080
         xs  = [] 
@@ -469,7 +563,7 @@ class Morphology(object):
         if(picture_file != None):
             for picture_format in picture_formats:
                 try:
-                    matplotlib.pyplot.savefig(picture_file+'.'+picture_format,format=picture_format)
+                    matplotlib.pyplot.savefig(picture_file+'.'+picture_format, format=picture_format, transparent=True)
                 except Exception, e:
                     import traceback
                     print picture_format 
@@ -477,7 +571,7 @@ class Morphology(object):
         else:
             matplotlib.pyplot.show()
         matplotlib.pyplot.close()
-             
+
     def __repr__(self):
         return "Morphology('%s', '%s', '%s', '%s')" % ( 
             str(self.name), str(self.file_origin), str(self.description), str(self.datetime_recording) )

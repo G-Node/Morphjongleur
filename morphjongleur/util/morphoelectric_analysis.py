@@ -9,9 +9,9 @@ import morphjongleur.model.clamp
 import morphjongleur.model.experiment
 
 def experiment(morphology):#, amplitude
-        recording_point  = morphjongleur.model.experiment.RecordingPoint(compartment=morphology.biggest)
+        recording_point  = morphjongleur.model.experiment.RecordingPoint(compartment=morphology.root_biggest_child)
        
-        iclamp  = morphjongleur.model.clamp.IClamp(compartment=morphology.biggest,
+        iclamp  = morphjongleur.model.clamp.IClamp(compartment=morphology.root_biggest_child,
                     amplitude=-1e-9, delay=0e-3, duration=3e-3
                 )
         neuron_passive_parameter    = morphjongleur.model.neuron_passive.Neuron_passive_parameter(Ra=35.4,g=0.001)
@@ -20,7 +20,7 @@ def experiment(morphology):#, amplitude
                         recording_points=[recording_point], clamps=[iclamp], 
                         neuron_passive_parameter=neuron_passive_parameter, 
                         duration=5e-3, dt=1e-4,
-                        description = "TauExperiment @ %i\t%s " % (morphology.biggest.compartment_id, morphology.name),
+                        description = "TauExperiment @ %i\t%s " % (morphology.root_biggest_child.compartment_id, morphology.name),
                     )
         
         experiment.run_simulation()
@@ -38,6 +38,7 @@ if __name__ == '__main__':
     '''
     import sys
     import morphjongleur.util.parser.swc
+
     print "name\tR_in\ttau_eff\ttau_eff_fit"
     for swc in sys.argv[1:]:#['../../data/test.swc']:#
         m   = morphjongleur.model.morphology.Morphology.swc_parse(swc, verbose=False)
@@ -45,3 +46,14 @@ if __name__ == '__main__':
         result = experiment(morphology=m)
         print result
         result.plot(picture_file='/tmp/taufit_%s' % (m.name), picture_formats=['png','svg'])
+
+    #sys.exit(1)
+
+    from morphjongleur.util.metric_analysis import MetricAnalysis
+    bars= ['dorsal branch','ventral branch']
+    xs  = ['$R_{in}$','$\\tau_{eff fit}$']
+    results    = [experiment(morphology=morphjongleur.model.morphology.Morphology.swc_parse(swc, verbose=False)) for swc in sys.argv[1:]]
+    v   = {'dorsal branch': {'$R_{in}$':results[2].get_R_in()/results[1].get_R_in()-1,'$\\tau_{eff fit}$':results[2].tau_lin_fit()/results[1].tau_lin_fit()-1},
+           'ventral branch':{'$R_{in}$':results[4].get_R_in()/results[3].get_R_in()-1,'$\\tau_{eff fit}$':results[4].tau_lin_fit()/results[3].tau_lin_fit()-1}
+           }
+    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], y_label='change: forager / nurse', picture_file='/tmp/change_tau', picture_formats=['png','svg'])

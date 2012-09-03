@@ -204,7 +204,7 @@ class VoltageTrace(object):
 
         if(picture_file != None):
             for picture_format in picture_formats:
-                matplotlib.pyplot.savefig(picture_file+'.'+picture_format,format=picture_format)
+                matplotlib.pyplot.savefig(picture_file+'.'+picture_format, format=picture_format, transparent=True)
         else:
             matplotlib.pyplot.show()
         matplotlib.pyplot.close()
@@ -239,7 +239,7 @@ class VoltageTrace(object):
 
         if(picture_file != None):
             for picture_format in picture_formats:
-                matplotlib.pyplot.savefig(picture_file+'.'+picture_format,format=picture_format)
+                matplotlib.pyplot.savefig(picture_file+'.'+picture_format, format=picture_format, transparent=True)
         else:
             matplotlib.pyplot.show()
         matplotlib.pyplot.close()
@@ -473,7 +473,7 @@ class TauFit(object):
 
         if(picture_file != None):
             for picture_format in picture_formats:
-                matplotlib.pyplot.savefig(picture_file+'.'+picture_format,format=picture_format)
+                matplotlib.pyplot.savefig(picture_file+'.'+picture_format,format=picture_format, transparent=True)
         else:
             matplotlib.pyplot.show()
         matplotlib.pyplot.close()
