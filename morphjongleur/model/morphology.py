@@ -146,15 +146,17 @@ class Compartment(object):
             #ss = numpy.diff(matplotlib.pyplot.axes().transData.transform(zip([0]*len(ss), ss))) 
             matplotlib.pyplot.scatter(xs, ys, s=ss, c=colors[i], marker='.', edgecolors=colors[i])#'. o
         matplotlib.pyplot.axes().set_aspect('equal', 'datalim')
+        fig = matplotlib.pyplot.gcf()
+        fig.set_size_inches(7,7)
+
         #matplotlib.pyplot.axes().yaxis.set_ticks([])
         #matplotlib.pyplot.axes().xaxis.set_ticks([])
         #for spine in matplotlib.pyplot.axes().spines.values():
         #    spine.set_visible(spines_visible)
-        
         if(picture_file != None):
             for picture_format in picture_formats:
                 try:
-                    matplotlib.pyplot.savefig(picture_file+'.'+picture_format, format=picture_format, transparent=True)
+                    matplotlib.pyplot.savefig(picture_file+'.'+picture_format, format=picture_format, dpi=600, transparent=True)
                 except Exception, e:
                     import traceback
                     print picture_format 

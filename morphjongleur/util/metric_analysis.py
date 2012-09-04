@@ -11,7 +11,7 @@ import mdp
 import scipy.stats.stats #import gmean, hmean#, mean, median, medianscore, mode
 import matplotlib.pyplot
 import numpy
-import chull
+import morphjongleur.util.chull
 from morphjongleur.model.morphology import MorphologyInfo,Morphology,Compartment
 import traceback
 
@@ -230,7 +230,7 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         '''
         #self.pca_rhombus =  self.pca_lengths[0] * numpy.sqrt(numpy.square(self.pca_lengths[2]) + numpy.square(self.pca_lengths[1]))
 
-        self.cep_hull    = chull.Hull([chull.Vector.fromArray([compartment.x, compartment.y, compartment.z]) for compartment in morphology.compartments])
+        self.cep_hull    = morphjongleur.util.chull.Hull([morphjongleur.util.chull.Vector.fromArray([compartment.x, compartment.y, compartment.z]) for compartment in morphology.compartments])
         convex_enveloping_polyhedron_surface_area, convex_enveloping_polyhedron_volume   = self.cep_hull.surface_area_and_volume()
         self.cep_surface_area  = convex_enveloping_polyhedron_surface_area
         self.cep_volume        = convex_enveloping_polyhedron_volume
@@ -323,8 +323,8 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
             matplotlib.pyplot.show()
         matplotlib.pyplot.close()
     @staticmethod
-    def bars_plot(v, bars, xs, colors, y_label='', rotation=0, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
-        matplotlib.rc('text', usetex=True)
+    def bars_plot(v, bars, xs, colors, y_label='', rotation=0, horizontal=False, tex=False, ratio=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+        matplotlib.rc('text', usetex=tex)
         v_means = {}
         v_stds  = {}
         for b in bars:
@@ -337,7 +337,16 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         matplotlib.pyplot.subplot(111)
         rects   = []
         for i in range(len(bars)):
-            rect    = matplotlib.pyplot.bar(ind+i*width+width/2., 
+            if horizontal:
+                rect    = matplotlib.pyplot.barh(ind+i*width+width/2., 
+                                v_means[ bars[i] ],#TODO: (numpy.mean( v[b][x] ) for x in xs) 
+                                width,
+                                color=colors[i],
+                                #yerr=v_stds[ bars[i] ],#(numpy.std( v[b][x] ) for x in xs)
+                                #error_kw=dict(elinewidth=6, ecolor='red')
+                                )
+            else:
+                rect    = matplotlib.pyplot.bar(ind+i*width+width/2., 
                             v_means[ bars[i] ],#TODO: (numpy.mean( v[b][x] ) for x in xs) 
                             width,
                             color=colors[i],
@@ -346,11 +355,23 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
                             )
             rects.append(rect[0])
 
-        matplotlib.pyplot.ylabel(y_label)
-        #matplotlib.pyplot.ylim(ymin=-1)
-        matplotlib.pyplot.xticks(ind + (len(bars)-1)*width+width/2., xs, rotation=rotation ) 
+        #xs  = ['' for x in xs]
+        if horizontal:
+            matplotlib.pyplot.xlabel(y_label)
+            #matplotlib.pyplot.ylim(ymin=-1)
+            matplotlib.pyplot.yticks(ind + (len(bars)-1)*width+width/2., xs , rotation=rotation )
+            matplotlib.pyplot.axvline(x=0, color='black')
+        else:
+            matplotlib.pyplot.ylabel(y_label)
+            #matplotlib.pyplot.ylim(ymin=-1)
+            matplotlib.pyplot.xticks(ind + (len(bars)-1)*width+width/2., xs, rotation=rotation )
+            matplotlib.pyplot.axhline(y=0, color='black')
+
         matplotlib.pyplot.grid(True, axis='y', color='lightgrey')
-        matplotlib.pyplot.axhline(y=0, color='black')
+        
+        if ratio != None:
+            fig = matplotlib.pyplot.gcf()
+            fig.set_size_inches(ratio[0],ratio[1])
 
         matplotlib.pyplot.legend( tuple(rects), tuple(map(str, bars)), loc='best')
         if(picture_file != None):
@@ -384,17 +405,16 @@ if __name__ == '__main__':
         i += 1
 
         morphology   = Morphology.swc_parse(swc, verbose=False)
+        print morphology.name
         #morphology.plot(color=color, picture_file='/tmp/%s' % (morphology.name), picture_formats=['png', 'svg'])
         Compartment.plot(
             [morphology.compartments,  morphology.terminaltips, [morphology.root_biggest_child]], 
             [color, 'yellow', 'red'],
             picture_file='/tmp/%s_color' % (morphology.name), picture_formats=['png', 'svg']#
         )
-        Compartment.plot(
-            [morphology.compartments,  morphology.terminaltips, [morphology.root_biggest_child]], 
-            ['#000080', 'yellow', 'red'],
-            picture_file='/tmp/%s_blue' % (morphology.name), picture_formats=['png', 'svg']#
-        )
+
+        continue
+
         Compartment.plot(
             [morphology.compartments,  MetricAnalysis.farther_away(morphology.compartments, morphology.root_biggest_child, 450)], 
             [color, 'black'],
@@ -413,8 +433,13 @@ if __name__ == '__main__':
             [color, 'black'],
             picture_file='/tmp/%s_faraway_pca' % (m_pca.name), picture_formats=['png', 'svg']#
         )
+        try:
+            a   = MetricAnalysis(m_pca)
+            a.cep_hull.write('/tmp/%s_pca' % (m_pca.name))
+        except Exception, e:
+            print traceback.format_exc()
 
-        #continue
+        continue
 
         morphology.root_biggest_child.plot_distance(morphology.compartments,       morphology.name,            xlim=900, ylim=8,   color=color, picture_file='/tmp/distance_compartments_'+str(morphology.name),               picture_formats=['png'])
         morphology.root_biggest_child.plot_distance(morphology.branching_points,   morphology.name,            xlim=900, ylim=8,   color=color, picture_file='/tmp/distance_branchpoints_'+str(morphology.name),               picture_formats=['png'])
@@ -425,7 +450,7 @@ if __name__ == '__main__':
         morphology.plot_distance_distributions([morphology.terminaltips],     [morphology.root_biggest_child],  [morphology.name], colors=[color], bins=20,   xlim=900, ylim=70,  picture_file='/tmp/distance_distribution_terminaltips_'+str(morphology.name),  picture_formats=['png'])#900, 43
 
         a   = MetricAnalysis(morphology)
-        #a.cep_hull.write('/tmp/hull_'+str(morphology.name))
+        a.cep_hull.write('/tmp/%s_pca' % (morphology.name))
 
         (ks, vs)    = a.variable_table(['name', 'compartments', #'datetime_recording', 
         'total_cell_length', 'surface_length_frustum', 
@@ -455,7 +480,7 @@ if __name__ == '__main__':
             with_head   = False
         print vs
 
-    #sys.exit(0)
+    sys.exit(0)
 
     morphologies    = [Morphology.swc_parse(swc, verbose=False) for swc in sys.argv[1:6]]
     morphologies[0].name    = 'test'
@@ -572,15 +597,17 @@ if __name__ == '__main__':
 
     a   = [MetricAnalysis(ma).variable_map()[0] for ma in morphologies[1:5]]
     v   = {'dorsal branch':{}, 'ventral branch':{}}
-    for key in ['number_of_branching_points','total_cell_length','frustum_volume','frustum_surface_area','frustum_sparsity', 'esn_frustum_volume','esn_frustum_surface_area','esn_sparsity','cepn_volume','cepn_surface_area','cepn_sparsity','esn_cep_volume','esn_cep_surface_area','esn_cep_sparsity']:#a[0].keys():#TODO: more time efficient with properties and only needed
+    bars= ['dorsal branch','ventral branch']
+    xs=['number_of_terminaltips','total_cell_length','frustum_volume','frustum_surface_area','frustum_sparsity', 'cepn_sparsity']#, 'cepn_volume','cepn_surface_area','esn_frustum_volume','esn_frustum_surface_area','esn_sparsity', 'esn_cep_volume','esn_cep_surface_area','esn_cep_sparsity'
+    for key in xs:#TODO: more time efficient with properties and only needed
         v['dorsal branch'][key]     = float(a[1][key]) / a[0][key] - 1
         v['ventral branch'][key]    = float(a[3][key]) / a[2][key] - 1
-    bars= ['dorsal branch','ventral branch']
+    xs.reverse()
     MetricAnalysis.bars_plot(
         v=v, 
         bars=bars, 
-        xs=['number_of_branching_points','total_cell_length','frustum_volume','frustum_surface_area','frustum_sparsity', 'cepn_volume','cepn_surface_area','cepn_sparsity'], 
+        xs=xs, 
         colors=['#00ff00','#0000ff'], 
-        y_label='change: forager / nurse -1', rotation=17, 
+        rotation=0, horizontal=True,#y_label='change: forager / nurse - 1', 
         picture_file='/tmp/change_morphology', picture_formats=['png','svg']
     )

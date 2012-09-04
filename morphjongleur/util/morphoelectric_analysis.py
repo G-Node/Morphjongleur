@@ -56,4 +56,4 @@ if __name__ == '__main__':
     v   = {'dorsal branch': {'$R_{in}$':results[2].get_R_in()/results[1].get_R_in()-1,'$\\tau_{eff fit}$':results[2].tau_lin_fit()/results[1].tau_lin_fit()-1},
            'ventral branch':{'$R_{in}$':results[4].get_R_in()/results[3].get_R_in()-1,'$\\tau_{eff fit}$':results[4].tau_lin_fit()/results[3].tau_lin_fit()-1}
            }
-    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], y_label='change: forager / nurse', picture_file='/tmp/change_tau', picture_formats=['png','svg'])
+    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], horizontal=True, tex=True, ratio=(16,9), picture_file='/tmp/change_tau', picture_formats=['png','svg'])#, y_label='change: forager / nurse - 1'
