@@ -598,7 +598,7 @@ if __name__ == '__main__':
     a   = [MetricAnalysis(ma).variable_map()[0] for ma in morphologies[1:5]]
     v   = {'dorsal branch':{}, 'ventral branch':{}}
     bars= ['dorsal branch','ventral branch']
-    xs=['number_of_terminaltips','total_cell_length','frustum_volume','frustum_surface_area','frustum_sparsity', 'cepn_sparsity']#, 'cepn_volume','cepn_surface_area','esn_frustum_volume','esn_frustum_surface_area','esn_sparsity', 'esn_cep_volume','esn_cep_surface_area','esn_cep_sparsity'
+    xs=['number_of_terminaltips','total_cell_length','frustum_volume','frustum_surface_area','frustum_sparsity', 'esn_sparsity']#, 'cepn_volume','cepn_surface_area','esn_frustum_volume','esn_frustum_surface_area','esn_sparsity', 'esn_cep_volume','esn_cep_surface_area','esn_cep_sparsity'
     for key in xs:#TODO: more time efficient with properties and only needed
         v['dorsal branch'][key]     = float(a[1][key]) / a[0][key] - 1
         v['ventral branch'][key]    = float(a[3][key]) / a[2][key] - 1
