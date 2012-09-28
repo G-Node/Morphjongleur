@@ -13,7 +13,7 @@ class Experiment(object):
     Experiment using Morphjokey
     '''
 
-    def __init__(self, morphology, recording_points, clamps, 
+    def __init__(self, morphology, recordingpoints, clamps, 
         neuron_passive_parameter=morphjongleur.model.neuron_passive.Neuron_passive_parameter(),
         duration=5e-3, dt=1e-6, nseg=10,
         description=''):#experiment_key=None,
@@ -24,13 +24,13 @@ class Experiment(object):
         dt    temporal resolution [s]
         '''
         self.morphology = morphology
-        self.recording_points     = []
+        self.recordingpoints     = []
         try:
-            self.recording_points.extend(recording_points)
+            self.recordingpoints.extend(recordingpoints)
         except TypeError:
-            self.recording_points.append(recording_points)
-        for recording_point in self.recording_points:
-            recording_point.experiment  = self
+            self.recordingpoints.append(recordingpoints)
+        for recordingpoint in self.recordingpoints:
+            recordingpoint.experiment  = self
         self.clamps     = []
         self.iclamps    = []
         self.vclamps    = []
@@ -54,21 +54,21 @@ class Experiment(object):
 
     def __repr__(self):
         # Optional: for str(autoobj) or print autoobj    #has %s in %self.clamp, self.morphology
-        return 'Experiment(morphology=%s,recording_points=%s,clamps=%s, neuron_passive_parameter=%s, experiment_key=%s, description=%s)' % (
-                self.morphology.__repr__(), self.recording_points.__repr__(), self.clamps.__repr__(), 
+        return 'Experiment(morphology=%s,recordingpoints=%s,clamps=%s, neuron_passive_parameter=%s, experiment_key=%s, description=%s)' % (
+                self.morphology.__repr__(), self.recordingpoints.__repr__(), self.clamps.__repr__(), 
                 self.neuron_passive_parameter.__repr__(),
                 str(self.experiment_key), str(self.description) 
         );
     def __str__(self):
         return """<Experiment(
  morphology     = %s
- recording_points         = %s
+ recordingpoints         = %s
  clamps         = %s
  neuron_passive_parameter = %s 
  experiment_key = %s 
  description    = %s
 %s)>""" % (
-                str(self.morphology), str(self.recording_points), str(self.clamps), 
+                str(self.morphology), str(self.recordingpoints), str(self.clamps), 
                 str(self.neuron_passive_parameter),
                 str(self.experiment_key if vars().has_key('experiment_key') else ''), str(self.description),
                 str( str(self._results[0]) if False else '')#self.__dict__.has_key('_results') 
@@ -112,8 +112,8 @@ class Experiment(object):
             clamp.neuron_create()
             self.stim   = clamp.neuron_clamp
 
-        for recording_point in self.recording_points:
-            recording_point.neuron_create()
+        for recordingpoint in self.recordingpoints:
+            recordingpoint.neuron_create()
 
         neuron.h.dt = self.dt   * 1e3
         neuron.h.finitialize(self.neuron_passive_parameter.e);
@@ -151,12 +151,12 @@ class RecordingPoint(object):#Clamp
     def get_voltage_trace(self, delay=0):
         if(len(self.rec_t) == 0):
             raise Exception("run experiment first");
-        return VoltageTrace(t=self.rec_t,v=self.rec_v, delay=delay, recording_point=self)
+        return VoltageTrace(t=self.rec_t,v=self.rec_v, delay=delay, recordingpoint=self)
 
-    def get_tau_fit(self, iclamp, recording_point):
+    def get_tau_fit(self, iclamp):
         if(len(self.rec_t) == 0):
             raise Exception("run experiment first");
-        self.tau_fit   = TauFit(t=self.rec_t,v=self.rec_v, experiment=self.experiment, iclamp=iclamp)
+        self.tau_fit   = TauFit(t=self.rec_t,v=self.rec_v, iclamp=iclamp, recordingpoint=self)
         return self.tau_fit
 
 
@@ -171,11 +171,12 @@ class Experiment_groups(object):
 #    pass
 
 class VoltageTrace(object):
-    def __init__(self, t,v, delay=0, recording_point=None):
+    def __init__(self, t,v, delay=0, recordingpoint=None):
         assert len(t) == len(v)
-        self.t              = list(t)
-        self.v              = list(v)
-        self.recording_point = recording_point
+        self.recordingpoint = recordingpoint
+        self.delay  = delay
+        self.t      = list(t)
+        self.v      = list(v)
 
         if len(self.t) != len(self.v):
             import sys
@@ -183,7 +184,7 @@ class VoltageTrace(object):
 
         self.v_min = float('+inf')
         self.v_max = float('-inf')
-        for i in range(len(self.t)):
+        for i in xrange(len(self.t)):
             self.t[i]   /= 1e3 # ms -> s
             if(self.t[i] > delay):
                 if(self.v[i] < self.v_min):
@@ -192,13 +193,16 @@ class VoltageTrace(object):
                 if(self.v[i] > self.v_max):
                     self.t_max  = self.t[i]
                     self.v_max  = self.v[i]
+        
+        self.amplitude = (self.v_max - self.v_min)/2.
+        self.duration  = abs(self.t_max - self.t_min)
 
     def plot(self, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
         import matplotlib.pyplot
         matplotlib.pyplot.xlabel("t [ms]")
         matplotlib.pyplot.ylabel("U [mV]")
-        #matplotlib.pyplot.xlim(0, self.recording_point.experiment.duration*1000)
-        #matplotlib.pyplot.ylim(min(self.recording_point.experiment.neuron_mso.e, self.recording_point.experiment.e), max(self.recording_point.experiment.neuron_mso.e, self.recording_point.experiment.e))
+        #matplotlib.pyplot.xlim(0, self.recordingpoint.experiment.duration*1000)
+        #matplotlib.pyplot.ylim(min(self.recordingpoint.experiment.neuron_mso.e, self.recordingpoint.experiment.e), max(self.recordingpoint.experiment.neuron_mso.e, self.recordingpoint.experiment.e))
         matplotlib.pyplot.grid(True)
         matplotlib.pyplot.plot(self.t, self.v)
 
@@ -218,8 +222,8 @@ class VoltageTrace(object):
         titles  = []
 
         for vt in voltage_traces:
-            matplotlib.pyplot.plot(vt.t, vt.v, label="%s @ %i" % (vt.recording_point.experiment.description, self.recording_point.compartment.compartment_id) )
-            titles.append(vt.recording_point.experiment.description)
+            matplotlib.pyplot.plot(vt.t, vt.v, label="%s @ %i" % (vt.recordingpoint.experiment.description, self.recordingpoint.compartment.compartment_id) )
+            titles.append(vt.recordingpoint.experiment.description)
 #TODO:  matplotlib.pyplot.axis('image');
 #        xmin, xmax, ymin, ymax  = matplotlib.pyplot.axis();
 #        matplotlib.pyplot.axis([int(xmin), int(xmax + 0.5), int(ymin - 1.01), int(ymax + 0.01)]);#int(-0.5) = 0
@@ -232,7 +236,7 @@ class VoltageTrace(object):
             matplotlib.pyplot.xlim(xlim)
         matplotlib.pyplot.legend(titles, loc='best');
         if title    == None:
-            title   = self.recording_point.experiment.description
+            title   = self.recordingpoint.experiment.description
         matplotlib.pyplot.title(title);
 
         matplotlib.pyplot.grid();
@@ -265,15 +269,16 @@ class VoltageTrace(object):
 
 class TauFit(object):
     
-    def __init__(self, t,v, experiment, iclamp):#r_in, tau_eff, tau_eff_fit=0,       
+    def __init__(self, t,v, iclamp, recordingpoint=None):#r_in, tau_eff, tau_eff_fit=0,
+        assert len(t) == len(v)
+        self.recordingpoint = recordingpoint
+        self.iclamp     = iclamp   
         self.t              = t
         self.v              = v
-        self.experiment = experiment
-        self.iclamp     = iclamp
         self.r_in       = float(self.R_in())
         self.tau_eff    = float(self.tau_eff())
         self.tau_eff_fit= float(self.tau_fit())
-        #self.g_max          = g_max
+        self.g_max          = float('nan')#TODO:g_max
 
     def get_recording(self, start=0, end=float('+Infinity')):
         """
@@ -282,11 +287,11 @@ class TauFit(object):
         import numpy
         time = numpy.array(self.t)
         voltage = numpy.array(self.v)
-        start_index = int(start/self.experiment.dt);#floor
+        start_index = int(start/self.recordingpoint.experiment.dt);#floor
         if(end==float('+Infinity')):
             end_index = None;
         else:
-            end_index   = int(numpy.ceil(end/self.experiment.dt)) + 1;
+            end_index   = int(numpy.ceil(end/self.recordingpoint.experiment.dt)) + 1;
         time    = time[start_index:end_index];
         voltage = voltage[start_index:end_index];
         assert len(time) == len(voltage)
@@ -315,8 +320,8 @@ class TauFit(object):
         """
         import numpy
         time, voltage = self.get_recording(self.iclamp.delay,self.iclamp.delay+self.iclamp.duration)
-        end   = self.v[int(numpy.ceil((self.iclamp.delay+self.iclamp.duration)/self.experiment.dt))];
-        start = self.v[int(self.iclamp.delay/self.experiment.dt)];#floor
+        end   = self.v[int(numpy.ceil((self.iclamp.delay+self.iclamp.duration)/self.recordingpoint.experiment.dt))];
+        start = self.v[int(self.iclamp.delay/self.recordingpoint.experiment.dt)];#floor
         u_eff = (end - start)*(1 - numpy.exp(-1)) + start; # 1/e * v_max
         if not ((start < u_eff and u_eff < end) or (start > u_eff and u_eff > end)):
             import sys
@@ -371,11 +376,11 @@ class TauFit(object):
         Is it extendable for more clamps?
         """
         import numpy
-        u_diff = self.v[int(numpy.ceil((self.iclamp.delay+self.iclamp.duration)/self.experiment.dt))] - self.v[int(self.iclamp.delay/self.experiment.dt)];    #TODO: experiment too short
+        u_diff = self.v[int(numpy.ceil((self.iclamp.delay+self.iclamp.duration)/self.recordingpoint.experiment.dt))] - self.v[int(self.iclamp.delay/self.recordingpoint.experiment.dt)];    #TODO: experiment too short
         i_diff   = self.iclamp.neuron_h_IClamp.amp - 0;
         r_in = float(u_diff) / i_diff; #physics -> sign is postivie
         assert r_in > 0;
-        assert r_in == self.get_R_in()	#print "r_in %f =?= %f get_R_in" %(r_in, self.get_R_in())#only holds for single experiments 
+        #TODO: assert r_in == self.get_R_in()	#print "r_in %f =?= %f get_R_in" %(r_in, self.get_R_in())#only holds for single experiments 
         return r_in;
 
     def tau_lin_fit(self, dt=1e-6):
@@ -526,18 +531,18 @@ if __name__ == "__main__":
     
         e = Experiment(
             morphology=m, 
-            recording_points=r, 
+            recordingpoints=r, 
             clamps=c, 
             neuron_passive_parameter=morphjongleur.model.neuron_passive.Neuron_passive_parameter(Ra=1, g=0.004, e=-60), 
             duration=5e-3, dt=1e-4,
             description='passive channels'
         )
-        assert len(e.recording_points) == 1
+        assert len(e.recordingpoints) == 1
         assert len(e.clamps) == 1
         
         e.run_simulation()
 
-        tau_fit = r.get_tau_fit(iclamp=c, recording_point=r)
+        tau_fit = r.get_tau_fit(iclamp=c, recordingpoint=r)
         print(tau_fit)
         tau_fit.plot(e.dt, pic_dir='/tmp/', picture_formats=['png'])
         vts.append( r.get_voltage_trace() )

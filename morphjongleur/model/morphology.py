@@ -74,6 +74,31 @@ class Compartment(object):
     def z(self, z):
         self.xyz[2]  = z
 
+    @staticmethod
+    def huge():
+        return Compartment(-7, -7, radius=float('+inf'))
+
+    @staticmethod
+    def tiny():
+        return Compartment(-7, -7, radius=float('-inf'))
+
+    def distance_euclid(self, compartment):
+        return (      ((compartment.x - self.x) ** 2)
+                 +    ((compartment.y - self.y) ** 2)
+                 +    ((compartment.z - self.z) ** 2)
+                 )**0.5
+
+    def length(self):
+        """
+        parent_distance
+        """
+        if not vars(self).has_key('_length') or self._length == None:
+            if self.parent == None:
+                self._length    = 0
+            else:
+                self._length    =  self.distance_euclid(self.parent)
+        return self._length
+
     def lca(self, compartment):
         '''
         lowest common ancestor
@@ -96,22 +121,7 @@ class Compartment(object):
         return left
 
     @property
-    def length(self):
-        """
-        parent_distance
-        """
-        if not vars(self).has_key('_length') or self._length == None:
-            if self.parent == None:
-                self._length    = 0
-            else:
-                self._length    =  (
-                      ((self.parent.x - self.x) ** 2)
-                 +    ((self.parent.y - self.y) ** 2)
-                 +    ((self.parent.z - self.z) ** 2)
-                 )**0.5
-        return self._length
-
-    def path_distance(self, compartment):
+    def distance_path(self, compartment):
         a = self.lca(compartment);
         left    = self
         right   = compartment
@@ -125,10 +135,51 @@ class Compartment(object):
         return dist
 
     @staticmethod
+    def write_svg(svg_file, compartment_iterables, colors=['#000000'], x=0, y=1):
+        '''
+        write Scalable Vector Graphics file
+        '''
+        import itertools
+        compartment_iterables1  = []
+        compartment_iterables2  = []
+        for compartment_iterable in compartment_iterables:
+            compartment_iterable1,compartment_iterable2    = itertools.tee(compartment_iterable)
+            compartment_iterables1.append(compartment_iterable1) 
+            compartment_iterables2.append(compartment_iterable2)
+        compartment_iterables   = compartment_iterables1
+
+        stream  = open(svg_file, "w")
+        stream.write('<?xml version="1.0"?>\n')
+        stream.write('<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n')
+        xyz_min = [float("+inf"),float("+inf"),float("+inf")]
+        xyz_max = [float("-inf"),float("-inf"),float("-inf")]
+        radius_max = float("-inf")
+        for compartment_iterable in compartment_iterables2:
+            for c in compartment_iterable:
+                for d in [x,y]:#range(3):
+                    if xyz_min[d] > c.xyz[d]:
+                        xyz_min[d] = c.xyz[d]
+                    if xyz_max[d] < c.xyz[d]:
+                        xyz_max[d] = c.xyz[d]
+                if radius_max < c.radius:
+                    radius_max = c.radius
+        xyz_shift   = [0,0,0]
+        for d in [x,y]:#range(3):
+            xyz_shift[d]   = -xyz_min[d]+radius_max
+        stream.write('<svg xmlns="http://www.w3.org/2000/svg" width="%f" height="%f">\n' % (xyz_max[x]-xyz_min[x]+2*radius_max, xyz_max[y]-xyz_min[y]+2*radius_max))
+        for i in xrange(len(compartment_iterables)):
+            color   = colors[i%len(colors)]
+            for c in compartment_iterables[i]:#id="%i" c.compartment_id, 
+                stream.write('<circle cx="%f" cy="%f" r="%f" fill="%s" />\n' % (c.xyz[x]+xyz_shift[x], c.xyz[y]+xyz_shift[y], c.radius, color))
+        stream.write('</svg>\n')
+        stream.close()
+
+    @staticmethod
     def plot(compartment_iterables, colors, x=0, y=1, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
         import matplotlib.pyplot    # 00ff00 00800 00ff80 008080
+        import numpy
         
-        for i in range(len(compartment_iterables)):
+        for i in xrange(len(compartment_iterables)):
             xs  = [] 
             ys  = []
             ss  = []
@@ -136,18 +187,18 @@ class Compartment(object):
                 xyz = (c.x, c.y, c.z)
                 xs.append(xyz[x])
                 ys.append(xyz[y])
-                ss.append(c.radius)
-                matplotlib.pyplot.axes().add_artist(
-                    matplotlib.patches.Circle(xy=(c.x, c.y),
-                      color=colors[i],
-                      radius=c.radius
-                    )
-                )
-            #ss = numpy.diff(matplotlib.pyplot.axes().transData.transform(zip([0]*len(ss), ss))) 
+                ss.append(numpy.pi * c.radius**2)
+                #matplotlib.pyplot.axes().add_artist(
+                #    matplotlib.patches.Circle(xy=(c.x, c.y),
+                #      color=colors[i%len(colors)],
+                #      radius=c.radius
+                #    )
+                #)
+            ss = numpy.diff(matplotlib.pyplot.axes().transData.transform(zip([0]*len(ss), ss))) 
             matplotlib.pyplot.scatter(xs, ys, s=ss, c=colors[i], marker='.', edgecolors=colors[i])#'. o
         matplotlib.pyplot.axes().set_aspect('equal', 'datalim')
-        fig = matplotlib.pyplot.gcf()
-        fig.set_size_inches(7,7)
+        #fig = matplotlib.pyplot.gcf()
+        #fig.set_size_inches(7,7)
 
         #matplotlib.pyplot.axes().yaxis.set_ticks([])
         #matplotlib.pyplot.axes().xaxis.set_ticks([])
@@ -165,6 +216,104 @@ class Compartment(object):
             matplotlib.pyplot.show()
         matplotlib.pyplot.close()
 
+    @staticmethod
+    def plot3d(compartment_iterable, color='black', picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+        import mpl_toolkits.mplot3d
+        import matplotlib.pyplot
+        import numpy
+        
+        fig = matplotlib.pyplot.figure()
+        #for c in compartment_iterable:
+            #draw sphere
+            #u, v = numpy.mgrid[0:2*numpy.pi:20j, 0:numpy.pi:10j]
+            #x=numpy.cos(u)*numpy.sin(v)
+            #y=numpy.sin(u)*numpy.sin(v)
+            #z=numpy.cos(v)
+            #ax.plot_wireframe(x, y, z, color="r")
+        ax = fig.add_subplot(111, projection='3d')
+        for ci in [compartment_iterable]:
+            xs  = [] 
+            ys  = []
+            zs  = []
+            cs  = []
+            ss  = []
+            colorbar    = True
+            for c in compartment_iterable:
+                xs.append(c.x)
+                ys.append(c.y)
+                zs.append(c.z)
+                if vars(c).has_key('color'):
+                    cs.append(float(c.color))
+                else:
+                    colorbar    = False
+                    cs.append(color)
+                ss.append(numpy.pi * c.radius**2)
+            ss = numpy.diff(ax.transData.transform(zip([0]*len(ss), ss)))
+            p = ax.scatter(xs, ys, zs, c=cs, marker='.', s=ss)
+        if False and colorbar:
+            matplotlib.pyplot.figure().colorbar(p)
+        ax.set_aspect('equal')
+        #fig.set_size_inches(7,7)
+
+        if(picture_file != None):
+            for picture_format in picture_formats:
+                try:
+                    matplotlib.pyplot.savefig(picture_file+'.'+picture_format, format=picture_format, dpi=600, transparent=True)
+                except Exception, e:
+                    import traceback
+                    print picture_format 
+                    print traceback.format_exc()
+        else:
+            matplotlib.pyplot.show()
+        matplotlib.pyplot.close()
+
+    @staticmethod
+    def plot_color(compartment_iterables, x=0, y=1, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+        '''
+        requires c.color
+        '''
+        import matplotlib.pyplot    # 00ff00 00800 00ff80 008080
+        fig = matplotlib.pyplot.figure()
+        for i in xrange(len(compartment_iterables)):
+            xs  = [] 
+            ys  = []
+            ss  = []
+            cs  = []
+            for c in compartment_iterables[i]:
+                xyz = (c.x, c.y, c.z)
+                xs.append(xyz[x])
+                ys.append(xyz[y])
+                ss.append(c.radius)
+                cs.append(float(c.color))
+                matplotlib.pyplot.axes().add_artist(
+                    matplotlib.patches.Circle(
+                        xy=(c.x, c.y),
+                        radius=c.radius,
+                        color=c.color
+                    )
+                )
+            #ss = numpy.diff(matplotlib.pyplot.axes().transData.transform(zip([0]*len(ss), ss))) 
+            p = matplotlib.pyplot.scatter(xs, ys, s=ss, c=cs, marker='.', edgecolors=cs)#'. o
+        fig.colorbar(p)
+        matplotlib.pyplot.axes().set_aspect('equal', 'datalim')
+        #fig = matplotlib.pyplot.gcf()
+        #fig.set_size_inches(7,7)
+
+        #matplotlib.pyplot.axes().yaxis.set_ticks([])
+        #matplotlib.pyplot.axes().xaxis.set_ticks([])
+        #for spine in matplotlib.pyplot.axes().spines.values():
+        #    spine.set_visible(spines_visible)
+        if(picture_file != None):
+            for picture_format in picture_formats:
+                try:
+                    matplotlib.pyplot.savefig(picture_file+'.'+picture_format, format=picture_format, dpi=600, transparent=True)
+                except Exception, e:
+                    import traceback
+                    print picture_format 
+                    print traceback.format_exc()
+        else:
+            matplotlib.pyplot.show()
+        matplotlib.pyplot.close()
 
     def plot_distance(self, compartment_iterable, name='', xlim=None, ylim=None, color='#000000', picture_file=None, picture_formats=['png', 'pdf', 'svg']):
         Compartment.plot_distances([compartment_iterable], [self], [name], xlim, ylim, [color], picture_file, picture_formats)
@@ -178,7 +327,7 @@ class Compartment(object):
             import itertools
             compartment_iterable, compartment_iterable2 = itertools.tee(compartment_iterable)
             radii   = [c.radius for c in compartment_iterable]
-            distances   = [c.path_distance(center) for c in compartment_iterable2]
+            distances   = [c.distance_path(center) for c in compartment_iterable2]
             matplotlib.pyplot.scatter(distances, radii, c=color, marker='.', edgecolors=color)
             legends.append("%s" % (name))
 
@@ -369,6 +518,12 @@ class Morphology(object):
         return self._root
 
     @property
+    def biggest(self):
+        if not vars(self).has_key('_biggest') or self._biggest == None:
+            self._create_tree()
+        return self._biggest
+
+    @property
     def root_biggest_child(self):
         if not vars(self).has_key('_root_biggest_child') or self._root_biggest_child == None:
             self._create_tree()
@@ -377,12 +532,6 @@ class Morphology(object):
                 if(c.radius > self._root_biggest_child):
                     self._root_biggest_child   = c
         return self._root_biggest_child
-
-    @property
-    def biggest(self):
-        if not vars(self).has_key('_biggest') or self._biggest == None:
-            self._create_tree()
-        return self._biggest
 
     @property
     def terminaltips(self):
@@ -405,6 +554,14 @@ class Morphology(object):
             for l in self.terminaltips:
                 pass
         return len(self._leafs)
+
+    @property
+    def terminaltips_biggest(self):
+        tb  = Compartment.tiny()
+        for t in self.terminaltips:
+            if tb.radius < t.radius:
+                tb = t
+        return tb
 
     @property
     def branching_points(self):
@@ -442,10 +599,12 @@ class Morphology(object):
         '''
         for compartment in self._compartments:
             yield(compartment)
+
     @property
     def number_of_compartments(self):
         return len(self._compartments)
 
+    @property
     def non_root_compartments(self):
         '''
         generator over compartments
@@ -490,7 +649,7 @@ class Morphology(object):
         pca_cs  = mdp.pca( numpy.array([ [c.x, c.y, c.z] for c in self.compartments ] ) )
         assert self.number_of_compartments == len(pca_cs)
         compartments    = []
-        for i in range( self.number_of_compartments ):
+        for i in xrange( self.number_of_compartments ):
             compartments.append(    # m.add_compartment(
                 Compartment( 
                     self._compartments[i].compartment_id, 
@@ -512,7 +671,7 @@ class Morphology(object):
         #matplotlib.rc('text', usetex=True): error with names
         legends = []
         for (compartment_iterable,center,color,name) in zip(compartment_iterables,centers,colors,names):
-            x   = [c.path_distance(center) for c in compartment_iterable]
+            x   = [c.distance_path(center) for c in compartment_iterable]
             mean   = numpy.mean(x)
             legends.append(u"%7s: %i µm" % (name, mean))
             std    = numpy.std(x)
@@ -543,36 +702,13 @@ class Morphology(object):
         matplotlib.pyplot.close('all')
 
     def plot(self, x=0, y=1, color='#000000', picture_file=None, picture_formats=['png', 'pdf', 'svg']):
-        import matplotlib.pyplot    # 00ff00 00800 00ff80 008080
-        xs  = [] 
-        ys  = []
-        ss  = []
-        for c in self.compartments:
-            xyz = (c.x, c.y, c.z)
-            xs.append(xyz[x])
-            ys.append(xyz[y])
-            ss.append(c.radius)
-            matplotlib.pyplot.axes().add_artist(
-                matplotlib.patches.Circle(xy=(c.x, c.y),
-                  color=color,
-                  radius=c.radius
-                )
-            )
-        #ss = numpy.diff(matplotlib.pyplot.axes().transData.transform(zip([0]*len(ss), ss))) 
-        matplotlib.pyplot.scatter(xs, ys, s=ss, c=color, marker='.', edgecolors=color)#'. o
-        matplotlib.pyplot.axes().set_aspect('equal', 'datalim')
-        
-        if(picture_file != None):
-            for picture_format in picture_formats:
-                try:
-                    matplotlib.pyplot.savefig(picture_file+'.'+picture_format, format=picture_format, transparent=True)
-                except Exception, e:
-                    import traceback
-                    print picture_format 
-                    print traceback.format_exc()
-        else:
-            matplotlib.pyplot.show()
-        matplotlib.pyplot.close()
+        Compartment.plot([self.compartments], colors=[color], x=x, y=y, picture_file=picture_file, picture_formats=picture_formats)
+
+    def write_svg(self, svg_file, color='#000000', x=0, y=1):
+        '''
+        write Scalable Vector Graphics file
+        '''
+        Compartment.write_svg(svg_file=svg_file, compartment_iterables=[self.compartments], colors=[color], x=x, y=y)
 
     def __repr__(self):
         return "Morphology('%s', '%s', '%s', '%s')" % ( 
@@ -633,11 +769,11 @@ class Star(Morphology):
         self.soma = Compartment(1,-1, radius=soma_diameter/2.0);
         self.medial_dendrites = [];
         self.lateral_dendrites = [];
-        for k in range(int(medials)): # medial dendrites
+        for k in xrange(int(medials)): # medial dendrites
             medial_dendrite = Compartment(2*k+2, 1);
             self.medial_dendrites.append(medial_dendrite)
         assert len(self.medial_dendrites) == medials
-        for k in range(int(laterals)): # lateral dendrites
+        for k in xrange(int(laterals)): # lateral dendrites
             lateral_dendrite = Compartment(2*k+3, 1);
             self.lateral_dendrites.append(lateral_dendrite)
         assert len(self.lateral_dendrites) == laterals
