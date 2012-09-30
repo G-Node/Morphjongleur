@@ -88,6 +88,7 @@ class Compartment(object):
                  +    ((compartment.z - self.z) ** 2)
                  )**0.5
 
+    @property
     def length(self):
         """
         parent_distance
@@ -120,7 +121,6 @@ class Compartment(object):
                     return right;
         return left
 
-    @property
     def distance_path(self, compartment):
         a = self.lca(compartment);
         left    = self

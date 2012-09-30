@@ -134,13 +134,15 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         self.cylindric_lateral_area = 0.
         self.frustum_volume         = 0.
         self.frustum_lateral_area   = 0.
-        for compartment in morphology.non_root_compartments():
+        for compartment in morphology.non_root_compartments:
             self.total_cell_length  += compartment.length
             compartment.frustum_length  = math.sqrt( (compartment.parent.radius - compartment.radius)**2 + compartment.length**2)
             self.surface_length_frustum+= compartment.frustum_length
 
-            self.cylindric_volume   += compartment.radius**2 * compartment.length
-            self.cylindric_lateral_area += compartment.radius * compartment.length
+            #mostly smaller radius  = compartment.radius
+            radius  = (compartment.parent.radius + compartment.radius)/2.
+            self.cylindric_volume   += radius**2 * compartment.length
+            self.cylindric_lateral_area += radius * compartment.length
 
             self.frustum_volume         += compartment.length * (compartment.parent.radius**2 + compartment.parent.radius * compartment.radius + compartment.radius**2)            
             self.frustum_lateral_area   += compartment.frustum_length * (compartment.parent.radius + compartment.radius)
@@ -563,11 +565,10 @@ if __name__ == '__main__':
         i += 1
 
         morphology   = Morphology.swc_parse(swc, verbose=False)
-
-        ###
         MetricAnalysis.plot_sholl3d(morphology.branching_points, morphology.terminaltips, morphology.root, '/tmp/%s_sholl3d' % (morphology.name), picture_formats)
         MetricAnalysis.plot_sholl3d_branchnumber(morphology.branching_points, morphology.terminaltips, morphology.root, '/tmp/%s_sholl3d_branchnumber' % (morphology.name), picture_formats)
-        
+
+        ###
         morphology.write_svg(svg_file='/tmp/%s.svg' % (morphology.name), color=color)
         Compartment.write_svg('/tmp/%s_color.svg' % (morphology.name), 
             [morphology.compartments,  morphology.terminaltips, [morphology.root_biggest_child]], 
@@ -581,7 +582,7 @@ if __name__ == '__main__':
             [morphology.compartments,  morphology.terminaltips, [morphology.root_biggest_child]], 
             [color, 'yellow', 'red']
         )
-        continue
+        #continue
         ###
 
         #print morphology.name
@@ -624,7 +625,7 @@ if __name__ == '__main__':
             picture_file='/tmp/%s_pca_faraway' % (m_pca.name), picture_formats=picture_formats#
         )
 
-        continue
+        #continue
 
         morphology.terminaltips_biggest.plot_distance(morphology.compartments,       morphology.name,            xlim=900, ylim=8,   color=color, picture_file='/tmp/distance_compartments_'+str(morphology.name),               picture_formats=picture_formats)
         morphology.terminaltips_biggest.plot_distance(morphology.branching_points,   morphology.name,            xlim=900, ylim=8,   color=color, picture_file='/tmp/distance_branchpoints_'+str(morphology.name),               picture_formats=picture_formats)
@@ -634,7 +635,7 @@ if __name__ == '__main__':
         morphology.plot_distance_distributions([morphology.branching_points], [morphology.terminaltips_biggest],  [morphology.name], colors=[color], bins=20,   xlim=900, ylim=65,  picture_file='/tmp/distance_distribution_branchpoints_'+str(morphology.name),  picture_formats=picture_formats)
         morphology.plot_distance_distributions([morphology.terminaltips],     [morphology.terminaltips_biggest],  [morphology.name], colors=[color], bins=20,   xlim=900, ylim=70,  picture_file='/tmp/distance_distribution_terminaltips_'+str(morphology.name),  picture_formats=picture_formats)#900, 43
 
-        continue
+        #continue
         try:
             pass
             #a   = MetricAnalysis(m_pca)
