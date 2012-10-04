@@ -202,7 +202,7 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
             self.harmonic_mean_branchpoint_cross_section_area   = 0
         self.median_branchpoint_cross_section_area          = 2 * math.pi * numpy.median(branchingpoints_radii)
         
-        terminaltips_distances   = [morphology.terminaltips_biggest.distance_path(compartment) for compartment in morphology.terminaltips]
+        terminaltips_distances   = [morphology.root.distance_path(compartment) for compartment in morphology.terminaltips]
         self.arithmetic_mean_terminaltip_distance = numpy.mean( terminaltips_distances )
         self.geometric_mean_terminaltip_distance   = scipy.stats.stats.gmean( terminaltips_distances )
         try:
@@ -577,7 +577,7 @@ if __name__ == '__main__':
         ###
         morphology.write_svg(svg_file='/tmp/%s.svg' % (morphology.name), color=color)
         Compartment.write_svg('/tmp/%s_color.svg' % (morphology.name), 
-            [morphology.compartments,  morphology.terminaltips, [morphology.root_biggest_child]], 
+            [morphology.compartments,  morphology.terminaltips, [morphology.root]], 
             [color, 'yellow', 'red']
         )
         m_pca   = morphology.pca()
@@ -585,7 +585,7 @@ if __name__ == '__main__':
         #MetricAnalysis.plot_sholl3d_branchnumber(m_pca.branching_points, m_pca.terminaltips, m_pca.root, '/tmp/%s_sholl3d_branchnumber' % (m_pca.name), picture_formats)
         m_pca.write_svg(svg_file='/tmp/%s_pca.svg' % (m_pca.name), color=color)
         Compartment.write_svg('/tmp/%s_pca_color.svg' % (morphology.name), 
-            [morphology.compartments,  morphology.terminaltips, [morphology.root_biggest_child]], 
+            [morphology.compartments,  morphology.terminaltips, [morphology.root]], 
             [color, 'yellow', 'red']
         )
         #continue
@@ -595,12 +595,12 @@ if __name__ == '__main__':
         morphology.plot(color=color, picture_file='/tmp/%s' % (morphology.name), picture_formats=picture_formats)
         morphology.write_svg(svg_file='/tmp/%s.svg' % (morphology.name), color=color)
         Compartment.plot(
-            [morphology.compartments,  morphology.terminaltips, [morphology.terminaltips_biggest]], 
+            [morphology.compartments,  morphology.terminaltips, [morphology.root]], 
             [color, 'yellow', 'red'],
             picture_file='/tmp/%s_color' % (morphology.name), picture_formats=picture_formats#
         )
         Compartment.write_svg('/tmp/%s_color.svg' % (morphology.name), 
-            [morphology.compartments,  morphology.terminaltips, [morphology.terminaltips_biggest]], 
+            [morphology.compartments,  morphology.terminaltips, [morphology.root]], 
             [color, 'yellow', 'red']
         )
         Compartment.plot3d(morphology.compartments, picture_file='/tmp/%s_3d' % (morphology.name), picture_formats=picture_formats)
@@ -608,7 +608,7 @@ if __name__ == '__main__':
         #continue
 
         Compartment.plot(
-            [morphology.compartments,  MetricAnalysis.farther_away(morphology.compartments, morphology.terminaltips_biggest, 450)], 
+            [morphology.compartments,  MetricAnalysis.farther_away(morphology.compartments, morphology.root, 450)], 
             [color, 'black'],
             picture_file='/tmp/%s_faraway' % (morphology.name), picture_formats=picture_formats#
         )
@@ -617,29 +617,29 @@ if __name__ == '__main__':
         m_pca.plot(color=color, picture_file='/tmp/%s_pca' % (m_pca.name), picture_formats=picture_formats)
         m_pca.write_svg(svg_file='/tmp/%s_pca.svg' % (m_pca.name), color=color)
         Compartment.plot(
-            [m_pca.compartments,  m_pca.terminaltips, [m_pca.terminaltips_biggest]], 
+            [m_pca.compartments,  m_pca.terminaltips, [m_pca.root]], 
             [color, 'yellow', 'red'],
             picture_file='/tmp/%s_pca_color' % (m_pca.name), picture_formats=picture_formats#
         )
         Compartment.write_svg('/tmp/%s_pca_color.svg' % (morphology.name), 
-            [morphology.compartments,  morphology.terminaltips, [morphology.terminaltips_biggest]], 
+            [morphology.compartments,  morphology.terminaltips, [morphology.root]], 
             [color, 'yellow', 'red']
         )
         Compartment.plot(
-            [m_pca.compartments,  MetricAnalysis.farther_away(m_pca.compartments, m_pca.terminaltips_biggest, 450)], 
+            [m_pca.compartments,  MetricAnalysis.farther_away(m_pca.compartments, m_pca.root, 450)], 
             [color, 'black'],
             picture_file='/tmp/%s_pca_faraway' % (m_pca.name), picture_formats=picture_formats#
         )
 
         #continue
 
-        morphology.terminaltips_biggest.plot_distance(morphology.compartments,       morphology.name,            xlim=900, ylim=8,   color=color, picture_file='/tmp/distance_compartments_'+str(morphology.name),               picture_formats=picture_formats)
-        morphology.terminaltips_biggest.plot_distance(morphology.branching_points,   morphology.name,            xlim=900, ylim=8,   color=color, picture_file='/tmp/distance_branchpoints_'+str(morphology.name),               picture_formats=picture_formats)
-        morphology.terminaltips_biggest.plot_distance(morphology.terminaltips,       morphology.name,            xlim=900, ylim=8,   color=color, picture_file='/tmp/distance_terminaltips_'+str(morphology.name),               picture_formats=picture_formats)
+        morphology.root.plot_distance(morphology.compartments,       morphology.name,            xlim=900, ylim=8,   color=color, picture_file='/tmp/distance_compartments_'+str(morphology.name),               picture_formats=picture_formats)
+        morphology.root.plot_distance(morphology.branching_points,   morphology.name,            xlim=900, ylim=8,   color=color, picture_file='/tmp/distance_branchpoints_'+str(morphology.name),               picture_formats=picture_formats)
+        morphology.root.plot_distance(morphology.terminaltips,       morphology.name,            xlim=900, ylim=8,   color=color, picture_file='/tmp/distance_terminaltips_'+str(morphology.name),               picture_formats=picture_formats)
 
-        morphology.plot_distance_distribution(morphology.terminaltips_biggest,                                    morphology.name,   color=color,    bins=20,   xlim=900, ylim=900, picture_file='/tmp/distance_distribution_compartments_'+str(morphology.name),  picture_formats=picture_formats)
-        morphology.plot_distance_distributions([morphology.branching_points], [morphology.terminaltips_biggest],  [morphology.name], colors=[color], bins=20,   xlim=900, ylim=65,  picture_file='/tmp/distance_distribution_branchpoints_'+str(morphology.name),  picture_formats=picture_formats)
-        morphology.plot_distance_distributions([morphology.terminaltips],     [morphology.terminaltips_biggest],  [morphology.name], colors=[color], bins=20,   xlim=900, ylim=70,  picture_file='/tmp/distance_distribution_terminaltips_'+str(morphology.name),  picture_formats=picture_formats)#900, 43
+        morphology.plot_distance_distribution(morphology.root,                                    morphology.name,   color=color,    bins=20,   xlim=900, ylim=900, picture_file='/tmp/distance_distribution_compartments_'+str(morphology.name),  picture_formats=picture_formats)
+        morphology.plot_distance_distributions([morphology.branching_points], [morphology.root],  [morphology.name], colors=[color], bins=20,   xlim=900, ylim=65,  picture_file='/tmp/distance_distribution_branchpoints_'+str(morphology.name),  picture_formats=picture_formats)
+        morphology.plot_distance_distributions([morphology.terminaltips],     [morphology.root],  [morphology.name], colors=[color], bins=20,   xlim=900, ylim=70,  picture_file='/tmp/distance_distribution_terminaltips_'+str(morphology.name),  picture_formats=picture_formats)#900, 43
 
         #continue
         try:
@@ -692,7 +692,7 @@ if __name__ == '__main__':
     
 
     Compartment.plot_distances([m.compartments for m in morphologies[1:3]],
-                               [m.terminaltips_biggest for m in morphologies[1:3]], 
+                               [m.root for m in morphologies[1:3]], 
                                [m.name for m in morphologies[1:3]],            
                                xlim=900, ylim=8,   
                                colors=colors[1:3], 
@@ -700,7 +700,7 @@ if __name__ == '__main__':
                                picture_formats=['png','svg']
     )
     Compartment.plot_distances([m.branching_points for m in morphologies[1:3]],
-                               [m.terminaltips_biggest for m in morphologies[1:3]], 
+                               [m.root for m in morphologies[1:3]], 
                                [m.name for m in morphologies[1:3]],            
                                xlim=900, ylim=8,   
                                colors=colors[1:3], 
@@ -708,7 +708,7 @@ if __name__ == '__main__':
                                picture_formats=['png','svg']
     )
     Compartment.plot_distances([m.terminaltips for m in morphologies[1:3]],
-                               [m.terminaltips_biggest for m in morphologies[1:3]], 
+                               [m.root for m in morphologies[1:3]], 
                                [m.name for m in morphologies[1:3]],            
                                xlim=900, ylim=8,   
                                colors=colors[1:3], 
@@ -716,7 +716,7 @@ if __name__ == '__main__':
                                picture_formats=['png','svg']
     )
     Compartment.plot_distances([m.compartments for m in morphologies[3:5]],
-                               [m.terminaltips_biggest for m in morphologies[3:5]], 
+                               [m.root for m in morphologies[3:5]], 
                                [m.name for m in morphologies[3:5]],            
                                xlim=900, ylim=8,   
                                colors=colors[3:5], 
@@ -724,7 +724,7 @@ if __name__ == '__main__':
                                picture_formats=['png','svg']
     )
     Compartment.plot_distances([m.branching_points for m in morphologies[3:5]],
-                               [m.terminaltips_biggest for m in morphologies[3:5]], 
+                               [m.root for m in morphologies[3:5]], 
                                [m.name for m in morphologies[3:5]],            
                                xlim=900, ylim=8,   
                                colors=colors[3:5], 
@@ -732,7 +732,7 @@ if __name__ == '__main__':
                                picture_formats=['png','svg']
     )
     Compartment.plot_distances([m.terminaltips for m in morphologies[3:5]],
-                               [m.terminaltips_biggest for m in morphologies[3:5]], 
+                               [m.root for m in morphologies[3:5]], 
                                [m.name for m in morphologies[3:5]],            
                                xlim=900, ylim=8,   
                                colors=colors[3:5], 
@@ -742,7 +742,7 @@ if __name__ == '__main__':
 
     Morphology.plot_distance_distributions(
         [m.terminaltips for m in morphologies[1:3]],
-        [m.terminaltips_biggest for m in morphologies[1:3]], 
+        [m.root for m in morphologies[1:3]], 
         [m.name for m in morphologies[1:3]], 
         colors=colors[1:3], 
         bins=20, xlim=900, ylim=70, 
@@ -751,7 +751,7 @@ if __name__ == '__main__':
     )
     Morphology.plot_distance_distributions(
         [m.terminaltips for m in morphologies[3:5]],
-        [m.terminaltips_biggest for m in morphologies[3:5]], 
+        [m.root for m in morphologies[3:5]], 
         [m.name for m in morphologies[3:5]], 
         colors=colors[3:5], 
         bins=20, xlim=900, ylim=70, #xlim=600, ylim=40, 
@@ -761,7 +761,7 @@ if __name__ == '__main__':
 
     Morphology.plot_distance_distributions(
         [m.branching_points for m in morphologies[1:3]],
-        [m.terminaltips_biggest for m in morphologies[1:3]], 
+        [m.root for m in morphologies[1:3]], 
         [m.name for m in morphologies[1:3]], 
         colors=colors[1:3], 
         bins=20, xlim=900, ylim=65, 
@@ -770,7 +770,7 @@ if __name__ == '__main__':
     )
     Morphology.plot_distance_distributions(
         [m.branching_points for m in morphologies[3:5]],
-        [m.terminaltips_biggest for m in morphologies[3:5]], 
+        [m.root for m in morphologies[3:5]], 
         [m.name for m in morphologies[3:5]], 
         colors=colors[3:5], 
         bins=20, xlim=900, ylim=65, #xlim=600, ylim=40, 
@@ -780,7 +780,7 @@ if __name__ == '__main__':
 
     Morphology.plot_distance_distributions(
         [m.compartments for m in morphologies[1:3]],
-        [m.terminaltips_biggest for m in morphologies[1:3]], 
+        [m.root for m in morphologies[1:3]], 
         [m.name for m in morphologies[1:3]], 
         colors=colors[1:3], 
         bins=20, xlim=900, ylim=900, 
@@ -789,7 +789,7 @@ if __name__ == '__main__':
     )
     Morphology.plot_distance_distributions(
         [m.compartments for m in morphologies[3:5]],
-        [m.terminaltips_biggest for m in morphologies[3:5]], 
+        [m.root for m in morphologies[3:5]], 
         [m.name for m in morphologies[3:5]], 
         colors=colors[3:5], 
         bins=20, xlim=900, ylim=900, #xlim=600, ylim=700, 

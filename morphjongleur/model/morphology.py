@@ -47,7 +47,7 @@ class Compartment(object):
 #            self.neuron_h_Section.x3d = self.x
 #            self.neuron_h_Section.y3d = self.y
 #            self.neuron_h_Section.z3d = self.z
-        self.connect( parent.neuron_h_Section, parent_location, self_location) #connect c 0 with parent(1)
+        self.neuron_h_Section.connect( parent.neuron_h_Section, parent_location, self_location) #connect c 0 with parent(1)
 
     @property
     def info(self):
@@ -768,6 +768,8 @@ class Star(Morphology):
         soma_diam diameter (soma.diam): [µm]
         soma_nseg: stored as an integer
         '''
+        self.name   = "Star_%i_%i" % (medials, laterals)
+        
         import neuron
         #Morphology.__init__(self);
         # soma (compartment: neuron.h.Section() )
@@ -775,36 +777,33 @@ class Star(Morphology):
         self.medial_dendrites = [];
         self.lateral_dendrites = [];
         for k in xrange(int(medials)): # medial dendrites
-            medial_dendrite = Compartment(2*k+2, 1);
-            self.medial_dendrites.append(medial_dendrite)
+            self.medial_dendrites.append( Compartment(2*k+2, 1) )
         assert len(self.medial_dendrites) == medials
         for k in xrange(int(laterals)): # lateral dendrites
-            lateral_dendrite = Compartment(2*k+3, 1);
-            self.lateral_dendrites.append(lateral_dendrite)
+            self.lateral_dendrites.append( Compartment(2*k+3, 1) )
         assert len(self.lateral_dendrites) == laterals
 
         #http://code.activestate.com/recipes/52235-calling-a-superclasss-implementation-of-a-method/
         
-        self.compartments  = []
-        self.compartments.extend(self.medial_dendrites)
-        self.compartments.extend(self.lateral_dendrites)
+        self._compartments  = []
+        self._compartments.extend(self.medial_dendrites)
+        self._compartments.extend(self.lateral_dendrites)
         self.soma.neuron_h_Section = neuron.h.Section()
 
         for c in self.compartments:
             c.neuron_h_Section = neuron.h.Section()
             c.neuron_h_Section.L = dendrite_length;
             c.neuron_h_Section.diam = dendrite_diameter
-            c.neuron_h_Section.nseg = dendrite_diameter
+            c.neuron_h_Section.nseg = dendrite_nseg
             c.neuron_h_Section.Ra = dendrite_Ra
 
-        self.compartments.append(self.soma)
+        self._compartments.append(self.soma)
             
         for medial_dendrite in self.medial_dendrites:
             medial_dendrite.neuron_h_Section.connect(self.soma.neuron_h_Section, 1, 0) # connect soma(1) with medial_dendrite(0)
         for lateral_dendrite in self.lateral_dendrites:
             lateral_dendrite.neuron_h_Section.connect(self.soma.neuron_h_Section, 0, 0) # connect soma(0) with lateral_dendrites(0)
-            
-        self.init_helper()
+
 
     def get_compartment(self, compartment_id):
         '''

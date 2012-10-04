@@ -525,8 +525,8 @@ if __name__ == "__main__":
     vts  = []
     tfs  = []
     for m in ms:
-        r = RecordingPoint(m.getCompartment(0), position=0.5)
-        c = morphjongleur.model.clamp.IClamp(m.getCompartment(0), position=0.5, amplitude=-1e-9,delay=1e-3,duration=3e-3)
+        r = RecordingPoint(m.biggest, position=0.5)
+        c = morphjongleur.model.clamp.IClamp(m.biggest, position=0.5, amplitude=-1e-9,delay=1e-3,duration=3e-3)
                 #simulation: , gp=0.004, E=-60, Ra=200, soma_Ra=1, soma_L=40, soma_diam=20, soma_nseg=1, dendrite_Ra=1, dendrite_length=150, dendrite_diameter=3, dendrite_nseg=1);
     
         e = Experiment(
@@ -542,9 +542,9 @@ if __name__ == "__main__":
         
         e.run_simulation()
 
-        tau_fit = r.get_tau_fit(iclamp=c, recordingpoint=r)
+        tau_fit = r.get_tau_fit(iclamp=c)
         print(tau_fit)
-        tau_fit.plot(e.dt, pic_dir='/tmp/', picture_formats=['png'])
+        tau_fit.plot(e.dt, picture_file='/tmp/tau_fit_%s' % (m.name), picture_formats=['pdf','svg','png'])
         vts.append( r.get_voltage_trace() )
         tfs.append( tau_fit )
 

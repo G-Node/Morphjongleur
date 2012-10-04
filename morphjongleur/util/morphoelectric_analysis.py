@@ -9,9 +9,9 @@ import morphjongleur.model.clamp
 import morphjongleur.model.experiment
 
 def experiment(morphology):#, amplitude
-        recordingpoint  = morphjongleur.model.experiment.RecordingPoint(compartment=morphology.terminaltips_biggest)
+        recordingpoint  = morphjongleur.model.experiment.RecordingPoint(compartment=morphology.root)
        
-        iclamp  = morphjongleur.model.clamp.IClamp(compartment=morphology.terminaltips_biggest,
+        iclamp  = morphjongleur.model.clamp.IClamp(compartment=morphology.root,
                     amplitude=-1e-9, delay=0e-3, duration=3e-3
                 )
         neuron_passive_parameter    = morphjongleur.model.neuron_passive.Neuron_passive_parameter(Ra=35.4,g=0.001)
@@ -20,7 +20,7 @@ def experiment(morphology):#, amplitude
                         recordingpoints=[recordingpoint], clamps=[iclamp], 
                         neuron_passive_parameter=neuron_passive_parameter, 
                         duration=5e-3, dt=1e-4,
-                        description = "TauExperiment @ %i\t%s " % (morphology.terminaltips_biggest.compartment_id, morphology.name),
+                        description = "TauExperiment @ %i\t%s " % (morphology.root.compartment_id, morphology.name),
                     )
         
         experiment.run_simulation()
@@ -29,9 +29,9 @@ def experiment(morphology):#, amplitude
         return tau_fit
 
 def amplitudes(morphology):
-        recordingpoints  = [morphjongleur.model.experiment.RecordingPoint(compartment=recordingpoint) for recordingpoint in morphology.non_root_compartments]
+        recordingpoints  = [morphjongleur.model.experiment.RecordingPoint(compartment=recordingpoint) for recordingpoint in morphology.compartments]
        
-        iclamp  = morphjongleur.model.clamp.IClamp(compartment=morphology.terminaltips_biggest,
+        iclamp  = morphjongleur.model.clamp.IClamp(compartment=morphology.root,
                     amplitude=-1e-9, delay=0e-3, duration=3e-3
                 )
         neuron_passive_parameter    = morphjongleur.model.neuron_passive.Neuron_passive_parameter(Ra=35.4,g=0.001)
@@ -40,7 +40,7 @@ def amplitudes(morphology):
                         recordingpoints=recordingpoints, clamps=[iclamp], 
                         neuron_passive_parameter=neuron_passive_parameter, 
                         duration=5e-3, dt=1e-4,
-                        description = "TauExperiment @ %i\t%s " % (morphology.terminaltips_biggest.compartment_id, morphology.name),
+                        description = "TauExperiment @ %i\t%s " % (morphology.root.compartment_id, morphology.name),
                     )
         
         experiment.run_simulation()
@@ -48,9 +48,9 @@ def amplitudes(morphology):
         return recordingpoints
 
 def taus(morphology):
-        recordingpoints  = [morphjongleur.model.experiment.RecordingPoint(compartment=recordingpoint) for recordingpoint in morphology.non_root_compartments]
+        recordingpoints  = [morphjongleur.model.experiment.RecordingPoint(compartment=recordingpoint) for recordingpoint in morphology.compartments]
        
-        iclamp  = morphjongleur.model.clamp.IClamp(compartment=morphology.terminaltips_biggest,
+        iclamp  = morphjongleur.model.clamp.IClamp(compartment=morphology.root,
                     amplitude=-1e-9, delay=0e-3, duration=3e-3
                 )
         neuron_passive_parameter    = morphjongleur.model.neuron_passive.Neuron_passive_parameter(Ra=35.4,g=0.001)
@@ -59,7 +59,7 @@ def taus(morphology):
                         recordingpoints=recordingpoints, clamps=[iclamp], 
                         neuron_passive_parameter=neuron_passive_parameter, 
                         duration=5e-3, dt=1e-4,
-                        description = "TauExperiment @ %i\t%s " % (morphology.terminaltips_biggest.compartment_id, morphology.name),
+                        description = "TauExperiment @ %i\t%s " % (morphology.root.compartment_id, morphology.name),
                     )
         
         experiment.run_simulation()
@@ -77,7 +77,21 @@ if __name__ == '__main__':
     import numpy
     import morphjongleur.util.parser.swc
     import morphjongleur.model.morphology
-    picture_formats = ['png','svg', 'pdf']#
+    picture_formats = ['png','svg', 'pdf']
+
+    print "direkt vergleich"
+
+    from morphjongleur.util.metric_analysis import MetricAnalysis
+    bars= ['dorsal branch','ventral branch']
+    xs  = ['$R_{in}$','$\\tau_{eff fit}$']
+    results    = [experiment(morphology=morphjongleur.model.morphology.Morphology.swc_parse(swc, verbose=False)) for swc in sys.argv[1:]]
+    v   = {'dorsal branch': {'$R_{in}$':results[2].get_R_in()/results[1].get_R_in()-1,'$\\tau_{eff fit}$':results[2].tau_lin_fit()/results[1].tau_lin_fit()-1},
+           'ventral branch':{'$R_{in}$':results[4].get_R_in()/results[3].get_R_in()-1,'$\\tau_{eff fit}$':results[4].tau_lin_fit()/results[3].tau_lin_fit()-1}
+           }
+    print v
+    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], horizontal=True, tex=True, ratio=(16,9), picture_file='/tmp/change_tau', picture_formats=picture_formats)#, y_label='change: forager / nurse - 1'
+
+    sys.exit(1)
 
     print "name\tR_in\ttau_eff\ttau_eff_fit"
     for swc in sys.argv[1:]:#['../../data/test.swc']:#
@@ -98,41 +112,25 @@ if __name__ == '__main__':
             amplitude_min   = 0.
             for vt in vts:
                 vt.recordingpoint.compartment.color = "%f" % (vt.amplitude / amplitude_max)
-            m.root.color    = m.root_biggest_child.color    # hack
             morphjongleur.model.morphology.Compartment.plot_color([m.compartments], picture_file='/tmp/amplitude_grayscale_%s' % (m.name), picture_formats=picture_formats)
 
             r_in_max = float(numpy.max([t.r_in for t in ts]))
             r_in_min = 0.
             for t in ts:
                 t.recordingpoint.compartment.color = "%f" % (t.r_in / r_in_max)
-            m.root.color    = m.root_biggest_child.color    # hack
             morphjongleur.model.morphology.Compartment.plot_color([m.compartments], picture_file='/tmp/r_in_grayscale_%s' % (m.name), picture_formats=picture_formats)
             tau_eff_max     = float(numpy.max([t.tau_eff for t in ts]))
             tau_eff_min     = 0.
             for t in ts:
                 t.recordingpoint.compartment.color = "%f" % (t.tau_eff / tau_eff_max)
-            m.root.color    = m.root_biggest_child.color    # hack
             morphjongleur.model.morphology.Compartment.plot_color([m.compartments], picture_file='/tmp/tau_eff_grayscale_%s' % (m.name), picture_formats=picture_formats)
             tau_eff_fit_max = float(numpy.max([t.tau_eff_fit for t in ts]))
             tau_eff_fit_min = 0.
             for t in ts:
                 t.recordingpoint.compartment.color = "%f" % (t.tau_eff_fit / tau_eff_fit_max)
-            m.root.color    = m.root_biggest_child.color    # hack
             morphjongleur.model.morphology.Compartment.plot_color([m.compartments], picture_file='/tmp/tau_eff_fit_grayscale_%s' % (m.name), picture_formats=picture_formats)
 
         except Exception, e:
             print swc
             import traceback 
             print traceback.format_exc()
-
-    #sys.exit(1)
-
-    from morphjongleur.util.metric_analysis import MetricAnalysis
-    bars= ['dorsal branch','ventral branch']
-    xs  = ['$R_{in}$','$\\tau_{eff fit}$']
-    results    = [experiment(morphology=morphjongleur.model.morphology.Morphology.swc_parse(swc, verbose=False)) for swc in sys.argv[1:]]
-    v   = {'dorsal branch': {'$R_{in}$':results[2].get_R_in()/results[1].get_R_in()-1,'$\\tau_{eff fit}$':results[2].tau_lin_fit()/results[1].tau_lin_fit()-1},
-           'ventral branch':{'$R_{in}$':results[4].get_R_in()/results[3].get_R_in()-1,'$\\tau_{eff fit}$':results[4].tau_lin_fit()/results[3].tau_lin_fit()-1}
-           }
-    print v
-    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], horizontal=True, tex=True, ratio=(16,9), picture_file='/tmp/change_tau', picture_formats=picture_formats)#, y_label='change: forager / nurse - 1'
