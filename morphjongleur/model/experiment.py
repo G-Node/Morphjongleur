@@ -450,8 +450,8 @@ class TauFit(object):
         matplotlib.pyplot.axis('image');
         xmin, xmax, ymin, ymax  = matplotlib.pyplot.axis();
 
-        start = u[int(numpy.ceil((self.iclamp.delay+self.iclamp.duration)/self.experiment.dt))];
-        end   = u[int(self.iclamp.delay/self.experiment.dt)];
+        start = u[int(numpy.ceil((self.iclamp.delay+self.iclamp.duration)/self.recordingpoint.experiment.dt))];
+        end   = u[int(self.iclamp.delay/self.recordingpoint.experiment.dt)];
         print str(end) +" - "+ str(start);
         t = numpy.arange(self.iclamp.delay, self.iclamp.delay+self.iclamp.duration+dt/2.0, dt);
         u = (end-start) * numpy.exp(- (t-self.iclamp.delay)/self.tau_eff ) + start;
@@ -493,7 +493,7 @@ class TauFit(object):
         )
             
     def __str__(self):
-        return '%s\t%f\t%f\t%f' % (self.experiment.description, self.r_in, self.tau_eff, self.tau_eff_fit)
+        return '%s\t%f\t%f\t%f' % (self.recordingpoint.experiment.description, self.r_in, self.tau_eff, self.tau_eff_fit)
 
 def test():
     import pydesignlib;

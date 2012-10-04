@@ -40,14 +40,14 @@ class Compartment(object):
             import sys
             print >> sys.stderr, "distance from %s to its parent %s = 0" %(self.__repr__(), self.parent.__repr__())#oder neu einhängen
         self.neuron_h_Section.L     = self.length
-        self.neuron_h_Section.diam  = 2 * self.radius
+        self.neuron_h_Section.diam  = self.radius + parent.radius   #2 * self.radius
 #        self.neuron_h_Section.Ra    = 
 #        self.neuron_h_Section.ri    =
 #TODO:        if not ( numpy.isnan(self.x) and numpy.isnan(self.y) and numpy.isnan(self.z) ) :
 #            self.neuron_h_Section.x3d = self.x
 #            self.neuron_h_Section.y3d = self.y
 #            self.neuron_h_Section.z3d = self.z
-        self.neuron_h_Section.connect( parent.neuron_h_Section, parent_location, self_location) #connect c 0 with parent(1)
+        self.connect( parent.neuron_h_Section, parent_location, self_location) #connect c 0 with parent(1)
 
     @property
     def info(self):
@@ -294,7 +294,7 @@ class Compartment(object):
                 )
             #ss = numpy.diff(matplotlib.pyplot.axes().transData.transform(zip([0]*len(ss), ss))) 
             p = matplotlib.pyplot.scatter(xs, ys, s=ss, c=cs, marker='.', edgecolors=cs)#'. o
-        fig.colorbar(p)
+        #fig.colorbar(p)
         matplotlib.pyplot.axes().set_aspect('equal', 'datalim')
         #fig = matplotlib.pyplot.gcf()
         #fig.set_size_inches(7,7)
@@ -306,7 +306,7 @@ class Compartment(object):
         if(picture_file != None):
             for picture_format in picture_formats:
                 try:
-                    matplotlib.pyplot.savefig(picture_file+'.'+picture_format, format=picture_format, dpi=600, transparent=True)
+                    matplotlib.pyplot.savefig(picture_file+'.'+picture_format, format=picture_format, transparent=True)#, dpi=600
                 except Exception, e:
                     import traceback
                     print picture_format 
@@ -491,9 +491,10 @@ class Morphology(object):
         todo_stack    = []
         root    = self.root
         first_child = root.children[0]
-        first_child.neuron_h_Section = neuron.h.Section()
-        first_child.neuron_h_Section.L     = first_child.length
-        first_child.neuron_h_Section.diam  = 2 * first_child.radius
+        root.neuron_h_Section = neuron.h.Section()
+        first_child.neuron_h_Section = root.neuron_h_Section
+        root.neuron_h_Section.L     = first_child.length
+        root.neuron_h_Section.diam  = root.radius + first_child.radius  # 2 * first_child.radius
         todo_stack.extend( first_child.children )
         for c in root.children[1:]:
             c.neuron_create( first_child, parent_location=0, self_location=0 ) #connect c 0 with parent(0)
@@ -541,7 +542,7 @@ class Morphology(object):
         if self._leafs == []:
             self._create_tree()
             for c in self.compartments:
-                if len(c.children) == 0:
+                if len(c.children) == 0 or len(c.children) == 1 and c.parent == None:
                     self._leafs.append(c)
 #                elif len(c.children) > 1:
 #                    self.branching_points.append(c)
@@ -573,7 +574,7 @@ class Morphology(object):
             for c in self.compartments:
 #                if len(c.children) == 0:
 #                    self._leafs.append(c)
-                if len(c.children) > 1:
+                if len(c.children) > 2 or len(c.children) > 1 and c.parent != None:
                     self._branching_points.append(c)
 
         for branching_point in self._branching_points:
@@ -672,8 +673,12 @@ class Morphology(object):
         legends = []
         for (compartment_iterable,center,color,name) in zip(compartment_iterables,centers,colors,names):
             x   = [c.distance_path(center) for c in compartment_iterable]
+            if len(x) == 0:
+                import sys
+                print >> sys.stderr, "iterable list has 0 elements"
+                continue
             mean   = numpy.mean(x)
-            legends.append(u"%7s: %i µm" % (name, mean))
+            legends.append(u"%7s: %i µm" % (name, round(mean)))
             std    = numpy.std(x)
             matplotlib.pyplot.axvline(x=mean, color=color, label='mean'+name)
             if xlim != None:#TODO: isnumber

@@ -77,16 +77,16 @@ if __name__ == '__main__':
     import numpy
     import morphjongleur.util.parser.swc
     import morphjongleur.model.morphology
-    picture_formats = ['png']#,'svg', 'pdf'
+    picture_formats = ['png','svg', 'pdf']#
 
     print "name\tR_in\ttau_eff\ttau_eff_fit"
     for swc in sys.argv[1:]:#['../../data/test.swc']:#
         m   = morphjongleur.model.morphology.Morphology.swc_parse(swc, verbose=False)
-        #print m
+        print m.name, 
         try:
-            #result = experiment(morphology=m)
-            #print result
-            #result.plot(picture_file='/tmp/taufit_%s' % (m.name), picture_formats=picture_formats)
+            result = experiment(morphology=m)
+            print result
+            result.plot(picture_file='/tmp/taufit_%s' % (m.name), picture_formats=picture_formats)
             
             rps = amplitudes(morphology=m)
             vts = [rp.get_voltage_trace() for rp in rps]
@@ -125,7 +125,7 @@ if __name__ == '__main__':
             import traceback 
             print traceback.format_exc()
 
-    sys.exit(1)
+    #sys.exit(1)
 
     from morphjongleur.util.metric_analysis import MetricAnalysis
     bars= ['dorsal branch','ventral branch']
@@ -134,4 +134,5 @@ if __name__ == '__main__':
     v   = {'dorsal branch': {'$R_{in}$':results[2].get_R_in()/results[1].get_R_in()-1,'$\\tau_{eff fit}$':results[2].tau_lin_fit()/results[1].tau_lin_fit()-1},
            'ventral branch':{'$R_{in}$':results[4].get_R_in()/results[3].get_R_in()-1,'$\\tau_{eff fit}$':results[4].tau_lin_fit()/results[3].tau_lin_fit()-1}
            }
+    print v
     MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], horizontal=True, tex=True, ratio=(16,9), picture_file='/tmp/change_tau', picture_formats=picture_formats)#, y_label='change: forager / nurse - 1'

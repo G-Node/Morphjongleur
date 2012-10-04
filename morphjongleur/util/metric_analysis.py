@@ -172,9 +172,12 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         leafs   = [leaf for leaf in morphology.terminaltips]
         while len(leafs) > 0:
             new_leafs   = {}
-            for leaf in leafs:
-                compartment = leaf.parent
-                distance = leaf.length
+            for compartment in leafs:
+                if compartment.compartment_parent_id < 1:
+                    branchingpoints_distances.append(leaf.length/.2)
+                    continue
+                distance = 0
+                compartment   = compartment.parent
                 while compartment.compartment_parent_id > 0 and len(compartment.children) == 1:
                     distance += compartment.length
                     compartment   = compartment.parent
@@ -246,15 +249,18 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
             )
         '''
         #self.pca_rhombus =  self.pca_lengths[0] * numpy.sqrt(numpy.square(self.pca_lengths[2]) + numpy.square(self.pca_lengths[1]))
-
-        self.cep_hull    = morphjongleur.util.chull.Hull([morphjongleur.util.chull.Vector.fromArray([compartment.x, compartment.y, compartment.z]) for compartment in morphology.compartments])
-        convex_enveloping_polyhedron_surface_area, convex_enveloping_polyhedron_volume   = self.cep_hull.surface_area_and_volume()
+        try:
+            self.cep_hull    = morphjongleur.util.chull.Hull([morphjongleur.util.chull.Vector.fromArray([compartment.x, compartment.y, compartment.z]) for compartment in morphology.compartments])
+            convex_enveloping_polyhedron_surface_area, convex_enveloping_polyhedron_volume  = self.cep_hull.surface_area_and_volume()
+        except Exception, e:
+            convex_enveloping_polyhedron_surface_area, convex_enveloping_polyhedron_volume  = float('nan'),float('nan')
+            print traceback.format_exc()
         self.cep_surface_area  = convex_enveloping_polyhedron_surface_area
         self.cep_volume        = convex_enveloping_polyhedron_volume
 
         '''
-        volume of minial shere with equal surface area        [~m³]
-        surface area of minial shere with equal volume 
+        volume of minimal sphere with equal surface area        [~m³]
+        surface area of minimal sphere with equal volume 
         4/3 radius ?        [m]
         '''
         self.es_volume          = 4./3 * math.pi * ( self.frustum_surface_area / 4. / math.pi) ** (3./2)
@@ -419,9 +425,9 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         t = 0
         n = 1   #center
         distances_branches  = [ (0,n) ]
-        if distance_branchpoints[b][1] == 0:
+        if len(distance_branchpoints) > 0 and distance_branchpoints[b][1] == 0:
             b = 1
-        assert distance_branchpoints[b][1] != 0
+        assert len(distance_branchpoints) == 0 or distance_branchpoints[b][1] != 0
         if distance_terminaltips[t][1] == 0:
             t = 1
         assert distance_terminaltips[t][1] != 0
@@ -448,7 +454,7 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
             b = b + 1
         
         while t < len(distance_terminaltips):
-            assert distance_branchpoints[b-1][1] <= distance_terminaltips[t][1]
+            assert len(distance_branchpoints) == 0 or distance_branchpoints[b-1][1] <= distance_terminaltips[t][1]
             n = n - 1
             distances_branches.append((distance_terminaltips[t][1], n))
             t = t + 1
@@ -644,7 +650,8 @@ if __name__ == '__main__':
             print traceback.format_exc()
 
         a   = MetricAnalysis(morphology)
-        a.cep_hull.write('/tmp/%s_pca' % (morphology.name))
+        if not vars(a).has_key('cep_hull'):
+            a.cep_hull.write('/tmp/%s_pca' % (morphology.name))
 
         (ks, vs)    = a.variable_table(['name', 'compartments', #'datetime_recording', 
         'total_cell_length', 'surface_length_frustum', 
@@ -674,7 +681,7 @@ if __name__ == '__main__':
             with_head   = False
         print vs
 
-    sys.exit(0)
+    #sys.exit(0)
 
     morphologies    = [Morphology.swc_parse(swc, verbose=False) for swc in sys.argv[1:6]]
     morphologies[0].name    = 'test'
