@@ -140,6 +140,7 @@ class Compartment(object):
         write Scalable Vector Graphics file
         '''
         import itertools
+        import math
         compartment_iterables1  = []
         compartment_iterables2  = []
         for compartment_iterable in compartment_iterables:
@@ -166,11 +167,16 @@ class Compartment(object):
         xyz_shift   = [0,0,0]
         for d in [x,y]:#range(3):
             xyz_shift[d]   = -xyz_min[d]+radius_max
-        stream.write('<svg xmlns="http://www.w3.org/2000/svg" width="%f" height="%f">\n' % (xyz_max[x]-xyz_min[x]+2*radius_max, xyz_max[y]-xyz_min[y]+2*radius_max))
+        width   = int( xyz_max[x]-xyz_min[x]+2*radius_max + 0.5)
+        height  = int( xyz_max[y]-xyz_min[y]+2*radius_max+1 + 0.5)
+        stream.write('<svg xmlns="http://www.w3.org/2000/svg" width="%i" height="%i">\n' % (width,height) )
         for i in xrange(len(compartment_iterables)):
             color   = colors[i%len(colors)]
             for c in compartment_iterables[i]:#id="%i" c.compartment_id, 
                 stream.write('<circle cx="%f" cy="%f" r="%f" fill="%s" />\n' % (c.xyz[x]+xyz_shift[x], c.xyz[y]+xyz_shift[y], c.radius, color))
+        bar_size    = 10**int(math.log10(width-0.1))
+        stream.write('<line x1="%i" y1="%i" x2="%i" y2="%i" style="stroke:black;stroke-width:1"/>\n' % (0, height-3, bar_size, height-3))
+        stream.write('<text x="%i"  y="%i">%i µm</text>\n' % (bar_size + 3,height-3,bar_size))
         stream.write('</svg>\n')
         stream.close()
 

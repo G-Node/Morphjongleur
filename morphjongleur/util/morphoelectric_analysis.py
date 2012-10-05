@@ -83,10 +83,10 @@ if __name__ == '__main__':
 
     from morphjongleur.util.metric_analysis import MetricAnalysis
     bars= ['dorsal branch','ventral branch']
-    xs  = ['$R_{in}$','$\\tau_{eff fit}$']
+    xs  = ['$R_{in}$','$\tau_{eff fit}$']
     results    = [experiment(morphology=morphjongleur.model.morphology.Morphology.swc_parse(swc, verbose=False)) for swc in sys.argv[1:]]
-    v   = {'dorsal branch': {'$R_{in}$':results[2].get_R_in()/results[1].get_R_in()-1,'$\\tau_{eff fit}$':results[2].tau_lin_fit()/results[1].tau_lin_fit()-1},
-           'ventral branch':{'$R_{in}$':results[4].get_R_in()/results[3].get_R_in()-1,'$\\tau_{eff fit}$':results[4].tau_lin_fit()/results[3].tau_lin_fit()-1}
+    v   = {'dorsal branch': {'$R_{in}$':results[2].get_R_in()/results[1].get_R_in()-1,'$\tau_{eff fit}$':results[2].tau_lin_fit()/results[1].tau_lin_fit()-1},
+           'ventral branch':{'$R_{in}$':results[4].get_R_in()/results[3].get_R_in()-1,'$\tau_{eff fit}$':results[4].tau_lin_fit()/results[3].tau_lin_fit()-1}
            }
     print v
     MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], horizontal=True, tex=True, ratio=(16,9), picture_file='/tmp/change_tau', picture_formats=picture_formats)#, y_label='change: forager / nurse - 1'

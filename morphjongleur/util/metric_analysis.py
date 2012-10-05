@@ -574,44 +574,23 @@ if __name__ == '__main__':
         MetricAnalysis.plot_sholl3d(morphology.branching_points, morphology.terminaltips, morphology.root, '/tmp/%s_sholl3d' % (morphology.name), picture_formats)
         MetricAnalysis.plot_sholl3d_branchnumber(morphology.branching_points, morphology.terminaltips, morphology.root, '/tmp/%s_sholl3d_branchnumber' % (morphology.name), picture_formats)
 
-        ###
+
+        #print morphology.name
         morphology.write_svg(svg_file='/tmp/%s.svg' % (morphology.name), color=color)
         Compartment.write_svg('/tmp/%s_color.svg' % (morphology.name), 
             [morphology.compartments,  morphology.terminaltips, [morphology.root]], 
             [color, 'yellow', 'red']
         )
-        m_pca   = morphology.pca()
-        #MetricAnalysis.plot_sholl3d(m_pca.branching_points, m_pca.terminaltips, m_pca.root, '/tmp/%s_pca_sholl3d' % (m_pca.name), picture_formats)
-        #MetricAnalysis.plot_sholl3d_branchnumber(m_pca.branching_points, m_pca.terminaltips, m_pca.root, '/tmp/%s_sholl3d_branchnumber' % (m_pca.name), picture_formats)
-        m_pca.write_svg(svg_file='/tmp/%s_pca.svg' % (m_pca.name), color=color)
-        Compartment.write_svg('/tmp/%s_pca_color.svg' % (morphology.name), 
-            [morphology.compartments,  morphology.terminaltips, [morphology.root]], 
-            [color, 'yellow', 'red']
-        )
-        #continue
-        ###
-
-        #print morphology.name
+        continue
         morphology.plot(color=color, picture_file='/tmp/%s' % (morphology.name), picture_formats=picture_formats)
-        morphology.write_svg(svg_file='/tmp/%s.svg' % (morphology.name), color=color)
         Compartment.plot(
             [morphology.compartments,  morphology.terminaltips, [morphology.root]], 
             [color, 'yellow', 'red'],
             picture_file='/tmp/%s_color' % (morphology.name), picture_formats=picture_formats#
         )
-        Compartment.write_svg('/tmp/%s_color.svg' % (morphology.name), 
-            [morphology.compartments,  morphology.terminaltips, [morphology.root]], 
-            [color, 'yellow', 'red']
-        )
         Compartment.plot3d(morphology.compartments, picture_file='/tmp/%s_3d' % (morphology.name), picture_formats=picture_formats)
 
         #continue
-
-        Compartment.plot(
-            [morphology.compartments,  MetricAnalysis.farther_away(morphology.compartments, morphology.root, 450)], 
-            [color, 'black'],
-            picture_file='/tmp/%s_faraway' % (morphology.name), picture_formats=picture_formats#
-        )
         m_pca   = morphology.pca()
         m_pca.swc_write('/tmp/%s_pca.swc' % (m_pca.name) )
         m_pca.plot(color=color, picture_file='/tmp/%s_pca' % (m_pca.name), picture_formats=picture_formats)
@@ -624,11 +603,6 @@ if __name__ == '__main__':
         Compartment.write_svg('/tmp/%s_pca_color.svg' % (morphology.name), 
             [morphology.compartments,  morphology.terminaltips, [morphology.root]], 
             [color, 'yellow', 'red']
-        )
-        Compartment.plot(
-            [m_pca.compartments,  MetricAnalysis.farther_away(m_pca.compartments, m_pca.root, 450)], 
-            [color, 'black'],
-            picture_file='/tmp/%s_pca_faraway' % (m_pca.name), picture_formats=picture_formats#
         )
 
         #continue
@@ -681,15 +655,21 @@ if __name__ == '__main__':
             with_head   = False
         print vs
 
-    #sys.exit(0)
 
     morphologies    = [Morphology.swc_parse(swc, verbose=False) for swc in sys.argv[1:6]]
+
+    m_pca   = morphologies[1].pca()
+    Compartment.write_svg('/tmp/%s_pca_faraway.svg' % (m_pca.name), 
+        [m_pca.compartments,  MetricAnalysis.farther_away(m_pca.compartments, m_pca.root, 650)], 
+        [colors[1], 'black']
+    )
+    sys.exit(0)
+
     morphologies[0].name    = 'test'
     morphologies[1].name    = 'nurse'
     morphologies[2].name    = 'forager'
     morphologies[3].name    = 'nurse'
     morphologies[4].name    = 'forager'
-    
 
     Compartment.plot_distances([m.compartments for m in morphologies[1:3]],
                                [m.root for m in morphologies[1:3]], 
