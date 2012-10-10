@@ -135,7 +135,7 @@ class Compartment(object):
         return dist
 
     @staticmethod
-    def write_svg(svg_file, compartment_iterables, colors=['#000000'], x=0, y=1):
+    def write_svg(svg_file, compartment_iterables, colors=['#000000'], x=0, y=1, name="morphology"):
         '''
         write Scalable Vector Graphics file
         '''
@@ -167,16 +167,21 @@ class Compartment(object):
         xyz_shift   = [0,0,0]
         for d in [x,y]:#range(3):
             xyz_shift[d]   = -xyz_min[d]+radius_max
-        width   = int( xyz_max[x]-xyz_min[x]+2*radius_max + 0.5)
-        height  = int( xyz_max[y]-xyz_min[y]+2*radius_max+1 + 0.5)
+        width   = int( xyz_max[x]-xyz_min[x]+2*radius_max + 0.5 )
+        text_width   = 28.46 + (math.log10(0.9*width))*7.65
+        height  = int( xyz_max[y]-xyz_min[y]+2*radius_max + 0.5)
         stream.write('<svg xmlns="http://www.w3.org/2000/svg" width="%i" height="%i">\n' % (width,height) )
+        stream.write('<g id="%s">\n' % name)
         for i in xrange(len(compartment_iterables)):
             color   = colors[i%len(colors)]
             for c in compartment_iterables[i]:#id="%i" c.compartment_id, 
                 stream.write('<circle cx="%f" cy="%f" r="%f" fill="%s" />\n' % (c.xyz[x]+xyz_shift[x], c.xyz[y]+xyz_shift[y], c.radius, color))
-        bar_size    = 10**int(math.log10(width-0.1))
-        stream.write('<line x1="%i" y1="%i" x2="%i" y2="%i" style="stroke:black;stroke-width:1"/>\n' % (0, height-3, bar_size, height-3))
-        stream.write('<text x="%i"  y="%i">%i µm</text>\n' % (bar_size + 3,height-3,bar_size))
+        bar_width    = 10**int(math.log10(0.9*width))
+        stream.write('</g>\n')
+        stream.write('<g id="legend">')
+        stream.write('<line x1="%i" y1="%i" x2="%i" y2="%i" style="stroke:black;stroke-width:1"/>\n' % (width-bar_width, height-1,width, height-1))
+        stream.write('<text x="%i" y="%i">%i µm</text>\n' % (width-text_width,height-2,bar_width))
+        stream.write('</g>\n')
         stream.write('</svg>\n')
         stream.close()
 

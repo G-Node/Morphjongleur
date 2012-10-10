@@ -15,6 +15,7 @@ encoding//morphjongleur/util/auto_string.py=utf-8
 encoding//morphjongleur/util/metric_analysis.py=utf-8
 encoding//morphjongleur/util/morphoelectric_analysis.py=utf-8
 encoding//morphjongleur/util/parser/swc.py=utf-8
+encoding//morphjongleur/util/sholl3D.py=utf-8
 encoding//tests/import.py=utf-8
 encoding//usecases/amira.py=utf-8
 encoding//usecases/mitsubachi/import_dj.py=utf-8

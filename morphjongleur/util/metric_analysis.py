@@ -54,17 +54,7 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
 
     frustum_arithmetic_mean_cross_section_area    
     
-    '''
-
-    @staticmethod
-    def euclid_distance(x, y):
-        if len(x) != len(y):
-            raise Exception, 'different dimension';
-        dist = 0;
-        for i in xrange(len(x)):
-            dist += (x[i] - y[i])**2;
-        return math.sqrt(dist);
-    
+    ''' 
 
     @staticmethod
     def inverse_power_means(x,r):
@@ -412,146 +402,6 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
             if lower_threshold > distance or distance > upper_threshold:
                 yield(c)
 
-    @staticmethod
-    def branches_in_distance(branchpoints, terminaltips, center):
-        '''
-        return [(# branches,distance)], distances
-        '''
-        distance_sort   = lambda compartment_distance: compartment_distance[1]
-        distance_branchpoints    = sorted([(c, center.distance_euclid(c)) for c in branchpoints], key=distance_sort)
-        distance_terminaltips    = sorted([(c, center.distance_euclid(c)) for c in terminaltips], key=distance_sort)
-
-        b = 0
-        t = 0
-        n = 1   #center
-        distances_branches  = [ (0,n) ]
-        if len(distance_branchpoints) > 0 and distance_branchpoints[b][1] == 0:
-            b = 1
-        assert len(distance_branchpoints) == 0 or distance_branchpoints[b][1] != 0
-        if distance_terminaltips[t][1] == 0:
-            t = 1
-        assert distance_terminaltips[t][1] != 0
-        while b < len(distance_branchpoints) and t < len(distance_terminaltips):
-            if distance_branchpoints[b][1] < distance_terminaltips[t][1]:
-                n = n + len(distance_branchpoints[b][0].children) -1
-                distances_branches.append((distance_branchpoints[b][1], n))
-                b = b + 1
-            elif distance_branchpoints[b][1] > distance_terminaltips[t][1]:
-                n = n - 1
-                distances_branches.append((distance_terminaltips[t][1], n))
-                t = t + 1
-            else: # ==
-                b = b + 1
-                t = t + 1
-                #print >> sys.stderr, "branchpoint %s and terminatltip %s in equal distance" % (distance_branchpoints[b] , distance_terminaltips[t])
-#            if n < 0:
-#                raise AttributeError, 'less then 0 branches'
-
-        while b < len(distance_branchpoints):
-            assert distance_branchpoints[b][1] <= distance_terminaltips[t-1][1]
-            n = n + len(distance_branchpoints[b][0].children) -1
-            distances_branches.append((distance_branchpoints[b][1], n))
-            b = b + 1
-        
-        while t < len(distance_terminaltips):
-            assert len(distance_branchpoints) == 0 or distance_branchpoints[b-1][1] <= distance_terminaltips[t][1]
-            n = n - 1
-            distances_branches.append((distance_terminaltips[t][1], n))
-            t = t + 1
-#            if n < 0:
-#                raise AttributeError, 'less then 0 branches'
-            
-        assert b == len(distance_branchpoints)
-        assert t == len(distance_terminaltips)
-        return distances_branches
-
-    @staticmethod
-    def sholl_function(branches, distances):
-        import numbers
-        if isinstance(branches, numbers.Number):
-            branches   = [branches]
-        if isinstance(distances, numbers.Number):
-            distances   = [distances]
-        if len(branches) != len(distances):
-            raise AttributeError, 'list must have same length'
-        
-        sholl_values   = []
-        for b,d in zip(branches,distances):
-            if d == 0:
-                sholl_values.append(0)
-            else:
-                sholl_values.append(b / ( 4./3. * numpy.pi * d**3. ))
-
-        if len(sholl_values) == 1:
-            return sholl_values[0]
-        else:
-            return sholl_values
-
-    @staticmethod
-    def sholl3d(branchpoints, terminaltips, center):
-        '''
-        return function distance -> sholl value, max_distance
-        danger: can become < 0 for non root startingpoints
-        '''
-        distances_branches  = MetricAnalysis.branches_in_distance(branchpoints, terminaltips, center)
-        def number_of_branches(distances):
-            import numbers
-            branches    = []
-            if isinstance(distances, numbers.Number):
-                distances   = [distances]
-            if True:#TODO: all(distances[i] <= distances[i+1] for i in xrange(len(distances)-1)): #sorted
-                b   = -1
-                for distance in distances:
-                    for d, bs in distances_branches:
-                        if d <= distance:
-                            b    = bs
-                        else: 
-                            break
-                branches.append(b)
-            else:#binary earch
-                for distance in distances:
-                    pass
-
-            if len(branches) == 1:
-                return branches[0]
-            else:
-                return branches
-
-        return number_of_branches, [distances_branch[0] for distances_branch in distances_branches ]
-
-
-    @staticmethod
-    def plot_sholl3d_branchnumber(branchpoints, terminaltips, center, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
-        number_of_branches, xs = MetricAnalysis.sholl3d(branchpoints, terminaltips, center)
-        xs  = numpy.arange(0,xs[-1]+1,max(1e-2,numpy.min([abs(xs[i] - xs[i+1]) for i in xrange(len(xs)-1)])))
-        ys  = [number_of_branches(x) for x in xs]
-        matplotlib.pyplot.plot(xs, ys)
-
-        matplotlib.pyplot.xlim(xmin=0)
-        matplotlib.pyplot.ylim(ymin=0)
-        if(picture_file != None):
-            for picture_format in picture_formats:
-                matplotlib.pyplot.savefig(picture_file+'.'+picture_format, format=picture_format, transparent=True)
-        else:
-            matplotlib.pyplot.show()
-        matplotlib.pyplot.close()
-
-
-    @staticmethod
-    def plot_sholl3d(branchpoints, terminaltips, center, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
-        number_of_branches, xs = MetricAnalysis.sholl3d(branchpoints, terminaltips, center)
-        #xs  = numpy.arange(0,xs[-1]+1,max(1e-2,numpy.min([abs(xs[i] - xs[i+1]) for i in xrange(len(xs)-1)])))
-        ys  = [MetricAnalysis.sholl_function(number_of_branches(x), x) for x in xs]
-        matplotlib.pyplot.plot(xs, ys)
-
-        matplotlib.pyplot.xlim(xmin=0)
-        matplotlib.pyplot.ylim(ymin=0)
-        if(picture_file != None):
-            for picture_format in picture_formats:
-                matplotlib.pyplot.savefig(picture_file+'.'+picture_format, format=picture_format, transparent=True)
-        else:
-            matplotlib.pyplot.show()
-        matplotlib.pyplot.close()
 
 if __name__ == '__main__':
     '''
@@ -571,8 +421,6 @@ if __name__ == '__main__':
         i += 1
 
         morphology   = Morphology.swc_parse(swc, verbose=False)
-        MetricAnalysis.plot_sholl3d(morphology.branching_points, morphology.terminaltips, morphology.root, '/tmp/%s_sholl3d' % (morphology.name), picture_formats)
-        MetricAnalysis.plot_sholl3d_branchnumber(morphology.branching_points, morphology.terminaltips, morphology.root, '/tmp/%s_sholl3d_branchnumber' % (morphology.name), picture_formats)
 
 
         #print morphology.name
@@ -655,6 +503,7 @@ if __name__ == '__main__':
             with_head   = False
         print vs
 
+    sys.exit(0)
 
     morphologies    = [Morphology.swc_parse(swc, verbose=False) for swc in sys.argv[1:6]]
 
@@ -663,7 +512,6 @@ if __name__ == '__main__':
         [m_pca.compartments,  MetricAnalysis.farther_away(m_pca.compartments, m_pca.root, 650)], 
         [colors[1], 'black']
     )
-    sys.exit(0)
 
     morphologies[0].name    = 'test'
     morphologies[1].name    = 'nurse'
