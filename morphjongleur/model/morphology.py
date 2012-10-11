@@ -546,7 +546,7 @@ class Morphology(object):
         return self._root_biggest_child
 
     @property
-    def terminaltips(self):
+    def terminal_tips(self):
         if not vars(self).has_key('_leafs'):
             self._leafs = []
             #self._branching_points = []
@@ -556,27 +556,27 @@ class Morphology(object):
                 if len(c.children) == 0 or len(c.children) == 1 and c.parent == None:
                     self._leafs.append(c)
 #                elif len(c.children) > 1:
-#                    self.branching_points.append(c)
+#                    self.branch_points.append(c)
         for leaf in self._leafs:
             yield(leaf)
 
     @property
     def number_of_terminaltips(self):
         if not vars(self).has_key('_leafs') or self._leafs == []:
-            for l in self.terminaltips:
+            for l in self.terminal_tips:
                 pass
         return len(self._leafs)
 
     @property
     def terminaltips_biggest(self):
         tb  = Compartment.tiny()
-        for t in self.terminaltips:
+        for t in self.terminal_tips:
             if tb.radius < t.radius:
                 tb = t
         return tb
 
     @property
-    def branching_points(self):
+    def branch_points(self):
         if not vars(self).has_key('_branching_points'):
             self._branching_points = []
             #self._leafs = []
@@ -592,9 +592,87 @@ class Morphology(object):
             yield(branching_point)
 
     @property
+    def branches(self):
+        if not vars(self).has_key('_branches') or self._branches == None or self._branches == []:
+            self._branches   = {}
+            for leafset in [self.terminal_tips,self.branch_points]:
+                for leaf in leafset:
+                    if leaf.parent == None:
+                        continue
+                    compartment = leaf
+                    cs   = []
+                    #upper vertexdistances
+                    cs.append(leaf)
+                    c   = compartment.parent
+                    while len(c.children) == 1 and c.parent != None:# or len(c.children) = 2 and c.parent == None:
+                        cs.append(compartment)
+                        c   = c.parent
+                    #lower vertex
+                    branch_point    = c
+                    cs.append(branch_point)
+                    
+                    leaf.parent_node    = branch_point
+                    self._branches[leaf] = cs
+            
+            
+
+            #===================================================================
+            # leafs   = [leaf for leaf in morphology.terminal_tips]
+            # while len(leafs) > 0:
+            #    new_leafs   = {}
+            #    for compartment in leafs:
+            #        if compartment.compartment_parent_id < 1:
+            #            branchingpoints_distances.append(leaf.length/.2)
+            #            continue
+            #        distance = 0
+            #        compartment   = compartment.parent
+            #        while compartment.compartment_parent_id > 0 and len(compartment.children) == 1:
+            #            distance += compartment.length
+            #            compartment   = compartment.parent
+            #        branchingpoints_distances.append(distance)
+            #        if compartment.compartment_parent_id > 0:
+            #            new_leafs[compartment]  = True
+            #    leafs   = new_leafs.keys()
+            #===================================================================
+
+            
+    #===========================================================================
+    #        self._branches   = {}
+    #        leafs   = set([leaf for leaf in self.terminal_tips])
+    #        while len(leafs) > 0:
+    #            new_leafs   = set()
+    #            for leaf in leafs:
+    #                if self._branches.has_key(leaf):
+    #                    continue
+    #                #assert not branch_ranges.has_key(leaf)
+    #                if leaf.compartment_parent_id < 1:
+    #                    continue
+    #                compartment = leaf
+    #                cs   = []
+    #                #upper vertexdistances
+    #                cs.append(leaf)
+    #                compartment   = compartment.parent
+    #                while compartment.compartment_parent_id > 0 and len(compartment.children) == 1:
+    #                    cs.append(compartment)
+    #                    compartment   = compartment.parent
+    #                #lower vertex
+    #                branch_point    = compartment
+    #                cs.append(branch_point)
+    # 
+    #                self._branches[leaf] = cs
+    #                leaf.parent_node    = branch_point
+    #                #print (leaf.compartment_id,branch_point.compartment_id, numpy.min(distances),numpy.max(distances))
+    #                if compartment.compartment_parent_id > 0 and not self._branches.has_key(branch_point):# and leafs.issuperset([branch_point])
+    #                    new_leafs.add(branch_point)
+    #            leafs   = new_leafs
+    #===========================================================================
+
+        return self._branches
+
+    @property
     def number_of_branching_points(self):
         if not vars(self).has_key('_branching_points') or self._branching_points == []:
-            for b in self.branching_points:
+            for b in self.branch_points:
                 pass
         return len(self._branching_points)
 
@@ -655,24 +733,6 @@ class Morphology(object):
             todo_stack.extend( c.children )
             for cc in c.children:
                 yield( cc )
-    
-    def pca(self):
-        import mdp
-        pca_cs  = mdp.pca( numpy.array([ [c.x, c.y, c.z] for c in self.compartments ] ) )
-        assert self.number_of_compartments == len(pca_cs)
-        compartments    = []
-        for i in xrange( self.number_of_compartments ):
-            compartments.append(    # m.add_compartment(
-                Compartment( 
-                    self._compartments[i].compartment_id, 
-                    self._compartments[i].compartment_parent_id, 
-                    self._compartments[i].radius, 
-                    x=pca_cs[i][0],
-                    y=pca_cs[i][1],
-                    z=pca_cs[i][2]
-                ) 
-            )
-        return Morphology(self.name, self.file_origin, self.description, self.datetime_recording, compartments=compartments)
 
     def plot_distance_distribution(self, center, name='', xlim=None, ylim=None, color='#000000', bins=20, picture_file=None, picture_formats=['png', 'pdf', 'svg']):  
         Morphology.plot_distance_distributions([self.compartments], [center], [name], [color], bins, xlim, ylim, picture_file, picture_formats)
@@ -854,115 +914,6 @@ class CompartmentGroups(object):
 @morphjongleur.util.auto_string.auto_string
 class MorphologyInfo(object):
     pass
-
-@morphjongleur.util.auto_string.auto_string
-class Morphology_info(object):
-    """
-    http://openbook.galileocomputing.de/python/python_kapitel_13_009.htm
-    TODO: glossary
-    path_length         = %f, 
- surface_length         = %f, 
- cylindric_volume       = %f, 
-   frustum_volume       = %f, 
- cylindric_lateral_area = %f, 
-   frustum_lateral_area = %f, 
- cylindric_surface_area = %f, 
-   frustum_surface_area = %f, 
- #branches              = %i
-    """
-
-    import morphjongleur.util.metric_analysis
-
-    @property
-    def path_length(self):
-        if not vars(self).has_key('_path_length') or self._path_length == None:
-            self._path_length   =  morphjongleur.util.metric_analysis.path_length(self.morphology)
-        return self._path_length
-    @path_length.setter
-    def path_length(self, value):raise AttributeError("cannot change calculated information")
-    @path_length.deleter
-    def path_length(self):       del self._path_length
-
-    @property
-    def surface_length_frustum(self):
-        if not vars(self).has_key('_surface_length') or self._surface_length == None:
-            self._surface_length   = morphjongleur.util.metric_analysis.surface_length_frustum(self.morphology)
-        return self._surface_length
-    @surface_length_frustum.setter
-    def surface_length_frustum(self, value):raise AttributeError("cannot change calculated information")
-    @surface_length_frustum.deleter
-    def surface_length_frustum(self):       del self._surface_length
-
-    @property
-    def cylindric_volume(self):
-        if not vars(self).has_key('_cylindric_volume') or self._cylindric_volume == None:
-            self._cylindric_volume   = morphjongleur.util.metric_analysis.cylindric_volume(self.morphology)
-        return self._cylindric_volume
-    @cylindric_volume.setter
-    def cylindric_volume(self, value):raise AttributeError("cannot change calculated information")
-    @cylindric_volume.deleter
-    def cylindric_volume(self):       del self._cylindric_volume
-
-    @property
-    def frustum_volume(self):
-        if not vars(self).has_key('_frustum_volume') or self._frustum_volume == None:
-            self._frustum_volume   = morphjongleur.util.metric_analysis.frustum_volume(self.morphology)
-        return self._frustum_volume
-    @frustum_volume.setter
-    def frustum_volume(self, value):raise AttributeError("cannot change calculated information")
-    @frustum_volume.deleter
-    def frustum_volume(self):       del self._frustum_volume
-
-    @property
-    def cylindric_lateral_area(self):
-        if not vars(self).has_key('_cylindric_lateral_area') or self._cylindric_lateral_area == None:
-            self._cylindric_lateral_area   = morphjongleur.util.metric_analysis.cylindric_lateral_area(self.morphology)
-        return self._cylindric_lateral_area
-    @cylindric_lateral_area.setter
-    def cylindric_lateral_area(self, value):raise AttributeError("cannot change calculated information")
-    @cylindric_lateral_area.deleter
-    def cylindric_lateral_area(self):       del self._cylindric_lateral_area
-
-    @property
-    def frustum_lateral_area(self):
-        if not vars(self).has_key('_frustum_lateral_area') or self._frustum_lateral_area == None:
-            self._frustum_lateral_area   = morphjongleur.util.metric_analysis.frustum_lateral_area(self.morphology)
-        return self._frustum_lateral_area
-    @frustum_lateral_area.setter
-    def frustum_lateral_area(self, value):raise AttributeError("cannot change calculated information")
-    @frustum_lateral_area.deleter
-    def frustum_lateral_area(self):       del self._frustum_lateral_area
-
-    @property
-    def cylindric_surface_area(self):
-        if not vars(self).has_key('_cylindric_surface_area') or self._cylindric_surface_area == None:
-            self._cylindric_surface_area   = morphjongleur.util.metric_analysis.cylindric_surface_area(self.morphology)
-        return self._cylindric_surface_area
-    @cylindric_surface_area.setter
-    def cylindric_surface_area(self, value):raise AttributeError("cannot change calculated information")
-    @cylindric_surface_area.deleter
-    def cylindric_surface_area(self):       del self._cylindric_surface_area
-
-    @property
-    def frustum_surface_area(self):
-        if not vars(self).has_key('_frustum_surface_area') or self._frustum_surface_area == None:
-            self._frustum_surface_area   = morphjongleur.util.metric_analysis.frustum_surface_area(self.morphology)
-        return self._frustum_surface_area
-    @frustum_surface_area.setter
-    def frustum_surface_area(self, value):raise AttributeError("cannot change calculated information")
-    @frustum_surface_area.deleter
-    def frustum_surface_area(self):       del self._frustum_surface_area
-
-    @property
-    def branches(self):
-        if not vars(self).has_key('_branches') or self._branches == None:
-            self._branches   = morphjongleur.util.metric_analysis.branching_points(self.morphology)
-        return self._branches
-    @branches.setter
-    def branches(self, value):raise AttributeError("cannot change calculated information")
-    @branches.deleter
-    def branches(self):       del self._branches
-
 
 @morphjongleur.util.auto_string.auto_string
 class CompartmentInfo(object):

@@ -28,38 +28,14 @@ class Sholl3DAnalysis(MorphologyInfo):
         self.branches   = []
 
         branch_ranges   = {}
-        leafs   = set([leaf for leaf in morphology.terminaltips])
-        while len(leafs) > 0:
-            new_leafs   = set()
-            for leaf in leafs:
-                if branch_ranges.has_key(leaf):
-                    continue
-                #assert not branch_ranges.has_key(leaf)
-                if leaf.compartment_parent_id < 1:
-                    continue
-                compartment = leaf
-                distances   = []
-                #upper vertex
-                d   = center.distance_euclid(leaf)
-                distances.append( d + leaf.radius )
-                distances.append( d - leaf.radius )
+        for key,branch in morphology.branches.iteritems():
+            distances   = []
+            for compartment in branch:
+                d   = center.distance_euclid(compartment)
+                distances.append( d + compartment.radius )
+                distances.append( d - compartment.radius )
                 compartment   = compartment.parent
-                while compartment.compartment_parent_id > 0 and len(compartment.children) == 1:
-                    d   = center.distance_euclid(compartment)
-                    distances.append( d + compartment.radius )
-                    distances.append( d - compartment.radius )
-                    compartment   = compartment.parent
-                #lower vertex
-                branch_point    = compartment
-                d   = center.distance_euclid(branch_point)
-                distances.append( d + branch_point.radius )
-                distances.append( d - branch_point.radius )
-
-                branch_ranges[leaf] = (numpy.min(distances),numpy.max(distances))
-                #print (leaf.compartment_id,branch_point.compartment_id, numpy.min(distances),numpy.max(distances))
-                if compartment.compartment_parent_id > 0 and not branch_ranges.has_key(branch_point):# and leafs.issuperset([branch_point])
-                    new_leafs.add(branch_point)
-            leafs   = new_leafs
+                branch_ranges[key] = (numpy.min(distances),numpy.max(distances))
         
         #print [(c.compartment_id, branch_ranges[c]) for c in branch_ranges.keys()]
         begins   = sorted([begin for (begin,_) in branch_ranges.values()])
@@ -84,14 +60,14 @@ class Sholl3DAnalysis(MorphologyInfo):
 
 
     @staticmethod
-    def branches_in_distance(branchpoints, terminaltips, center):
+    def branches_in_distance(branchpoints, terminal_tips, center):
         '''
         obsolete
         return [(# branches,distance)], distances
         '''
         distance_sort   = lambda compartment_distance: compartment_distance[1]
         distance_branchpoints    = sorted([(c, center.distance_euclid(c)) for c in branchpoints], key=distance_sort)
-        distance_terminaltips    = sorted([(c, center.distance_euclid(c)) for c in terminaltips], key=distance_sort)
+        distance_terminaltips    = sorted([(c, center.distance_euclid(c)) for c in terminal_tips], key=distance_sort)
 
         b = 0
         t = 0

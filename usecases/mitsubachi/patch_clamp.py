@@ -90,14 +90,14 @@ def sinus_maxima(morphologies, rounds=3, frequency=265, xlim=None, ylim=None, pi
        
         voltage_traces = {}
         cs  = [morphology.biggest]
-        cs.extend( morphology.terminaltips )
+        cs.extend( morphology.terminal_tips )
         print len(cs)
         
         print cs
-        terminaltips    = {}
+        terminal_tips    = {}
         for c in cs:
-            terminaltips[c.radius]    = c
-        cs  = terminaltips.values()#TODO: remove pseudo representative choice
+            terminal_tips[c.radius]    = c
+        cs  = terminal_tips.values()#TODO: remove pseudo representative choice
         print len(cs)
         print cs
 

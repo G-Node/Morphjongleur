@@ -48,7 +48,7 @@ if __name__ == '__main__':
         print swc
         morphology   = mrj.model.morphology.swc_parse(swc)
         cs  = []#morphology.biggest
-        cs.extend( morphology.terminaltips )
+        cs.extend( morphology.terminal_tips )
         for f in range(10,1001,15):
             print "%i Hz" % (f)
             i = 0

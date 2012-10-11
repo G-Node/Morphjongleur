@@ -53,7 +53,7 @@ def __str__(self):
 def auto_string(cls):
     import numbers, types
     cls.__show_hidden    = False
-    cls.__list_of_types   =[numbers.Number, types.StringTypes, types.TupleType, property]
+    cls.__list_of_types   =[numbers.Number, types.StringTypes, types.TupleType, types.DictType, property]
     cls.variable_map    = variable_map
     cls.__repr__        = __repr__
     cls.__str__         = __str__
