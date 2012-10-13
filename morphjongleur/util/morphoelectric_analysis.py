@@ -85,13 +85,13 @@ if __name__ == '__main__':
     ms = [morphjongleur.model.morphology.Morphology.swc_parse(swc, verbose=False) for swc in sys.argv[1:]]
     from morphjongleur.util.metric_analysis import MetricAnalysis
     bars= ['dorsal branch','ventral branch']
-    xs  = ['$R_{in}$','$\tau_{eff fit}$']
+    xs  = ['$R_{in}$','$\\tau_{\\mathrm{eff}}$']
     results    = [experiment(morphology=m) for m in ms]
-    v   = {'dorsal branch': {'$R_{in}$':results[2].get_R_in()/results[1].get_R_in()-1,'$\tau_{eff fit}$':results[2].tau_lin_fit()/results[1].tau_lin_fit()-1},
-           'ventral branch':{'$R_{in}$':results[4].get_R_in()/results[3].get_R_in()-1,'$\tau_{eff fit}$':results[4].tau_lin_fit()/results[3].tau_lin_fit()-1}
+    v   = {'dorsal branch': {'$\\tau_{\\mathrm{eff}}$':results[2].tau_lin_fit()/results[1].tau_lin_fit()-1,'$R_{in}$':results[2].get_R_in()/results[1].get_R_in()-1},
+           'ventral branch':{'$\\tau_{\\mathrm{eff}}$':results[4].tau_lin_fit()/results[3].tau_lin_fit()-1, '$R_{in}$':results[4].get_R_in()/results[3].get_R_in()-1}
            }
     print v
-    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], horizontal=True, tex=True, ratio=(8,6), picture_file='/tmp/change_tau', picture_formats=picture_formats)#, y_label='change: forager / nurse - 1'
+    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], horizontal=True, tex=True, ratio=(8,6), xlimit=(-0.4,0.2), y_label='change: forager / nurse - 1', picture_file='/tmp/change_tau', picture_formats=picture_formats)#, y_label='change: forager / nurse - 1'
 
 
     # scaled nurse
@@ -99,21 +99,21 @@ if __name__ == '__main__':
     ms = [morphjongleur.model.morphology.Morphology.swc_parse(swc, verbose=False) for swc in sys.argv[1:]]
     mas = [MetricAnalysis(m) for m in ms]
 
-    scale   = mas[2].total_length / mas[1].total_length
-    nurse_dorsal_scaled  = ms[1].scale(scale)
-    print "DB total length nurse %f vs. forager %f -scale: %f-> nurse %f" % (mas[1].total_length , mas[2].total_length, scale, MetricAnalysis(nurse_dorsal_scaled).total_length)
+    scale_nurse_dorsal   = mas[2].total_length / mas[1].total_length
+    nurse_dorsal_scaled  = ms[1].scale(scale_nurse_dorsal)
+    print "DB total length nurse %f vs. forager %f -scale: %f-> nurse %f" % (mas[1].total_length , mas[2].total_length, scale_nurse_dorsal , MetricAnalysis(nurse_dorsal_scaled).total_length)
 
-    scale   = mas[4].total_length / mas[3].total_length
-    nurse_ventral_scaled  = ms[3].scale(scale)
-    print "VB total length nurse %f vs. forager %f -scale: %f-> nurse %f" % (mas[3].total_length , mas[4].total_length, scale, MetricAnalysis(nurse_ventral_scaled).total_length)
+    scale_nurse_ventral   = mas[4].total_length / mas[3].total_length
+    nurse_ventral_scaled  = ms[3].scale(scale_nurse_ventral)
+    print "VB total length nurse %f vs. forager %f -scale: %f-> nurse %f" % (mas[3].total_length , mas[4].total_length, scale_nurse_ventral, MetricAnalysis(nurse_ventral_scaled).total_length)
 
 
     results    = [experiment(morphology=m) for m in [ms[0], nurse_dorsal_scaled, ms[2], nurse_ventral_scaled, ms[4]]]
-    v   = {'dorsal branch': {'$R_{in}$':results[2].get_R_in()/results[1].get_R_in()-1,'$\tau_{eff fit}$':results[2].tau_lin_fit()/results[1].tau_lin_fit()-1},
-           'ventral branch':{'$R_{in}$':results[4].get_R_in()/results[3].get_R_in()-1,'$\tau_{eff fit}$':results[4].tau_lin_fit()/results[3].tau_lin_fit()-1}
+    v   = {'dorsal branch': {'$\\tau_{\\mathrm{eff}}$':results[2].tau_lin_fit()/results[1].tau_lin_fit()-1,'$R_{in}$':results[2].get_R_in()/results[1].get_R_in()-1},
+           'ventral branch':{'$\\tau_{\\mathrm{eff}}$':results[4].tau_lin_fit()/results[3].tau_lin_fit()-1, '$R_{in}$':results[4].get_R_in()/results[3].get_R_in()-1}
            }
     print v
-    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], horizontal=True, tex=True, ratio=(8,7), picture_file='/tmp/change_tau_scaled_nurse', picture_formats=picture_formats)#, y_label='change: forager / nurse - 1'
+    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], horizontal=True, tex=True, ratio=(8,7), xlimit=(-0.4,0.2), y_label='change: forager / nurse - 1', picture_file='/tmp/change_tau_scaled_nurse', picture_formats=picture_formats)#, y_label='change: forager / nurse - 1'
 
 
     # scaled forager
@@ -121,24 +121,45 @@ if __name__ == '__main__':
     ms = [morphjongleur.model.morphology.Morphology.swc_parse(swc, verbose=False) for swc in sys.argv[1:]]
     mas = [MetricAnalysis(m) for m in ms]
 
-    scale   = mas[1].total_length / mas[2].total_length
-    forager_dorsal_scaled  = ms[2].scale(scale)
-    print "DB total length nurse %f vs. forager %f -scale: %f-> forager %f" % (mas[1].total_length , mas[2].total_length, scale, MetricAnalysis(forager_dorsal_scaled).total_length)
+    scale_forager_dorsal   = mas[1].total_length / mas[2].total_length
+    forager_dorsal_scaled  = ms[2].scale(scale_forager_dorsal)
+    print "DB total length nurse %f vs. forager %f -scale: %f-> forager %f" % (mas[1].total_length , mas[2].total_length, scale_forager_dorsal, MetricAnalysis(forager_dorsal_scaled).total_length)
 
-    scale   = mas[3].total_length / mas[4].total_length
-    forager_ventral_scaled  = ms[4].scale(scale)
-    print "VB total length nurse %f vs. forager %f -scale: %f-> forager %f" % (mas[3].total_length , mas[4].total_length, scale, MetricAnalysis(forager_ventral_scaled).total_length)
+    scale_forager_ventral   = mas[3].total_length / mas[4].total_length
+    forager_ventral_scaled  = ms[4].scale(scale_forager_ventral)
+    print "VB total length nurse %f vs. forager %f -scale: %f-> forager %f" % (mas[3].total_length , mas[4].total_length, scale_forager_ventral, MetricAnalysis(forager_ventral_scaled).total_length)
 
 
     results    = [experiment(morphology=m) for m in [ms[0], ms[1], forager_dorsal_scaled, ms[3], forager_ventral_scaled]]
-    v   = {'dorsal branch': {'$R_{in}$':results[2].get_R_in()/results[1].get_R_in()-1,'$\tau_{eff fit}$':results[2].tau_lin_fit()/results[1].tau_lin_fit()-1},
-           'ventral branch':{'$R_{in}$':results[4].get_R_in()/results[3].get_R_in()-1,'$\tau_{eff fit}$':results[4].tau_lin_fit()/results[3].tau_lin_fit()-1}
+    v   = {'dorsal branch': {'$\\tau_{\\mathrm{eff}}$':results[2].tau_lin_fit()/results[1].tau_lin_fit()-1,'$R_{in}$':results[2].get_R_in()/results[1].get_R_in()-1},
+           'ventral branch':{'$\\tau_{\\mathrm{eff}}$':results[4].tau_lin_fit()/results[3].tau_lin_fit()-1, '$R_{in}$':results[4].get_R_in()/results[3].get_R_in()-1}
            }
     print v
-    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], horizontal=True, tex=True, ratio=(8,6), picture_file='/tmp/change_tau_scaled_forager', picture_formats=picture_formats)#, y_label='change: forager / nurse - 1'
+    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], horizontal=True, tex=True, ratio=(8,6), xlimit=(-0.4,0.2), y_label='change: forager / nurse - 1', picture_file='/tmp/change_tau_scaled_forager', picture_formats=picture_formats)#, y_label='change: forager / nurse - 1'
+
+    # scaled both
+    #need new morphologies as clamps are already set
+    ms = [morphjongleur.model.morphology.Morphology.swc_parse(swc, verbose=False) for swc in sys.argv[1:]]
+    mas = [MetricAnalysis(m) for m in ms]
+
+    nurse_dorsal_scaled  = ms[1].scale(scale_nurse_dorsal)
+    nurse_ventral_scaled  = ms[3].scale(scale_nurse_ventral)
+    print "DB total length scaled nurse %f vs. forager %f" % (MetricAnalysis(nurse_dorsal_scaled).total_length, MetricAnalysis(forager_dorsal_scaled).total_length)
+
+    forager_dorsal_scaled  = ms[2].scale(scale_forager_dorsal)
+    forager_ventral_scaled  = ms[4].scale(scale_forager_ventral)
+    print "VB total length scaled nurse %f vs. forager %f" % (MetricAnalysis(nurse_ventral_scaled).total_length, MetricAnalysis(forager_ventral_scaled).total_length)
 
 
-    sys.exit(1)
+    results    = [experiment(morphology=m) for m in [ms[0], nurse_dorsal_scaled, forager_dorsal_scaled, nurse_ventral_scaled, forager_ventral_scaled]]
+    v   = {'dorsal branch': {'$\\tau_{\\mathrm{eff}}$':results[2].tau_lin_fit()/results[1].tau_lin_fit()-1,'$R_{in}$':results[2].get_R_in()/results[1].get_R_in()-1},
+           'ventral branch':{'$\\tau_{\\mathrm{eff}}$':results[4].tau_lin_fit()/results[3].tau_lin_fit()-1, '$R_{in}$':results[4].get_R_in()/results[3].get_R_in()-1}
+           }
+    print v
+    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], horizontal=True, tex=True, ratio=(8,6), xlimit=(-0.4,0.2), y_label='change: forager / nurse - 1', picture_file='/tmp/change_tau_scaled_both', picture_formats=picture_formats)
+
+
+    sys.exit(0)
 
     print "name\tR_in\ttau_eff\ttau_eff_fit"
     for swc in sys.argv[1:]:#['../../data/test.swc']:#

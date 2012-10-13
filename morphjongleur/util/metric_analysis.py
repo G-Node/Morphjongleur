@@ -115,6 +115,9 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
     def __init__(self, morphology):
         '''
         '''
+        self.morphology         = morphology
+
+        #redundancy for db
         self.name               = morphology.name
         self.file_origin        = morphology.file_origin
         self.description        = morphology.description
@@ -336,7 +339,7 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         #self.pca_rhombus =  self.pca_lengths[0] * numpy.sqrt(numpy.square(self.pca_lengths[2]) + numpy.square(self.pca_lengths[1]))
         mins   = [float('inf'), float('inf'), float('inf')]
         maxs   = [float('-inf'),float('-inf'),float('-inf')]
-        for x in mdp.pca( numpy.array([[compartment.x, compartment.y, compartment.z] for compartment in morphology.compartments]) ):
+        for x in mdp.pca( numpy.array([[compartment.x, compartment.y, compartment.z] for compartment in self.morphology.compartments]) ):
             for d in xrange(3):
                 if x[d] < mins[d]:
                     mins[d]     = x[d]
@@ -380,7 +383,7 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         frustum / polygon (volume / surface area)        [#]
         '''
         try:
-            self.cep_hull    = morphjongleur.util.chull.Hull([morphjongleur.util.chull.Vector.fromArray([compartment.x, compartment.y, compartment.z]) for compartment in morphology.compartments])
+            self.cep_hull    = morphjongleur.util.chull.Hull([morphjongleur.util.chull.Vector.fromArray([compartment.x, compartment.y, compartment.z]) for compartment in self.morphology.compartments])
             convex_enveloping_polyhedron_surface_area, convex_enveloping_polyhedron_volume  = self.cep_hull.surface_area_and_volume()
         except Exception, e:
             convex_enveloping_polyhedron_surface_area, convex_enveloping_polyhedron_volume  = float('nan'),float('nan')
@@ -470,7 +473,7 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         matplotlib.pyplot.close()
 
     @staticmethod
-    def bars_plot(v, bars, xs, colors, y_label='', rotation=0, horizontal=False, tex=False, ratio=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+    def bars_plot(v, bars, xs, colors, y_label='', rotation=0, horizontal=False, tex=False, ratio=None, xlimit=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
         matplotlib.rc('text', usetex=tex)
         v_means = {}
         v_stds  = {}
@@ -502,7 +505,7 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
                             )
             rects.append(rect[0])
 
-        #xs  = ['' for x in xs]
+        xs  = [str(x).replace('_',' ') for x in xs]
         if horizontal:
             matplotlib.pyplot.xlabel(y_label)
             #matplotlib.pyplot.ylim(ymin=-1)
@@ -519,11 +522,14 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         if ratio != None:#matplotlib.figure.figaspect(arg)
             fig = matplotlib.pyplot.gcf()
             fig.set_size_inches(ratio[0],ratio[1])
+        
+        if xlimit != None:#matplotlib.figure.figaspect(arg)
+            matplotlib.pyplot.xlim(xlimit)
 
         matplotlib.pyplot.legend( tuple(rects), tuple(map(str, bars)), loc='best')
         if(picture_file != None):
             for picture_format in picture_formats:
-                matplotlib.pyplot.savefig(picture_file+'.'+picture_format, format=picture_format, transparent=True)
+                matplotlib.pyplot.savefig('%s.%s' % (str(picture_file), str(picture_format)), format=picture_format, transparent=True)
         else:
             matplotlib.pyplot.show()
         matplotlib.pyplot.close()
@@ -551,11 +557,48 @@ if __name__ == '__main__':
     with_head   = True
     i = 0
     for swc in sys.argv[1:]:#['../../data/test.swc']:#
+        continue
         color = colors[i % len(colors)]
         i += 1
 
         morphology   = Morphology.swc_parse(swc, verbose=False)
 
+
+        a   = MetricAnalysis(morphology)
+
+        (ks, vs)    = a.variable_table(['name', 'compartments', #'datetime_recording', 
+        'total_length', 'slant_length', 
+        'number_of_branching_points', 'number_of_terminaltips', 
+
+        'cylindric_volume', 'cylindric_surface_area', 'cylindric_compactness', 
+        'frustum_volume', 'frustum_surface_area', 'frustum_compactness', 
+        
+        'cylindric_mean_cross_section_area', 'frustum_mean_cross_section_area', 
+        'arithmetic_mean_cross_section_area', 'geometric_mean_cross_section_area', 'harmonic_mean_cross_section_area', 'median_cross_section_area',
+        'mean_branchpoint_distance', 'mean_branching_distance', 
+        'arithmetic_mean_branchpoint_distance', 'geometric_mean_branchpoint_distance', 'harmonic_mean_branchpoint_distance', 'median_branchpoint_distance',
+        'arithmetic_mean_branchpoint_cross_section_area', 'geometric_mean_branchpoint_cross_section_area', 'harmonic_mean_branchpoint_cross_section_area', 'median_branchpoint_cross_section_area',
+        'arithmetic_mean_terminaltip_distance', 'geometric_mean_terminaltip_distance', 'harmonic_mean_terminaltip_distance', 'median_terminaltip_distance',
+        'arithmetic_mean_terminaltip_cross_section_area', 'geometric_mean_terminaltip_cross_section_area', 'harmonic_mean_terminaltip_cross_section_area', 'median_terminaltip_cross_section_area',
+
+        'pca_length_x', 'pca_length_y', 'pca_length_z', 
+        'es_volume', 'es_surface_area', 'es_compactness', 
+        'esn_frustum_surface_area', 'esn_frustum_volume', 'esn_compactness',
+        'cep_volume', 'cep_surface_area', 'cep_compactness', 
+        'cepn_volume','cepn_surface_area', 'cepn_compactness',
+        'esn_cep_volume', 'esn_cep_surface_area', 'esn_cep_compactness'
+        ])
+
+        if vars(a).has_key('cep_hull'):
+            a.cep_hull.write('/tmp/%s_pca' % (morphology.name))
+        
+        if with_head:
+            print ks
+            with_head   = False
+        print vs
+
+
+        continue
 
         #print morphology.name
         morphology.write_svg(svg_file='/tmp/%s.svg' % (morphology.name), color=color)
@@ -598,49 +641,40 @@ if __name__ == '__main__':
         morphology.plot_distance_distributions([morphology.terminal_tips],     [morphology.root],  [morphology.name], colors=[color], bins=20,   xlim=900, ylim=70,  picture_file='/tmp/distance_distribution_terminaltips_'+str(morphology.name),  picture_formats=picture_formats)#900, 43
 
         #continue
-        try:
-            pass
-            #a   = MetricAnalysis(m_pca)
-            #a.cep_hull.write('/tmp/%s_pca' % (m_pca.name))
-        except Exception, e:
-            print traceback.format_exc()
+        #------------------------------------------------------------------ try:
+            #-------------------------------------------------------------- pass
+            #-------------------------------------- #a   = MetricAnalysis(m_pca)
+            #------------------- #a.cep_hull.write('/tmp/%s_pca' % (m_pca.name))
+        #-------------------------------------------------- except Exception, e:
+            #-------------------------------------- print traceback.format_exc()
 
-        a   = MetricAnalysis(morphology)
 
-        (ks, vs)    = a.variable_table(['name', 'compartments', #'datetime_recording', 
-        'total_length', 'slant_length', 
-        'number_of_branching_points', 'number_of_terminaltips', 
 
-        'cylindric_volume', 'cylindric_surface_area', 'cylindric_compactness', 
-        'frustum_volume', 'frustum_surface_area', 'frustum_compactness', 
-        
-        'cylindric_mean_cross_section_area', 'frustum_mean_cross_section_area', 
-        'arithmetic_mean_cross_section_area', 'geometric_mean_cross_section_area', 'harmonic_mean_cross_section_area', 'median_cross_section_area',
-        'mean_branchpoint_distance', 'mean_branching_distance', 
-        'arithmetic_mean_branchpoint_distance', 'geometric_mean_branchpoint_distance', 'harmonic_mean_branchpoint_distance', 'median_branchpoint_distance',
-        'arithmetic_mean_branchpoint_cross_section_area', 'geometric_mean_branchpoint_cross_section_area', 'harmonic_mean_branchpoint_cross_section_area', 'median_branchpoint_cross_section_area',
-        'arithmetic_mean_terminaltip_distance', 'geometric_mean_terminaltip_distance', 'harmonic_mean_terminaltip_distance', 'median_terminaltip_distance',
-        'arithmetic_mean_terminaltip_cross_section_area', 'geometric_mean_terminaltip_cross_section_area', 'harmonic_mean_terminaltip_cross_section_area', 'median_terminaltip_cross_section_area',
 
-        'pca_length_x', 'pca_length_y', 'pca_length_z', 
-        'es_volume', 'es_surface_area', 'es_compactness', 
-        'esn_frustum_surface_area', 'esn_frustum_volume', 'esn_compactness',
-        'cep_volume', 'cep_surface_area', 'cep_compactness', 
-        'cepn_volume','cepn_surface_area', 'cepn_compactness',
-        'esn_cep_volume', 'esn_cep_surface_area', 'esn_cep_compactness'
-        ])
-
-        if vars(a).has_key('cep_hull'):
-            a.cep_hull.write('/tmp/%s_pca' % (morphology.name))
-        
-        if with_head:
-            print ks
-            with_head   = False
-        print vs
-
-    sys.exit(0)
+    #sys.exit(0)
 
     morphologies    = [Morphology.swc_parse(swc, verbose=False) for swc in sys.argv[1:6]]
+
+    a   = [MetricAnalysis(ma).variable_map()[0] for ma in morphologies[1:5]]
+    v   = {'dorsal branch':{}, 'ventral branch':{}}
+    bars= ['dorsal branch','ventral branch']
+    xs=['number_of_terminaltips','total_length','frustum_volume','frustum_surface_area','frustum_compactness', 'cepn_volume','cepn_surface_area','esn_frustum_volume','esn_frustum_surface_area','esn_compactness', 'esn_cep_volume','esn_cep_surface_area','esn_cep_compactness']#
+    for key in xs:#TODO: more time efficient with properties and only needed
+        v['dorsal branch'][key]     = float(a[1][key]) / a[0][key] - 1
+        v['ventral branch'][key]    = float(a[3][key]) / a[2][key] - 1
+    xs.reverse()
+    MetricAnalysis.bars_plot(
+        v=v, 
+        bars=bars, 
+        xs=xs, 
+        colors=['#00ff00','#0000ff'], 
+        rotation=0, 
+        horizontal=True,
+        ratio=(8,11), #8.268,11.6
+        y_label='change: forager / nurse - 1', 
+        picture_file='/tmp/change_morphology', picture_formats=picture_formats
+    )
+    sys.exit(0)
 
     m_pca   = morphologies[1].pca()
     Compartment.write_svg('/tmp/%s_pca_faraway.svg' % (m_pca.name), 
@@ -758,21 +792,4 @@ if __name__ == '__main__':
         bins=20, xlim=900, ylim=900, #xlim=600, ylim=700, 
         picture_file='/tmp/distance_distribution_compartments_vb',               
         picture_formats=['png','svg']
-    )
-
-    a   = [MetricAnalysis(ma).variable_map()[0] for ma in morphologies[1:5]]
-    v   = {'dorsal branch':{}, 'ventral branch':{}}
-    bars= ['dorsal branch','ventral branch']
-    xs=['number_of_terminaltips','total_length','frustum_volume','frustum_surface_area','frustum_compactness']#, 'cepn_volume','cepn_surface_area','esn_frustum_volume','esn_frustum_surface_area','esn_compactness', 'esn_cep_volume','esn_cep_surface_area','esn_cep_compactness'
-    for key in xs:#TODO: more time efficient with properties and only needed
-        v['dorsal branch'][key]     = float(a[1][key]) / a[0][key] - 1
-        v['ventral branch'][key]    = float(a[3][key]) / a[2][key] - 1
-    xs.reverse()
-    MetricAnalysis.bars_plot(
-        v=v, 
-        bars=bars, 
-        xs=xs, 
-        colors=['#00ff00','#0000ff'], 
-        rotation=0, horizontal=True,#y_label='change: forager / nurse - 1', 
-        picture_file='/tmp/change_morphology', picture_formats=['png','svg']
     )
