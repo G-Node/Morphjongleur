@@ -138,6 +138,8 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         self.cylindric_lateral_area = 0.
         self.frustum_volume         = 0.
         self.frustum_lateral_area   = 0.
+        morphology.root.volume      = 0
+        morphology.root.lateral_area     = 0
         for compartment in morphology.non_root_compartments:
             self.total_length   += compartment.length
             compartment.frustum_length  = math.sqrt( (compartment.parent.radius - compartment.radius)**2 + compartment.length**2)
@@ -150,6 +152,9 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
 
             self.frustum_volume         += compartment.length * (compartment.parent.radius**2 + compartment.parent.radius * compartment.radius + compartment.radius**2)            
             self.frustum_lateral_area   += compartment.frustum_length * (compartment.parent.radius + compartment.radius)
+            
+            compartment.volume          = compartment.length * (compartment.parent.radius**2 + compartment.parent.radius * compartment.radius + compartment.radius**2)          
+            compartment.lateral_area    = compartment.frustum_length * (compartment.parent.radius + compartment.radius)
         self.cylindric_volume       *= math.pi
         self.cylindric_lateral_area *= 2 * math.pi
         self.cylindric_surface_area = self.cylindric_lateral_area + terminaltips_cross_section_area
@@ -196,7 +201,8 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
             self.branches_degrees_mean_length[degree]    = numpy.mean( [numpy.sum([c.length for c in branch]) for branch in branches]  )
             self.branches_degrees_mean_volume[degree]    = numpy.mean( [math.pi/3 * numpy.sum([compartment.length * (compartment.parent.radius**2 + compartment.parent.radius * compartment.radius + compartment.radius**2) for c in branch]) for branch in branches] )
             self.branches_degrees_mean_lateral_area[degree]    = numpy.mean( [math.pi * numpy.sum([compartment.frustum_length * (compartment.parent.radius + compartment.radius) for c in branch]) for branch in branches] )
-            self.branches_degrees_mean_compactness[degree]    = self.branches_degrees_mean_lateral_area[degree] / self.branches_degrees_mean_volume[degree]
+            #self.branches_degrees_mean_compactness[degree]    = self.branches_degrees_mean_lateral_area[degree] / self.branches_degrees_mean_volume[degree]
+            self.branches_degrees_mean_compactness[degree]     = numpy.sum([numpy.sum([c.lateral_area for c in branch]) for branch in branches]) / numpy.sum([numpy.sum([c.volume for c in branch]) for branch in branches]) 
         
         #=======================================================================
         # leafs   = [leaf for leaf in morphology.terminal_tips]
