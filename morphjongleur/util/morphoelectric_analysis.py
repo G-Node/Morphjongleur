@@ -91,7 +91,7 @@ if __name__ == '__main__':
            'ventral branch':{'$\\tau_{\\mathrm{eff}}$':results[4].tau_lin_fit()/results[3].tau_lin_fit()-1, '$R_{in}$':results[4].get_R_in()/results[3].get_R_in()-1}
            }
     print v
-    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], horizontal=True, tex=True, ratio=(8,6), xlimit=(-0.4,0.2), y_label='change: forager / nurse - 1', picture_file='/tmp/change_tau', picture_formats=picture_formats)#, y_label='change: forager / nurse - 1'
+    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], horizontal=True, tex=True, ratio=(4,4.5), xlimit=(-0.4,0.2), y_label='change: forager / nurse - 1', picture_file='/tmp/change_tau', picture_formats=picture_formats)#, y_label='change: forager / nurse - 1'
 
 
     # scaled nurse
@@ -113,7 +113,7 @@ if __name__ == '__main__':
            'ventral branch':{'$\\tau_{\\mathrm{eff}}$':results[4].tau_lin_fit()/results[3].tau_lin_fit()-1, '$R_{in}$':results[4].get_R_in()/results[3].get_R_in()-1}
            }
     print v
-    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], horizontal=True, tex=True, ratio=(8,7), xlimit=(-0.4,0.2), y_label='change: forager / nurse - 1', picture_file='/tmp/change_tau_scaled_nurse', picture_formats=picture_formats)#, y_label='change: forager / nurse - 1'
+    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], horizontal=True, tex=True, ratio=(4,4.5), xlimit=(-0.4,0.2), y_label='change: forager / nurse - 1', picture_file='/tmp/change_tau_scaled_nurse', picture_formats=picture_formats)#, y_label='change: forager / nurse - 1'
 
 
     # scaled forager
@@ -135,7 +135,7 @@ if __name__ == '__main__':
            'ventral branch':{'$\\tau_{\\mathrm{eff}}$':results[4].tau_lin_fit()/results[3].tau_lin_fit()-1, '$R_{in}$':results[4].get_R_in()/results[3].get_R_in()-1}
            }
     print v
-    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], horizontal=True, tex=True, ratio=(8,6), xlimit=(-0.4,0.2), y_label='change: forager / nurse - 1', picture_file='/tmp/change_tau_scaled_forager', picture_formats=picture_formats)#, y_label='change: forager / nurse - 1'
+    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], horizontal=True, tex=True, ratio=(4,4.5), xlimit=(-0.4,0.2), y_label='change: forager / nurse - 1', picture_file='/tmp/change_tau_scaled_forager', picture_formats=picture_formats)#, y_label='change: forager / nurse - 1'
 
     # scaled both
     #need new morphologies as clamps are already set
@@ -156,7 +156,7 @@ if __name__ == '__main__':
            'ventral branch':{'$\\tau_{\\mathrm{eff}}$':results[4].tau_lin_fit()/results[3].tau_lin_fit()-1, '$R_{in}$':results[4].get_R_in()/results[3].get_R_in()-1}
            }
     print v
-    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], horizontal=True, tex=True, ratio=(8,6), xlimit=(-0.4,0.2), y_label='change: forager / nurse - 1', picture_file='/tmp/change_tau_scaled_both', picture_formats=picture_formats)
+    MetricAnalysis.bars_plot(v=v, bars=bars, xs=xs, colors=['#00ff00','#0000ff'], horizontal=True, tex=True, ratio=(4,4.5), xlimit=(-0.4,0.2), y_label='change: forager / nurse - 1', picture_file='/tmp/change_tau_scaled_both', picture_formats=picture_formats)
 
 
     sys.exit(0)

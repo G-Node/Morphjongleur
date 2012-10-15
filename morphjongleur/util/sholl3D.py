@@ -143,7 +143,7 @@ class Sholl3DAnalysis(MorphologyInfo):
         return [branch / ( 4./3. * numpy.pi * distance**3. ) for branch,distance in zip(self.numbers(distances),distances)]
                 
 
-    def plot(self, color='black', picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+    def plot(self, color='black', ratio=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
         matplotlib.pyplot.step(self.ds, self.branches, color)
 
         imaxb   = 0
@@ -169,6 +169,10 @@ class Sholl3DAnalysis(MorphologyInfo):
         matplotlib.pyplot.ylim(ymin=0)
         matplotlib.pyplot.xlabel(u'distance [µm]')
         matplotlib.pyplot.xlim(xmin=0)
+        
+        if ratio != None:#matplotlib.figure.figaspect(arg)
+            fig = matplotlib.pyplot.gcf()
+            fig.set_size_inches(ratio[0],ratio[1])
 
         if(picture_file != None):
             for picture_format in picture_formats:
@@ -178,13 +182,13 @@ class Sholl3DAnalysis(MorphologyInfo):
         matplotlib.pyplot.close()
 
 
-    def plot_normalized(self, color='black', picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+    def plot_normalized(self, color='black', picture_file=None, x_log=True, y_log=True, ratio=None, picture_formats=['png', 'pdf', 'svg']):
         import scipy.optimize
-        xs  = numpy.arange(1, self.max_dist, .1*self.max_dist/self.morphology.number_of_compartments )
+        xs  = numpy.arange(1, self.max_dist, .1*self.max_dist/self.morphology.number_of_compartments )#filter(lambda x: x > 0, self.ds)    
         ys  = self.normalizeds(xs)
         matplotlib.pyplot.plot(xs, ys, color)
 
-        p   = numpy.array([0.1,-1.])
+        p   = numpy.array([0.5,-2.5])
         polynomial_decay    = lambda x,p: p[0] * x ** p[1]
         err = lambda p, f, x, y: ( f(xs,p) - ys )**2
         fp  = polynomial_decay
@@ -192,17 +196,23 @@ class Sholl3DAnalysis(MorphologyInfo):
         matplotlib.pyplot.plot(xs,fp(xs,p), color='black')
 
         matplotlib.pyplot.ylabel(u'#branches / distance^3 [1/µm^3]')
-        matplotlib.pyplot.yscale('log')
+        if y_log:
+            matplotlib.pyplot.yscale('log')
         #matplotlib.pyplot.ylim(ymin=0)
         matplotlib.pyplot.xlabel(u'distance [µm]')
-        matplotlib.pyplot.xscale('log')
+        if x_log:
+            matplotlib.pyplot.xscale('log')
         #matplotlib.pyplot.xlim(xmin=0)
     
         titles=[]
-        titles.append( "LOG(S/N)")
-        titles.append( "polynomial fit: $%.1f \cdot d^{%.2f}$" % (p[0], p[1]) )
+        #titles.append( "LOG(S/N)")
+        titles.append( "$%.2f \cdot d^{%.2f}$" % (p[0], p[1]) )
         matplotlib.pyplot.legend(titles, loc='best')
         print "(%.2f, %.2f)" % (p[0], p[1])
+        
+        if ratio != None:#matplotlib.figure.figaspect(arg)
+            fig = matplotlib.pyplot.gcf()
+            fig.set_size_inches(ratio[0],ratio[1])
 
         if(picture_file != None):
             for picture_format in picture_formats:
@@ -231,6 +241,9 @@ if __name__ == '__main__':
 
         morphology  = Morphology.swc_parse(swc, verbose=False)
         s           = Sholl3DAnalysis(morphology, morphology.root)
-        s.plot(color=color, picture_file='/tmp/%s_sholl3d' % (morphology.name), picture_formats=picture_formats)
-        s.plot_normalized(color=color, picture_file='/tmp/%s_sholl3d_normalized' % (morphology.name), picture_formats=picture_formats)
+        s.plot(color=color, ratio=(4,4.5), picture_file='/tmp/%s_sholl3d' % (morphology.name), picture_formats=picture_formats)
+        s.plot_normalized(color=color, picture_file='/tmp/%s_sholl3d_normalized' % (morphology.name), x_log=False, y_log=False, ratio=(4,4.5), picture_formats=picture_formats)
+        s.plot_normalized(color=color, picture_file='/tmp/%s_sholl3d_normalized_x' % (morphology.name), x_log=True, y_log=False, ratio=(4,4.5), picture_formats=picture_formats)
+        s.plot_normalized(color=color, picture_file='/tmp/%s_sholl3d_normalized_y' % (morphology.name), x_log=False, y_log=True, ratio=(4,4.5), picture_formats=picture_formats)
+        s.plot_normalized(color=color, picture_file='/tmp/%s_sholl3d_normalized_xy' % (morphology.name), x_log=True, y_log=True,  ratio=(4,4.5), picture_formats=picture_formats)
 

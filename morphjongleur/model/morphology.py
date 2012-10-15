@@ -228,7 +228,7 @@ class Compartment(object):
         matplotlib.pyplot.close()
 
     @staticmethod
-    def plot3d(compartment_iterable, color='black', picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+    def plot3d(compartment_iterable, color='black', ratio=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
         import mpl_toolkits.mplot3d
         import matplotlib.pyplot
         import numpy
@@ -261,6 +261,11 @@ class Compartment(object):
                 ss.append(numpy.pi * c.radius**2)
             ss = numpy.diff(ax.transData.transform(zip([0]*len(ss), ss)))
             p = ax.scatter(xs, ys, zs, c=cs, marker='.', s=ss)
+
+        
+        if ratio != None:#matplotlib.figure.figaspect(arg)
+            fig = matplotlib.pyplot.gcf()
+            fig.set_size_inches(ratio[0],ratio[1])
         if False and colorbar:
             matplotlib.pyplot.figure().colorbar(p)
         ax.set_aspect('equal')
@@ -326,11 +331,11 @@ class Compartment(object):
             matplotlib.pyplot.show()
         matplotlib.pyplot.close()
 
-    def plot_distance(self, compartment_iterable, name='', xlim=None, ylim=None, color='#000000', picture_file=None, picture_formats=['png', 'pdf', 'svg']):
-        Compartment.plot_distances([compartment_iterable], [self], [name], xlim, ylim, [color], picture_file, picture_formats)
+    def plot_distance(self, compartment_iterable, name='', xlim=None, ylim=None, color='#000000', ratio=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+        Compartment.plot_distances(compartment_iterables=[compartment_iterable], centers=[self], names=[name], xlim=xlim, ylim=ylim, colors=[color], ratio=ratio,picture_file=picture_file, picture_formats=picture_formats)
 
     @staticmethod
-    def plot_distances(compartment_iterables, centers, names, xlim=None, ylim=None, colors=['#000000'],  picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+    def plot_distances(compartment_iterables, centers, names, xlim=None, ylim=None, colors=['#000000'], ratio=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
         import scipy.stats.stats
         import matplotlib.pyplot
         legends = []
@@ -397,7 +402,11 @@ class Compartment(object):
         matplotlib.pyplot.xlabel(u'distance [µm]')
         if xlim != None:
             matplotlib.pyplot.xlim((0,xlim))
-        matplotlib.pyplot.legend( legends )
+        #matplotlib.pyplot.legend( legends )
+        
+        if ratio != None:#matplotlib.figure.figaspect(arg)
+            fig = matplotlib.pyplot.gcf()
+            fig.set_size_inches(ratio[0],ratio[1])
         
         if(picture_file != None):
             for picture_format in picture_formats:
@@ -461,7 +470,7 @@ class Morphology(object):
         self._root              = None
         self._biggest           = None  # biggest compartment (probable part of soma)
         self._leafs             = []
-        self._branching_points  = []
+        self._branch_points  = []
         #not orm mapped
         self._compartments_map  = {}
 
@@ -549,7 +558,7 @@ class Morphology(object):
     def terminal_tips(self):
         if not vars(self).has_key('_leafs'):
             self._leafs = []
-            #self._branching_points = []
+            #self._branch_points = []
         if self._leafs == []:
             self._create_tree()
             for c in self.compartments:
@@ -561,14 +570,14 @@ class Morphology(object):
             yield(leaf)
 
     @property
-    def number_of_terminaltips(self):
+    def number_of_terminal_tips(self):
         if not vars(self).has_key('_leafs') or self._leafs == []:
             for l in self.terminal_tips:
                 pass
         return len(self._leafs)
 
     @property
-    def terminaltips_biggest(self):
+    def terminal_tips_biggest(self):
         tb  = Compartment.tiny()
         for t in self.terminal_tips:
             if tb.radius < t.radius:
@@ -577,19 +586,19 @@ class Morphology(object):
 
     @property
     def branch_points(self):
-        if not vars(self).has_key('_branching_points'):
-            self._branching_points = []
+        if not vars(self).has_key('_branch_points'):
+            self._branch_points = []
             #self._leafs = []
-        if self._branching_points == []:
+        if self._branch_points == []:
             self._create_tree()
             for c in self.compartments:
 #                if len(c.children) == 0:
 #                    self._leafs.append(c)
                 if len(c.children) > 2 or len(c.children) > 1 and c.parent != None:
-                    self._branching_points.append(c)
+                    self._branch_points.append(c)
 
-        for branching_point in self._branching_points:
-            yield(branching_point)
+        for branch_point in self._branch_points:
+            yield(branch_point)
 
     @property
     def branches(self):
@@ -670,17 +679,17 @@ class Morphology(object):
         return self._branches
 
     @property
-    def number_of_branching_points(self):
-        if not vars(self).has_key('_branching_points') or self._branching_points == []:
+    def number_of_branch_points(self):
+        if not vars(self).has_key('_branch_points') or self._branch_points == []:
             for b in self.branch_points:
                 pass
-        return len(self._branching_points)
+        return len(self._branch_points)
 
     @property
     def plebs(self):
-        for branching_point in self._branching_points:
-            if len(branching_point.children) > 2:
-                yield(branching_point)
+        for branch_point in self._branch_points:
+            if len(branch_point.children) > 2:
+                yield(branch_point)
 
     @property
     def compartments(self):
@@ -734,24 +743,24 @@ class Morphology(object):
             for cc in c.children:
                 yield( cc )
 
-    def plot_distance_distribution(self, center, name='', xlim=None, ylim=None, color='#000000', bins=20, picture_file=None, picture_formats=['png', 'pdf', 'svg']):  
-        Morphology.plot_distance_distributions([self.compartments], [center], [name], [color], bins, xlim, ylim, picture_file, picture_formats)
+    def plot_distance_distribution(self, center, name='', xlim=None, ylim=None, color='#000000', mcolors='#000000', bins=20, ratio=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):  
+        Morphology.plot_distance_distributions(compartment_iterables=[self.compartments], centers=[center], mcolors=[mcolors], names=[name], colors=[color], bins=bins, xlim=xlim, ylim=ylim, ratio=ratio, picture_file=picture_file, picture_formats=picture_formats)
 
     @staticmethod
-    def plot_distance_distributions(compartment_iterables, centers, names=[''], colors=['#000000'], bins=20, xlim=None, ylim=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):  
+    def plot_distance_distributions(compartment_iterables, centers, names=[''], colors=['#000000'], mcolors=['#000000'], bins=20, xlim=None, ylim=None, ratio=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):  
         import matplotlib
         #matplotlib.rc('text', usetex=True): error with names
         legends = []
-        for (compartment_iterable,center,color,name) in zip(compartment_iterables,centers,colors,names):
+        for (compartment_iterable,center,color,mcolor,name) in zip(compartment_iterables,centers,colors,mcolors,names):
             x   = [c.distance_path(center) for c in compartment_iterable]
             if len(x) == 0:
                 import sys
                 print >> sys.stderr, "iterable list has 0 elements"
                 continue
             mean   = numpy.mean(x)
-            legends.append(u"%7s: %i µm" % (name, round(mean)))
             std    = numpy.std(x)
-            matplotlib.pyplot.axvline(x=mean, color=color, label='mean'+name)
+            legends.append(u"µ %i µm\nσ %i µm" % (round(mean),round(std)))
+            matplotlib.pyplot.axvline(x=mean, color=mcolor, label='mean'+name)
             if xlim != None:#TODO: isnumber
                 matplotlib.pyplot.hist(x, bins=range(0,xlim,bins), normed=0, color=color, edgecolor=color, alpha=0.6)
             else:
@@ -769,6 +778,10 @@ class Morphology(object):
         if xlim != None:
             matplotlib.pyplot.xlim((0,xlim))
         matplotlib.pyplot.legend( legends )
+        
+        if ratio != None:#matplotlib.figure.figaspect(arg)
+            fig = matplotlib.pyplot.gcf()
+            fig.set_size_inches(ratio[0],ratio[1])
 
         if(picture_file != None):
             for picture_format in picture_formats:

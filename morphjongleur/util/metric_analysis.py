@@ -36,23 +36,23 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
     without side circles of terminal tips
     
     
-    arithmetic_mean_branchpoint_radius
+    am_branch_point_radius
     mean cross section area
 
-    geometric_mean_branchpoint_radius
+    gm_branch_point_radius
     mean cross section area
 
-    harmonic_mean_branchpoint_radius    
+    hm_branch_point_radius    
 
-    arithmetic_mean_branchpoint_distance    
+    am_branch_point_distance    
 
-    geometric_mean_branchpoint_distance    
+    gm_branch_point_distance    
 
-    harmonic_mean_branchpoint_distance    
+    hm_branch_point_distance    
 
-    cylindric_arithmetic_mean_cross_section_area    
+    cylindric_am_cross_section_area    
 
-    frustum_arithmetic_mean_cross_section_area    
+    frustum_am_cross_section_area    
 
     http://openbook.galileocomputing.de/python/python_kapitel_13_009.htm
     TODO: glossary
@@ -124,13 +124,13 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         self.datetime_recording = morphology.datetime_recording
         self.compartments       = morphology.number_of_compartments
         
-        self.number_of_terminaltips     = morphology.number_of_terminaltips
-        self.number_of_branching_points = morphology.number_of_branching_points
-#        if self.number_of_terminaltips != self.number_of_branching_points + 1:
-#            print >> sys.stderr, "#terminal_tips %i > #branching points %i +1, because of %s" % (self.number_of_terminaltips, self.number_of_branching_points, ["%i:%i"%(pleb.compartment_id,len(pleb.children)) for pleb in morphology.plebs])
+        self.number_of_terminal_tips     = morphology.number_of_terminal_tips
+        self.number_of_branch_points = morphology.number_of_branch_points
+#        if self.number_of_terminal_tips != self.number_of_branch_points + 1:
+#            print >> sys.stderr, "#terminal_tips %i > #branching points %i +1, because of %s" % (self.number_of_terminal_tips, self.number_of_branch_points, ["%i:%i"%(pleb.compartment_id,len(pleb.children)) for pleb in morphology.plebs])
 
-        terminaltips_radii      = [compartment.radius for compartment in morphology.terminal_tips]
-        terminaltips_cross_section_area = 2 * math.pi * numpy.sum( terminaltips_radii )
+        terminal_tips_radii      = [compartment.radius for compartment in morphology.terminal_tips]
+        terminal_tips_cross_section_area = 2 * math.pi * numpy.sum( terminal_tips_radii )
 
         self.total_length       = 0.
         self.slant_length       = 0.
@@ -157,19 +157,19 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
             compartment.lateral_area    = compartment.frustum_length * (compartment.parent.radius + compartment.radius)
         self.cylindric_volume       *= math.pi
         self.cylindric_lateral_area *= 2 * math.pi
-        self.cylindric_surface_area = self.cylindric_lateral_area + terminaltips_cross_section_area
+        self.cylindric_surface_area = self.cylindric_lateral_area + terminal_tips_cross_section_area
         self.frustum_volume         *= math.pi/3
         self.frustum_lateral_area   *= math.pi
-        self.frustum_surface_area   = self.frustum_lateral_area   + terminaltips_cross_section_area
+        self.frustum_surface_area   = self.frustum_lateral_area   + terminal_tips_cross_section_area
 
         compartment_radii    = [compartment.radius for compartment in morphology.compartments]
-        self.arithmetic_mean_cross_section_area = 2 * math.pi * numpy.mean(compartment_radii)
-        self.geometric_mean_cross_section_area  = 2 * math.pi * scipy.stats.stats.gmean(compartment_radii)
+        self.am_csa = 2 * math.pi * numpy.mean(compartment_radii)
+        self.gm_csa  = 2 * math.pi * scipy.stats.stats.gmean(compartment_radii)
         try:
-            self.harmonic_mean_cross_section_area   = 2 * math.pi * scipy.stats.stats.hmean(compartment_radii)
+            self.hm_csa   = 2 * math.pi * scipy.stats.stats.hmean(compartment_radii)
         except Exception, e:
-            self.harmonic_mean_cross_section_area   = 0
-        self.median_cross_section_area = 2 * math.pi * numpy.median(compartment_radii)
+            self.hm_csa   = 0
+        self.median_csa = 2 * math.pi * numpy.median(compartment_radii)
 
         branches_degrees    = {}
         branchingpoints_distances   = []
@@ -223,39 +223,39 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         #    leafs   = new_leafs.keys()
         #=======================================================================
 
-        self.arithmetic_mean_branchpoint_distance= numpy.mean( branchingpoints_distances )
-        self.geometric_mean_branchpoint_distance = scipy.stats.stats.gmean( branchingpoints_distances )
+        self.am_branch_point_distance= numpy.mean( branchingpoints_distances )
+        self.gm_branch_point_distance = scipy.stats.stats.gmean( branchingpoints_distances )
         try:
-            self.harmonic_mean_branchpoint_distance  = scipy.stats.stats.hmean( branchingpoints_distances )
+            self.hm_branch_point_distance  = scipy.stats.stats.hmean( branchingpoints_distances )
         except Exception, e:
-            self.harmonic_mean_branchpoint_distance  = 0
-        self.median_branchpoint_distance         = numpy.median( branchingpoints_distances )
+            self.hm_branch_point_distance  = 0
+        self.median_branch_point_distance         = numpy.median( branchingpoints_distances )
 
         branchingpoints_radii   = [compartment.radius for compartment in morphology.branch_points]
-        self.arithmetic_mean_branchpoint_cross_section_area = 2 * math.pi * numpy.mean(branchingpoints_radii)
-        self.geometric_mean_branchpoint_cross_section_area  = 2 * math.pi * scipy.stats.stats.gmean(branchingpoints_radii)
+        self.am_branch_point_csa = 2 * math.pi * numpy.mean(branchingpoints_radii)
+        self.gm_branch_point_csa  = 2 * math.pi * scipy.stats.stats.gmean(branchingpoints_radii)
         try:
-            self.harmonic_mean_branchpoint_cross_section_area   = 2 * math.pi * scipy.stats.stats.hmean(branchingpoints_radii)
+            self.hm_branch_point_csa   = 2 * math.pi * scipy.stats.stats.hmean(branchingpoints_radii)
         except Exception, e:
-            self.harmonic_mean_branchpoint_cross_section_area   = 0
-        self.median_branchpoint_cross_section_area          = 2 * math.pi * numpy.median(branchingpoints_radii)
+            self.hm_branch_point_csa   = 0
+        self.median_branch_point_csa          = 2 * math.pi * numpy.median(branchingpoints_radii)
         
-        terminaltips_distances   = [morphology.root.distance_path(compartment) for compartment in morphology.terminal_tips]
-        self.arithmetic_mean_terminaltip_distance = numpy.mean( terminaltips_distances )
-        self.geometric_mean_terminaltip_distance   = scipy.stats.stats.gmean( terminaltips_distances )
+        terminal_tips_distances   = [morphology.root.distance_path(compartment) for compartment in morphology.terminal_tips]
+        self.am_terminal_tip_distance = numpy.mean( terminal_tips_distances )
+        self.gm_terminal_tip_distance   = scipy.stats.stats.gmean( terminal_tips_distances )
         try:
-            self.harmonic_mean_terminaltip_distance    = scipy.stats.stats.hmean( terminaltips_distances )
+            self.hm_terminal_tip_distance    = scipy.stats.stats.hmean( terminal_tips_distances )
         except Exception, e:
-            self.harmonic_mean_terminaltip_distance   = 0
-        self.median_terminaltip_distance = numpy.median( terminaltips_distances )
+            self.hm_terminal_tip_distance   = 0
+        self.median_terminal_tip_distance = numpy.median( terminal_tips_distances )
 
-        self.arithmetic_mean_terminaltip_cross_section_area = 2 * math.pi * numpy.mean(terminaltips_radii)
-        self.geometric_mean_terminaltip_cross_section_area  = 2 * math.pi * scipy.stats.stats.gmean(terminaltips_radii)
+        self.am_terminal_tip_csa = 2 * math.pi * numpy.mean(terminal_tips_radii)
+        self.gm_terminal_tip_csa  = 2 * math.pi * scipy.stats.stats.gmean(terminal_tips_radii)
         try:
-            self.harmonic_mean_terminaltip_cross_section_area   = 2 * math.pi * scipy.stats.stats.hmean(terminaltips_radii)
+            self.hm_terminal_tip_csa   = 2 * math.pi * scipy.stats.stats.hmean(terminal_tips_radii)
         except Exception, e:
-            self.harmonic_mean_terminaltip_cross_section_area   = 0
-        self.median_terminaltip_cross_section_area = 2 * math.pi * numpy.median(terminaltips_radii)
+            self.hm_terminal_tip_csa   = 0
+        self.median_terminal_tip_csa = 2 * math.pi * numpy.median(terminal_tips_radii)
 
 
 
@@ -272,11 +272,14 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
     def frustum_mean_cross_section_area(self):
         return self.frustum_volume / self.total_length
     @property
-    def mean_branching_distance(self):
-        return self.total_length / self.number_of_terminaltips
+    def mcsa(self):
+        return self.frustum_mean_cross_section_area
     @property
-    def mean_branchpoint_distance(self):
-        return self.total_length / self.number_of_branching_points
+    def mean_branching_distance(self):
+        return self.total_length / self.number_of_terminal_tips
+    @property
+    def mean_branch_point_distance(self):
+        return self.total_length / self.number_of_branch_points
 
     @property
     def es_volume(self):
@@ -459,7 +462,7 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
             matplotlib.pyplot.ylabel(quantity.replace('_',' '))
         else:
             matplotlib.pyplot.ylabel(yaxis_description)
-        matplotlib.pyplot.title('change: DB: %f, VB: %f' %(float(morphologies[1].info.__dict__[quantity])/morphologies[0].info.__dict__[quantity], float(morphologies[3].info.__dict__[quantity])/morphologies[2].info.__dict__[quantity]))#TODO: verallgemeinern, verifizierren!
+        #matplotlib.pyplot.title('change: DB: %f, VB: %f' %(float(morphologies[1].info.__dict__[quantity])/morphologies[0].info.__dict__[quantity], float(morphologies[3].info.__dict__[quantity])/morphologies[2].info.__dict__[quantity]))#TODO: verallgemeinern, verifizierren!
         print '%s change: DB: %f, VB: %f' %(quantity, float(morphologies[1].info.__dict__[quantity])/morphologies[0].info.__dict__[quantity], float(morphologies[3].info.__dict__[quantity])/morphologies[2].info.__dict__[quantity])
         matplotlib.pyplot.xticks(ind+width, xticks,rotation=9)#
         #matplotlib.pyplot.yticks(numpy.arange(0,81,10))
@@ -560,40 +563,49 @@ if __name__ == '__main__':
     import morphjongleur.util.transformations
     picture_formats = ['png','svg', 'pdf']#
     colors = ['#000000', '#00ff00','#008000', '#0000ff','#000080']# H060602DB_10_2(whole).swc H060607DB_10_2(whole).swc H060602VB_10_2(whole).swc H060607VB_10_2(whole).swc
+
     with_head   = True
     i = 0
     for swc in sys.argv[1:]:#['../../data/test.swc']:#
-        continue
         color = colors[i % len(colors)]
         i += 1
 
         morphology   = Morphology.swc_parse(swc, verbose=False)
+        
+        m_pca   = morphology.pca()
+        Compartment.write_svg('/tmp/%s_pca_faraway.svg' % (m_pca.name), 
+            [m_pca.compartments,  MetricAnalysis.farther_away(m_pca.compartments, m_pca.root, 650)], 
+            [colors[1], 'black']
+        )
 
+        morphology.root.plot_distance(morphology.compartments,       morphology.name,            xlim=900, ylim=8,   color=color, ratio=(4,4.5), picture_file='/tmp/distance_compartments_'+str(morphology.name),               picture_formats=picture_formats)
+        morphology.root.plot_distance(morphology.branch_points,   morphology.name,            xlim=900, ylim=8,   color=color, ratio=(4,4.5), picture_file='/tmp/distance_branch_points_'+str(morphology.name),               picture_formats=picture_formats)
+        morphology.root.plot_distance(morphology.terminal_tips,       morphology.name,            xlim=900, ylim=8,   color=color, ratio=(4,4.5), picture_file='/tmp/distance_terminal_tips_'+str(morphology.name),               picture_formats=picture_formats)
+
+        morphology.plot_distance_distribution(morphology.root,                                    morphology.name,   color=color,    bins=20,   xlim=900, ylim=900, ratio=(4,4.5), picture_file='/tmp/distance_distribution_compartments_'+str(morphology.name),  picture_formats=picture_formats)
+        morphology.plot_distance_distributions([morphology.branch_points], [morphology.root],  [morphology.name], colors=[color], bins=20,   xlim=900, ylim=65, ratio=(4,4.5),  picture_file='/tmp/distance_distribution_branch_points_'+str(morphology.name),  picture_formats=picture_formats)
+        morphology.plot_distance_distributions([morphology.terminal_tips],     [morphology.root],  [morphology.name], colors=[color], bins=20,   xlim=900, ylim=70, ratio=(4,4.5),  picture_file='/tmp/distance_distribution_terminal_tips_'+str(morphology.name),  picture_formats=picture_formats)#900, 43
+
+
+        print morphology.name
+        continue
 
         a   = MetricAnalysis(morphology)
-
-        (ks, vs)    = a.variable_table(['name', 'compartments', #'datetime_recording', 
-        'total_length', 'slant_length', 
-        'number_of_branching_points', 'number_of_terminaltips', 
-
-        'cylindric_volume', 'cylindric_surface_area', 'cylindric_compactness', 
-        'frustum_volume', 'frustum_surface_area', 'frustum_compactness', 
-        
-        'cylindric_mean_cross_section_area', 'frustum_mean_cross_section_area', 
-        'arithmetic_mean_cross_section_area', 'geometric_mean_cross_section_area', 'harmonic_mean_cross_section_area', 'median_cross_section_area',
-        'mean_branchpoint_distance', 'mean_branching_distance', 
-        'arithmetic_mean_branchpoint_distance', 'geometric_mean_branchpoint_distance', 'harmonic_mean_branchpoint_distance', 'median_branchpoint_distance',
-        'arithmetic_mean_branchpoint_cross_section_area', 'geometric_mean_branchpoint_cross_section_area', 'harmonic_mean_branchpoint_cross_section_area', 'median_branchpoint_cross_section_area',
-        'arithmetic_mean_terminaltip_distance', 'geometric_mean_terminaltip_distance', 'harmonic_mean_terminaltip_distance', 'median_terminaltip_distance',
-        'arithmetic_mean_terminaltip_cross_section_area', 'geometric_mean_terminaltip_cross_section_area', 'harmonic_mean_terminaltip_cross_section_area', 'median_terminaltip_cross_section_area',
-
-        'pca_length_x', 'pca_length_y', 'pca_length_z', 
-        'es_volume', 'es_surface_area', 'es_compactness', 
-        'esn_frustum_surface_area', 'esn_frustum_volume', 'esn_compactness',
-        'cep_volume', 'cep_surface_area', 'cep_compactness', 
-        'cepn_volume','cepn_surface_area', 'cepn_compactness',
-        'esn_cep_volume', 'esn_cep_surface_area', 'esn_cep_compactness'
-        ])
+    
+        (ks, vs)    = a.variable_table(['name', 'total_length', 'slant_length', 'volume', 'lateral_area', 'mcsa', 'compactness', 'surface_area', 
+            'pca_length_x', 'pca_length_y', 'pca_length_z', 
+            'number_of_terminal_tips', 'number_of_branch_points', 
+            'mean_branching_distance', 
+            'es_volume', 'es_surface_area', 'es_compactness', 
+            'esn_frustum_volume', 'esn_frustum_surface_area', 'esn_compactness',
+            'cep_volume', 'cep_surface_area', 'cep_compactness', 
+            'cepn_volume','cepn_surface_area', 'cepn_compactness',
+            'esn_cep_volume', 'esn_cep_surface_area', 'esn_cep_compactness',
+            'am_branch_point_distance', 'gm_branch_point_distance', 'hm_branch_point_distance', 'median_branch_point_distance',
+            'am_branch_point_csa', 'gm_branch_point_csa', 'hm_branch_point_csa', 'median_branch_point_csa',
+            'am_terminal_tip_distance', 'gm_terminal_tip_distance', 'hm_terminal_tip_distance', 'median_terminal_tip_distance',
+            'am_terminal_tip_csa', 'gm_terminal_tip_csa', 'hm_terminal_tip_csa', 'median_terminal_tip_csa',
+            ])#,g=6,texify=True)
 
         if vars(a).has_key('cep_hull'):
             a.cep_hull.write('/tmp/%s_pca' % (morphology.name))
@@ -603,25 +615,24 @@ if __name__ == '__main__':
             with_head   = False
         print vs
 
-
-        continue
-
         #print morphology.name
         morphology.write_svg(svg_file='/tmp/%s.svg' % (morphology.name), color=color)
         Compartment.write_svg('/tmp/%s_color.svg' % (morphology.name), 
             [morphology.compartments,  morphology.terminal_tips, [morphology.root]], 
             [color, 'yellow', 'red']
         )
-        continue
-        morphology.plot(color=color, picture_file='/tmp/%s' % (morphology.name), picture_formats=picture_formats)
-        Compartment.plot(
-            [morphology.compartments,  morphology.terminal_tips, [morphology.root]], 
-            [color, 'yellow', 'red'],
-            picture_file='/tmp/%s_color' % (morphology.name), picture_formats=picture_formats#
-        )
-        Compartment.plot3d(morphology.compartments, picture_file='/tmp/%s_3d' % (morphology.name), picture_formats=picture_formats)
 
-        #continue
+        #=======================================================================
+        # morphology.plot(color=color, picture_file='/tmp/%s' % (morphology.name), picture_formats=picture_formats)
+        # Compartment.plot(
+        #    [morphology.compartments,  morphology.terminal_tips, [morphology.root]], 
+        #    [color, 'yellow', 'red'], 
+        #    picture_file='/tmp/%s_color' % (morphology.name), picture_formats=picture_formats#
+        # )
+        #=======================================================================
+        Compartment.plot3d(morphology.compartments, ratio=(8,6), picture_file='/tmp/%s_3d' % (morphology.name), picture_formats=picture_formats)
+
+        continue
         m_pca   = morphology.pca()
         m_pca.swc_write('/tmp/%s_pca.swc' % (m_pca.name) )
         m_pca.plot(color=color, picture_file='/tmp/%s_pca' % (m_pca.name), picture_formats=picture_formats)
@@ -637,15 +648,6 @@ if __name__ == '__main__':
         )
 
         #continue
-
-        morphology.root.plot_distance(morphology.compartments,       morphology.name,            xlim=900, ylim=8,   color=color, picture_file='/tmp/distance_compartments_'+str(morphology.name),               picture_formats=picture_formats)
-        morphology.root.plot_distance(morphology.branch_points,   morphology.name,            xlim=900, ylim=8,   color=color, picture_file='/tmp/distance_branchpoints_'+str(morphology.name),               picture_formats=picture_formats)
-        morphology.root.plot_distance(morphology.terminal_tips,       morphology.name,            xlim=900, ylim=8,   color=color, picture_file='/tmp/distance_terminaltips_'+str(morphology.name),               picture_formats=picture_formats)
-
-        morphology.plot_distance_distribution(morphology.root,                                    morphology.name,   color=color,    bins=20,   xlim=900, ylim=900, picture_file='/tmp/distance_distribution_compartments_'+str(morphology.name),  picture_formats=picture_formats)
-        morphology.plot_distance_distributions([morphology.branch_points], [morphology.root],  [morphology.name], colors=[color], bins=20,   xlim=900, ylim=65,  picture_file='/tmp/distance_distribution_branchpoints_'+str(morphology.name),  picture_formats=picture_formats)
-        morphology.plot_distance_distributions([morphology.terminal_tips],     [morphology.root],  [morphology.name], colors=[color], bins=20,   xlim=900, ylim=70,  picture_file='/tmp/distance_distribution_terminaltips_'+str(morphology.name),  picture_formats=picture_formats)#900, 43
-
         #continue
         #------------------------------------------------------------------ try:
             #-------------------------------------------------------------- pass
@@ -664,10 +666,23 @@ if __name__ == '__main__':
     a   = [MetricAnalysis(ma).variable_map()[0] for ma in morphologies[1:5]]
     v   = {'dorsal branch':{}, 'ventral branch':{}}
     bars= ['dorsal branch','ventral branch']
-    xs=['number_of_terminaltips','total_length','frustum_volume','frustum_surface_area','frustum_compactness', 'cepn_volume','cepn_surface_area','esn_frustum_volume','esn_frustum_surface_area','esn_compactness', 'esn_cep_volume','esn_cep_surface_area','esn_cep_compactness']#
+    xs  = ['total_length', 'slant_length', 'volume', 'lateral_area', 'mcsa', 'compactness', 'surface_area', 
+    'pca_length_x', 'pca_length_y', 'pca_length_z', 
+    'number_of_terminal_tips', 'number_of_branch_points', 
+    'mean_branching_distance', 
+    'es_volume', 'es_surface_area', 'es_compactness', 
+    'esn_frustum_volume', 'esn_frustum_surface_area', 'esn_compactness',
+    'cep_volume', 'cep_surface_area', 'cep_compactness', 
+    'cepn_volume','cepn_surface_area', 'cepn_compactness',
+    'esn_cep_volume', 'esn_cep_surface_area', 'esn_cep_compactness',
+    ]
     for key in xs:#TODO: more time efficient with properties and only needed
-        v['dorsal branch'][key]     = float(a[1][key]) / a[0][key] - 1
-        v['ventral branch'][key]    = float(a[3][key]) / a[2][key] - 1
+        if a[0][key] != 0 and a[2][key] != 0:
+            v['dorsal branch'][key]     = float(a[1][key]) / a[0][key] - 1
+            v['ventral branch'][key]    = float(a[3][key]) / a[2][key] - 1
+        else: 
+            v['dorsal branch'][key]     = float('nan')
+            v['ventral branch'][key]    = float('nan')
     xs.reverse()
     MetricAnalysis.bars_plot(
         v=v, 
@@ -680,19 +695,20 @@ if __name__ == '__main__':
         y_label='change: forager / nurse - 1', 
         picture_file='/tmp/change_morphology', picture_formats=picture_formats
     )
-    sys.exit(0)
 
-    m_pca   = morphologies[1].pca()
-    Compartment.write_svg('/tmp/%s_pca_faraway.svg' % (m_pca.name), 
-        [m_pca.compartments,  MetricAnalysis.farther_away(m_pca.compartments, m_pca.root, 650)], 
-        [colors[1], 'black']
-    )
 
     morphologies[0].name    = 'test'
     morphologies[1].name    = 'nurse'
     morphologies[2].name    = 'forager'
     morphologies[3].name    = 'nurse'
     morphologies[4].name    = 'forager'
+
+    m_pca   = morphology.pca()
+    Compartment.write_svg('/tmp/%s_pca_faraway.svg' % (m_pca.name), 
+        [m_pca.compartments,  MetricAnalysis.farther_away(m_pca.compartments, m_pca.root, 650)], 
+        [colors[1], 'black']
+    )
+    sys.exit(0)
 
     Compartment.plot_distances([m.compartments for m in morphologies[1:3]],
                                [m.root for m in morphologies[1:3]], 
@@ -707,7 +723,7 @@ if __name__ == '__main__':
                                [m.name for m in morphologies[1:3]],            
                                xlim=900, ylim=8,   
                                colors=colors[1:3], 
-                               picture_file='/tmp/distance_branchpoints_db',   
+                               picture_file='/tmp/distance_branch_points_db',   
                                picture_formats=['png','svg']
     )
     Compartment.plot_distances([m.terminal_tips for m in morphologies[1:3]],
@@ -715,7 +731,7 @@ if __name__ == '__main__':
                                [m.name for m in morphologies[1:3]],            
                                xlim=900, ylim=8,   
                                colors=colors[1:3], 
-                               picture_file='/tmp/distance_terminaltips_db',   
+                               picture_file='/tmp/distance_terminal_tips_db',   
                                picture_formats=['png','svg']
     )
     Compartment.plot_distances([m.compartments for m in morphologies[3:5]],
@@ -731,7 +747,7 @@ if __name__ == '__main__':
                                [m.name for m in morphologies[3:5]],            
                                xlim=900, ylim=8,   
                                colors=colors[3:5], 
-                               picture_file='/tmp/distance_branchpoints_vb',   
+                               picture_file='/tmp/distance_branch_points_vb',   
                                picture_formats=['png','svg']
     )
     Compartment.plot_distances([m.terminal_tips for m in morphologies[3:5]],
@@ -739,7 +755,7 @@ if __name__ == '__main__':
                                [m.name for m in morphologies[3:5]],            
                                xlim=900, ylim=8,   
                                colors=colors[3:5], 
-                               picture_file='/tmp/distance_terminaltips_vb',   
+                               picture_file='/tmp/distance_terminal_tips_vb',   
                                picture_formats=['png','svg']
     )
 
@@ -749,7 +765,7 @@ if __name__ == '__main__':
         [m.name for m in morphologies[1:3]], 
         colors=colors[1:3], 
         bins=20, xlim=900, ylim=70, 
-        picture_file='/tmp/distance_distribution_terminaltips_db',               
+        picture_file='/tmp/distance_distribution_terminal_tips_db',               
         picture_formats=['png','svg']
     )
     Morphology.plot_distance_distributions(
@@ -758,7 +774,7 @@ if __name__ == '__main__':
         [m.name for m in morphologies[3:5]], 
         colors=colors[3:5], 
         bins=20, xlim=900, ylim=70, #xlim=600, ylim=40, 
-        picture_file='/tmp/distance_distribution_terminaltips_vb',              
+        picture_file='/tmp/distance_distribution_terminal_tips_vb',              
         picture_formats=['png','svg']
     )
 
@@ -768,7 +784,7 @@ if __name__ == '__main__':
         [m.name for m in morphologies[1:3]], 
         colors=colors[1:3], 
         bins=20, xlim=900, ylim=65, 
-        picture_file='/tmp/distance_distribution_branchpoints_db',               
+        picture_file='/tmp/distance_distribution_branch_points_db',               
         picture_formats=['png','svg']
     )
     Morphology.plot_distance_distributions(
@@ -777,7 +793,7 @@ if __name__ == '__main__':
         [m.name for m in morphologies[3:5]], 
         colors=colors[3:5], 
         bins=20, xlim=900, ylim=65, #xlim=600, ylim=40, 
-        picture_file='/tmp/distance_distribution_branchpoints_vb',               
+        picture_file='/tmp/distance_distribution_branch_points_vb',               
         picture_formats=['png','svg']
     )
 

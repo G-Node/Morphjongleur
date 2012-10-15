@@ -23,12 +23,12 @@ def variable_map(self):
                 filtered.append(v)
     return (dictionary,filtered)
 
-def variable_table(self, keys=None):
+def variable_table(self, keys=None, g=7, texify=True):
     (dictionary, _)    = self.variable_map() 
     if keys == None:
         keys    = sorted(dictionary.keys())
-    ks  = "\t".join(["%s" % (str(key))                for key in keys])
-    vs  = "\t".join(["%s" % (str(dictionary[key]))    for key in keys])
+    ks  = "\t".join(["%s" % (str(key).replace('_',' ').replace('number_of', '\#') if texify else str(key))                for key in keys])
+    vs  = "\t".join(["%s" % (format(dictionary[key], '.%ig'%g) if isinstance(dictionary[key], (int, long, float, complex)) else str(dictionary[key]) )    for key in keys])
     return (ks,vs)
 
 def __repr__(self):

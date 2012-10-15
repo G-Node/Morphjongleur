@@ -9,7 +9,7 @@ import morphjongleur.util.metric_analysis
 import matplotlib.pyplot
 
 
-def plot(tuppels=[], colors=[], titles=[], ylabel=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+def plot(tuppels=[], colors=[], titles=[], ylabel=None, ratio=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
     matplotlib.rc('text', usetex=True)
 #    assert len(tuppels) == len(colors)
     for i in range(len(tuppels)):
@@ -26,6 +26,11 @@ def plot(tuppels=[], colors=[], titles=[], ylabel=None, picture_file=None, pictu
     matplotlib.pyplot.ylim(ymin=0)
     matplotlib.pyplot.xlabel(u'branch\\textdegree')
     matplotlib.pyplot.xlim(xmin=0)
+
+    ratio=(4,4.5), 
+    if ratio != None:#matplotlib.figure.figaspect(arg)
+        fig = matplotlib.pyplot.gcf()
+        fig.set_size_inches(ratio[0],ratio[1])
 
     if(picture_file != None):
         for picture_format in picture_formats:
@@ -64,7 +69,7 @@ if __name__ == '__main__':
 
         (ks, vs)    = a.variable_table(['name', 'compartments', #'datetime_recording', 
         'total_length', 'slant_length', 
-        'number_of_branching_points', 'number_of_terminaltips', 
+        'number_of_branch_points', 'number_of_terminal_tips', 
         
         'branches_degrees_mean_length', 'branches_degrees_mean_volume', 'branches_degrees_mean_lateral_area', 'branches_degrees_mean_compactness'
         ])
@@ -80,8 +85,8 @@ if __name__ == '__main__':
         #plot(tuppels=[a.branches_degrees_mean_compactness], colors=colors, titles=titles, ylabel=u'compactness [$\mu m$]', picture_file='/tmp/branches_degrees_mean_compactness_%s' % (morphology.name), picture_formats=picture_formats)
     
 
-    plot(tuppels=branches_degrees_mean_lengths, colors=colors, titles=titles, ylabel=u'length [$\mu m$]', picture_file='/tmp/branches_degrees_mean_length', picture_formats=picture_formats)
-    plot(tuppels=branches_degrees_mean_volumes, colors=colors, titles=titles, ylabel=u'volume [$\mu m^3$]', picture_file='/tmp/branches_degrees_mean_volume', picture_formats=picture_formats)
-    plot(tuppels=branches_degrees_mean_lateral_areas, colors=colors, titles=titles, ylabel=u'lateral area [$\mu m^2$]', picture_file='/tmp/branches_degrees_mean_lateral_area', picture_formats=picture_formats)
-    plot(tuppels=branches_degrees_mean_compactnesss, colors=colors, titles=titles, ylabel=u'compactness [$\mu m$]', picture_file='/tmp/branches_degrees_mean_compactness', picture_formats=picture_formats)
+    plot(tuppels=branches_degrees_mean_lengths, colors=colors, titles=titles, ylabel=u'length [$\mu m$]', ratio=(4,4.5), picture_file='/tmp/branches_degrees_mean_length', picture_formats=picture_formats)
+    plot(tuppels=branches_degrees_mean_volumes, colors=colors, titles=titles, ylabel=u'volume [$\mu m^3$]', ratio=(4,4.5), picture_file='/tmp/branches_degrees_mean_volume', picture_formats=picture_formats)
+    plot(tuppels=branches_degrees_mean_lateral_areas, colors=colors, titles=titles, ylabel=u'lateral area [$\mu m^2$]', ratio=(4,4.5), picture_file='/tmp/branches_degrees_mean_lateral_area', picture_formats=picture_formats)
+    plot(tuppels=branches_degrees_mean_compactnesss, colors=colors, titles=titles, ylabel=u'compactness [$\mu m$]', ratio=(4,4.5), picture_file='/tmp/branches_degrees_mean_compactness', picture_formats=picture_formats)
     
