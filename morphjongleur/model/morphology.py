@@ -477,7 +477,7 @@ class Morphology(object):
     @property
     def info(self):
         if self._info[0] == None:
-            self._info[0]   = Morphology_info()
+            self._info[0]   = MorphologyInfo()
         return self._info[0]
 
     def _create_tree(self):

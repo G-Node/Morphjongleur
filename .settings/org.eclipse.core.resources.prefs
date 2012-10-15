@@ -22,3 +22,4 @@ encoding//tests/import.py=utf-8
 encoding//usecases/amira.py=utf-8
 encoding//usecases/mitsubachi/import_dj.py=utf-8
 encoding//usecases/mitsubachi/plot.py=utf-8
+encoding//usecases/mitsubachi/sinusoutput.py=utf-8
