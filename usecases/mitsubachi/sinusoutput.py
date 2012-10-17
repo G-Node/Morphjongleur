@@ -17,7 +17,7 @@ def experiment(morphology, compartment, frequency, amplitude=-1e-9):#, amplitude
    
    
     iclamp  = morphjongleur.model.clamp.IClamp(compartment=morphology.root,
-                amplitude=-1e-9, delay=0e-3, duration=3./frequency
+                amplitude=-1e-9, delay=0e-3, duration=min(3e-3,3./frequency)
             )
    
     iclamp  = morphjongleur.util.pattern_generator.SinusClamp(compartment=compartment,
@@ -42,7 +42,7 @@ exponential_decay   = lambda x,p: p[0] * numpy.exp(-p[1]*x)
 exponential_inverse = lambda x,p: p[0] * numpy.exp(-p[1]/x)
 err = lambda p, f, x, y: ( f(x,p) - y )**2
 
-def plot_distance_amplitude_scatter(distances, amplitudes, morphology_name, frequency, color='black', picture_file=None, picture_formats=['png', 'pdf', 'svg']):  
+def plot_distance_amplitude_scatter(distances, amplitudes, morphology_name, frequency, color='black', ratio=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):  
     #matplotlib.pyplot.title('amplitude in %s @ %i Hz' % (morphology_name, frequency))
     matplotlib.pyplot.grid(True, color='lightgrey')
 
@@ -66,8 +66,6 @@ def plot_distance_amplitude_scatter(distances, amplitudes, morphology_name, freq
     matplotlib.pyplot.xlabel(u'distance [µm]')
     matplotlib.pyplot.xlim(xmin=0)
  
-    
-    ratio=(5,6)
     if ratio != None:#matplotlib.figure.figaspect(arg)
         fig = matplotlib.pyplot.gcf()
         fig.set_size_inches(ratio[0],ratio[1])
@@ -78,7 +76,7 @@ def plot_distance_amplitude_scatter(distances, amplitudes, morphology_name, freq
         matplotlib.pyplot.show()
     matplotlib.pyplot.close()
 
-def plot_frequency_amplitude_scatter(frequencies, amplitudes, compartment_name, distance, morphology_name, color='black', picture_file=None, picture_formats=['png', 'pdf', 'svg']):  
+def plot_frequency_amplitude_scatter(frequencies, amplitudes, compartment_name, distance, morphology_name, color='black', ratio=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):  
     #matplotlib.pyplot.title(u'amplitude in %s @ %s distance %f µm' % (morphology_name, str(compartment_name), distance))
     matplotlib.pyplot.grid(True, color='lightgrey')
 
@@ -101,9 +99,7 @@ def plot_frequency_amplitude_scatter(frequencies, amplitudes, compartment_name, 
     matplotlib.pyplot.ylim(ymin=0)
     matplotlib.pyplot.xlabel('frequency [Hz]')
     #matplotlib.pyplot.xlim(xmin=0)
- 
-    
-    ratio=(5,6)
+
     if ratio != None:#matplotlib.figure.figaspect(arg)
         fig = matplotlib.pyplot.gcf()
         fig.set_size_inches(ratio[0],ratio[1])
@@ -116,7 +112,7 @@ def plot_frequency_amplitude_scatter(frequencies, amplitudes, compartment_name, 
 
 
 
-def plot_amplitude_histogramm(amplitudes, morphology_name, frequency, color='black', picture_file=None, picture_formats=['png', 'pdf', 'svg']):  
+def plot_amplitude_histogramm(amplitudes, morphology_name, frequency, color='black', ratio=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):  
     #matplotlib.pyplot.title('amplitude in %s @ %i Hz' % (morphology_name, frequency))
     matplotlib.pyplot.grid(True, color='lightgrey')
 
@@ -125,9 +121,7 @@ def plot_amplitude_histogramm(amplitudes, morphology_name, frequency, color='bla
     #matplotlib.pyplot.ylim(0, 130)#0.3
     matplotlib.pyplot.xlabel(u'ΔU [mV]')
     #matplotlib.pyplot.xlim(0, 45)
- 
-    
-    ratio=(5,6)
+
     if ratio != None:#matplotlib.figure.figaspect(arg)
         fig = matplotlib.pyplot.gcf()
         fig.set_size_inches(ratio[0],ratio[1])
@@ -138,7 +132,7 @@ def plot_amplitude_histogramm(amplitudes, morphology_name, frequency, color='bla
         matplotlib.pyplot.show()
     matplotlib.pyplot.close()
 
-def plot_duration_histogramm(durations, morphology_name, frequency, color='black', picture_file=None, picture_formats=['png', 'pdf', 'svg']):  
+def plot_duration_histogramm(durations, morphology_name, frequency, color='black', ratio=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):  
     #matplotlib.pyplot.title('duration in %s @ %i Hz ' % (morphology_name, frequency))
     matplotlib.pyplot.ylabel('\#')
     #matplotlib.pyplot.ylim(0, 70)
@@ -149,8 +143,6 @@ def plot_duration_histogramm(durations, morphology_name, frequency, color='black
 
     matplotlib.pyplot.hist(durations, bins=20, normed=0, color=color)
 
-    
-    ratio=(5,6)
     if ratio != None:#matplotlib.figure.figaspect(arg)
         fig = matplotlib.pyplot.gcf()
         fig.set_size_inches(ratio[0],ratio[1])
@@ -161,7 +153,7 @@ def plot_duration_histogramm(durations, morphology_name, frequency, color='black
         matplotlib.pyplot.show()
     matplotlib.pyplot.close()
 
-def plot_delay_histogramm(delays, morphology_name, frequency, color='black', picture_file=None, picture_formats=['png', 'pdf', 'svg']):  
+def plot_delay_histogramm(delays, morphology_name, frequency, color='black', ratio=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):  
     #matplotlib.pyplot.title('delay in %s @ %i Hz ' % (morphology_name, frequency))
     matplotlib.pyplot.xticks()
     matplotlib.pyplot.grid(True, color='lightgrey')
@@ -172,8 +164,6 @@ def plot_delay_histogramm(delays, morphology_name, frequency, color='black', pic
     matplotlib.pyplot.xlabel('delay [ms]')
     matplotlib.pyplot.xlim(0, 1000./frequency)
 
-    
-    ratio=(5,6)
     if ratio != None:#matplotlib.figure.figaspect(arg)
         fig = matplotlib.pyplot.gcf()
         fig.set_size_inches(ratio[0],ratio[1])
@@ -184,7 +174,7 @@ def plot_delay_histogramm(delays, morphology_name, frequency, color='black', pic
         matplotlib.pyplot.show()
     matplotlib.pyplot.close()
 
-def plot_phaseshift_histogramm(phaseshifts, morphology_name, frequency, color='black', picture_file=None, picture_formats=['png', 'pdf', 'svg']):  
+def plot_phaseshift_histogramm(phaseshifts, morphology_name, frequency, color='black', ratio=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):  
     #matplotlib.pyplot.title('phaseshift in %s @ %i Hz ' % (morphology_name, frequency))
     matplotlib.pyplot.grid(True, color='lightgrey')
 
@@ -194,8 +184,6 @@ def plot_phaseshift_histogramm(phaseshifts, morphology_name, frequency, color='b
     matplotlib.pyplot.xlabel('phase angle [full circles]')
     matplotlib.pyplot.xlim(0, 1)
 
-    
-    ratio=(5,6)
     if ratio != None:#matplotlib.figure.figaspect(arg)
         fig = matplotlib.pyplot.gcf()
         fig.set_size_inches(ratio[0],ratio[1])
@@ -206,15 +194,71 @@ def plot_phaseshift_histogramm(phaseshifts, morphology_name, frequency, color='b
         matplotlib.pyplot.show()
     matplotlib.pyplot.close()
 
+#===============================================================================
+# def plot_candlestick(results, morphology_name='', color='black', ratio=None, yline=None, fit_function=lambda x,p: p[0] * numpy.exp(-p[1]*x), error_function=lambda p, f, x, y: ( f(x,p) - y )**2, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+#    matplotlib.rc('text', usetex=True)
+# 
+#    x = []
+#    y = []
+# 
+#    for x_value in sorted(results.keys()):
+#        for y_value in durations[x_value]:
+#            x.append(x_value)
+#            y.append(y_value)
+#    x       = numpy.array(x)
+#    y       = numpy.array(y)
+#    p   = numpy.array([8.,0.0001])
+#    fp  = exponential_decay
+#    p, success   = scipy.optimize.leastsq(err, p, args=(fp, x, y))#, maxfev=10000*len(x)
+#    print "duration %s" % (str(p))
+#    #err = e(p, y, x)
+#    #avg = numpy.average( errs )
+#    #mxm = numpy.max( errs )
+#    #mnm = numpy.min( errs )
+#    matplotlib.pyplot.plot(x,fp(x,p), color=color)#numpy.arange(85,510,1)
+# 
+#    titles=[]
+#    titles.append( "$%.0fV \cdot e^{-%.8fs \cdot \mathrm{f}}$" % (p[0], p[1]) )
+#    matplotlib.pyplot.legend(titles, loc='best')
+# 
+#    #matplotlib.pyplot.title('Duration in '+str(morphology))
+#    matplotlib.pyplot.xticks(rotation=90)#  xrange(1+len(data)),titles
+#    matplotlib.pyplot.grid(True, color='lightgrey')
+# 
+#    bp = matplotlib.pyplot.boxplot(durations.values(), positions=durations.keys(), widths=min_dist*2./3)
+#    matplotlib.pyplot.ylabel('duration [ms]')
+#    #matplotlib.pyplot.ylim(0, 3)
+#    matplotlib.pyplot.xlabel('frequency [Hz]')
+#    #matplotlib.pyplot.xlim(85, 510)
+#    #matplotlib.pyplot.setp(bp['whiskers'], color='k',  linestyle='-' )
+#    #matplotlib.pyplot.setp(bp['fliers'], color='k')
+# 
+#    if yline != None:#matplotlib.figure.figaspect(arg)
+#            matplotlib.pyplot.axvline(x=yline, color='darkgray')
+#    if ratio != None:#matplotlib.figure.figaspect(arg)
+#        fig = matplotlib.pyplot.gcf()
+#        fig.set_size_inches(ratio[0],ratio[1])
+#    if(picture_file != None):
+#        for picture_format in picture_formats:
+#            matplotlib.pyplot.savefig(picture_file+'.'+picture_format, format=picture_format, transparent=False)
+#    else:
+#        matplotlib.pyplot.show()
+#    matplotlib.pyplot.close()
+#    return p
+#===============================================================================
 
-def plot_duration_candlestick(results, morphology, color='black', picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+def plot_duration_candlestick(durations, morphology_name='', color='black', ratio=None, yline=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
     matplotlib.rc('text', usetex=True)
 
     x = []
     y = []
-
-    for frequency in sorted(results.keys()):
-        for delay in results[frequency]:
+    last_value   = float('+inf')
+    min_dist    = float('+inf') 
+    for frequency in sorted(durations.keys()):
+        if abs(frequency - last_value) < min_dist:
+            min_dist    =  abs(frequency - last_value)
+        last_value    = frequency
+        for delay in durations[frequency]:
             x.append(frequency)
             y.append(delay)
     x       = numpy.array(x)
@@ -237,7 +281,7 @@ def plot_duration_candlestick(results, morphology, color='black', picture_file=N
     matplotlib.pyplot.xticks(rotation=90)#  xrange(1+len(data)),titles
     matplotlib.pyplot.grid(True, color='lightgrey')
  
-    bp = matplotlib.pyplot.boxplot(results.values(), positions=results.keys(), widths=10)
+    bp = matplotlib.pyplot.boxplot(durations.values(), positions=durations.keys(), widths=min_dist*2./3)
     matplotlib.pyplot.ylabel('duration [ms]')
     #matplotlib.pyplot.ylim(0, 3)
     matplotlib.pyplot.xlabel('frequency [Hz]')
@@ -245,8 +289,8 @@ def plot_duration_candlestick(results, morphology, color='black', picture_file=N
     #matplotlib.pyplot.setp(bp['whiskers'], color='k',  linestyle='-' )
     #matplotlib.pyplot.setp(bp['fliers'], color='k')
 
-    
-    ratio=(5,6)
+    if yline != None:#matplotlib.figure.figaspect(arg)
+            matplotlib.pyplot.axvline(x=yline, color='darkgray')
     if ratio != None:#matplotlib.figure.figaspect(arg)
         fig = matplotlib.pyplot.gcf()
         fig.set_size_inches(ratio[0],ratio[1])
@@ -258,14 +302,18 @@ def plot_duration_candlestick(results, morphology, color='black', picture_file=N
     matplotlib.pyplot.close()
     return p
 
-def plot_delay_candlestick(results, morphology, color='black', picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+def plot_delay_candlestick(delays, morphology_name='', color='black', ratio=None, yline=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
     matplotlib.rc('text', usetex=True)
 
     x = []
     y = []
-
-    for frequency in sorted(results.keys()):
-        for delay in results[frequency]:
+    last_value   = float('+inf')
+    min_dist    = float('+inf') 
+    for frequency in sorted(delays.keys()):
+        if abs(frequency - last_value) < min_dist:
+            min_dist    =  abs(frequency - last_value)
+        last_value    = frequency
+        for delay in delays[frequency]:
             x.append(frequency)
             y.append(delay)
     x       = numpy.array(x)
@@ -273,7 +321,7 @@ def plot_delay_candlestick(results, morphology, color='black', picture_file=None
     p   = numpy.array([8.,0.0001])
     fp  = exponential_decay
     p, success   = scipy.optimize.leastsq(err, p, args=(fp, x, y))#, maxfev=10000*len(x)
-    print "delay %s" % (str(p))
+    print "delays %s" % (str(p))
     #err = e(p, y, x)
     #avg = numpy.average( errs )
     #mxm = numpy.max( errs )
@@ -288,16 +336,16 @@ def plot_delay_candlestick(results, morphology, color='black', picture_file=None
     matplotlib.pyplot.xticks(rotation=90)#  xrange(1+len(data)),titles
     matplotlib.pyplot.grid(True, color='lightgrey')
  
-    bp = matplotlib.pyplot.boxplot(results.values(), positions=results.keys(), widths=10)
-    matplotlib.pyplot.ylabel('delay [ms]')
+    bp = matplotlib.pyplot.boxplot(delays.values(), positions=delays.keys(), widths=min_dist*2./3)
+    matplotlib.pyplot.ylabel('delays [ms]')
     #matplotlib.pyplot.ylim(0, 3)
     matplotlib.pyplot.xlabel('frequency [Hz]')
     #matplotlib.pyplot.xlim(85, 510)
     #matplotlib.pyplot.setp(bp['whiskers'], color='k',  linestyle='-' )
     #matplotlib.pyplot.setp(bp['fliers'], color='k')
 
-    
-    ratio=(5,6)
+    if yline != None:#matplotlib.figure.figaspect(arg)
+            matplotlib.pyplot.axvline(x=yline, color='darkgray')
     if ratio != None:#matplotlib.figure.figaspect(arg)
         fig = matplotlib.pyplot.gcf()
         fig.set_size_inches(ratio[0],ratio[1])
@@ -309,13 +357,18 @@ def plot_delay_candlestick(results, morphology, color='black', picture_file=None
     matplotlib.pyplot.close()
     return p
 
-def plot_phaseshift_candlestick(results, morphology, color='black', picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+def plot_phaseshift_candlestick(phaseshifts, morphology_name='', color='black', ratio=None, yline=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
     matplotlib.rc('text', usetex=True)
 
     x = []
     y = []
-    for frequency in sorted(results.keys()):
-        for phase_angle in results[frequency]:
+    last_value   = float('+inf')
+    min_dist    = float('+inf') 
+    for frequency in sorted(phaseshifts.keys()):
+        if abs(frequency - last_value) < min_dist:
+            min_dist    =  abs(frequency - last_value)
+        last_value    = frequency
+        for phase_angle in phaseshifts[frequency]:
             x.append(frequency)
             y.append(phase_angle)
     x       = numpy.array(x)
@@ -339,7 +392,7 @@ def plot_phaseshift_candlestick(results, morphology, color='black', picture_file
     matplotlib.pyplot.xticks(rotation=90)#  xrange(1+len(data)),titles
     matplotlib.pyplot.grid(True, color='lightgrey')
  
-    bp = matplotlib.pyplot.boxplot(results.values(), positions=results.keys(), widths=10)
+    bp = matplotlib.pyplot.boxplot(phaseshifts.values(), positions=phaseshifts.keys(), widths=min_dist*2./3)
     matplotlib.pyplot.ylabel('phase angle [full circles]')
     matplotlib.pyplot.ylim(0, 1)
     matplotlib.pyplot.xlabel('frequency [Hz]')
@@ -347,8 +400,8 @@ def plot_phaseshift_candlestick(results, morphology, color='black', picture_file
     #matplotlib.pyplot.setp(bp['whiskers'], color='k',  linestyle='-' )
     #matplotlib.pyplot.setp(bp['fliers'], color='k')
 
-    
-    ratio=(5,6)
+    if yline != None:#matplotlib.figure.figaspect(arg)
+            matplotlib.pyplot.axvline(x=yline, color='darkgray')
     if ratio != None:#matplotlib.figure.figaspect(arg)
         fig = matplotlib.pyplot.gcf()
         fig.set_size_inches(ratio[0],ratio[1])
@@ -360,13 +413,18 @@ def plot_phaseshift_candlestick(results, morphology, color='black', picture_file
     matplotlib.pyplot.close()
     return p
  
-def plot_amplitude_s_candlestick(results, morphology, color='black', picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+def plot_amplitude_s_candlestick(amplitudes, morphology_name='', color='black', ratio=None, yline=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
     matplotlib.rc('text', usetex=True)
 
     x = []
     y = []
-    for frequency in sorted(results.keys()):
-        for voltage in results[frequency]:
+    last_value   = float('+inf')
+    min_dist    = float('+inf') 
+    for frequency in sorted(amplitudes.keys()):
+        if abs(frequency - last_value) < min_dist:
+            min_dist    =  abs(frequency - last_value)
+        last_value    = frequency
+        for voltage in amplitudes[frequency]:
             x.append(1./frequency)
             y.append(voltage)
     x       = numpy.array(x)
@@ -385,11 +443,11 @@ def plot_amplitude_s_candlestick(results, morphology, color='black', picture_fil
     titles.append( "fit: $%.2f \cdot e^{-%.2f / \mathrm{t}}$" % (p[0], p[1]) )
     matplotlib.pyplot.legend(titles, loc='best')
 
-    matplotlib.pyplot.title('amplitude in '+str(morphology.replace('_','\_')))
+    matplotlib.pyplot.title('amplitude in '+str(morphology_name.replace('_','\_')))
     matplotlib.pyplot.xticks(rotation=90)#  xrange(1+len(data)),titles
     matplotlib.pyplot.grid(True, color='lightgrey')
     
-    bp = matplotlib.pyplot.boxplot(results.values(), positions=[1./frequency for frequency in results.keys()], widths=0.0001)
+    bp = matplotlib.pyplot.boxplot(amplitudes.values(), positions=[1./frequency for frequency in amplitudes.keys()], widths=0.0001)
     matplotlib.pyplot.ylabel(u'ΔU [mV]')
     #matplotlib.pyplot.ylim(0, 40)
     matplotlib.pyplot.xlabel('time [s]')
@@ -397,8 +455,8 @@ def plot_amplitude_s_candlestick(results, morphology, color='black', picture_fil
     #matplotlib.pyplot.setp(bp['whiskers'], color='k',  linestyle='-' )
     #matplotlib.pyplot.setp(bp['fliers'], color='k')
 
-    
-    ratio=(5,6)
+    if yline != None:#matplotlib.figure.figaspect(arg)
+            matplotlib.pyplot.axvline(x=yline, color='darkgray')
     if ratio != None:#matplotlib.figure.figaspect(arg)
         fig = matplotlib.pyplot.gcf()
         fig.set_size_inches(ratio[0],ratio[1])
@@ -410,16 +468,21 @@ def plot_amplitude_s_candlestick(results, morphology, color='black', picture_fil
     matplotlib.pyplot.close('all')
     return p
 
-def plot_amplitude_candlestick(results, morphology, color='black', picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+def plot_amplitude_candlestick(amplitudes, morphology_name='', color='black', ratio=None, yline=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
     matplotlib.rc('text', usetex=True)
 
     x = []
     y = []
-    for frequency in sorted(results.keys()):
-        for voltage in results[frequency]:
+    last_value   = float('+inf')
+    min_dist    = float('+inf') 
+    for frequency in sorted(amplitudes.keys()):
+        if abs(frequency - last_value) < min_dist:
+            min_dist    =  abs(frequency - last_value)
+        last_value    = frequency
+        for voltage in amplitudes[frequency]:
             x.append(frequency)
             y.append(voltage)
-        print "%f %s" % (frequency,results[frequency])
+        print "%f %s" % (frequency,amplitudes[frequency])
     x       = numpy.array(x)
     y       = numpy.array(y)
     p   = numpy.array([8.,0.0001])
@@ -436,11 +499,11 @@ def plot_amplitude_candlestick(results, morphology, color='black', picture_file=
     titles.append( "$%.0fV \cdot e^{-%.8fs \cdot \mathrm{f}}$" % (p[0], p[1]) )
     matplotlib.pyplot.legend(titles, loc='best')
 
-    #matplotlib.pyplot.title('amplitude in '+str(morphology.replace('_','\_')))
+    #matplotlib.pyplot.title('amplitude in '+str(morphology_name.replace('_','\_')))
     matplotlib.pyplot.xticks(rotation=90)#  xrange(1+len(data)),titles
     matplotlib.pyplot.grid(True, color='lightgrey')
 
-    bp = matplotlib.pyplot.boxplot(results.values(), positions=results.keys(), widths=10)
+    bp = matplotlib.pyplot.boxplot(amplitudes.values(), positions=amplitudes.keys(), widths=min_dist*2./3)
     matplotlib.pyplot.ylabel(u'voltage amplitude [mV]')
     #matplotlib.pyplot.ylim(0, 40)
     matplotlib.pyplot.xlabel('frequency [Hz]')
@@ -448,8 +511,8 @@ def plot_amplitude_candlestick(results, morphology, color='black', picture_file=
     #matplotlib.pyplot.setp(bp['whiskers'], color='k',  linestyle='-' )
     #matplotlib.pyplot.setp(bp['fliers'], color='k')
 
-    
-    ratio=(5,6)
+    if yline != None:#matplotlib.figure.figaspect(arg)
+            matplotlib.pyplot.axvline(x=yline, color='darkgray')
     if ratio != None:#matplotlib.figure.figaspect(arg)
         fig = matplotlib.pyplot.gcf()
         fig.set_size_inches(ratio[0],ratio[1])
@@ -505,16 +568,17 @@ if __name__ == '__main__':
     import morphjongleur.util.parser.swc
     import morphjongleur.util.transformations
     import morphjongleur.model.morphology
-    picture_formats = ['png']
+    picture_formats = ['png']#,'pdf','svg'
     c = 'black'
     colors  = ['black','black','#00ff00','#008000', '#0000ff','#000080']
-    frequencies = xrange(490,9,-15)#xrange(10,501,15)#xrange(1,10000,1)#[1/t for t in xrange(1e-4,1e-4, 1e0)]
+    frequencies = xrange(10,501,15)#xrange(490,9,-15)   xrange(1,10000,1)    [1/t for t in xrange(1e-4,1e-4, 1e0)]
     for swc in sys.argv[1:]:
         print swc, 
         amplitues = {}
         delays    = {}
         durations = {}
         for f in frequencies:
+            print f
             m   = morphjongleur.model.morphology.Morphology.swc_parse(swc, verbose=False)
             amplitues[f]    = [ ]
             delays[f]       = [ ]
@@ -528,21 +592,21 @@ if __name__ == '__main__':
                 durations[f].append( voltage_trace.duration )
                 distances.append( m.root.distance_path( recordingpoint.compartment ) )
 
-            plot_distance_amplitude_scatter(distances,amplitues[f], m.name, f, c, '/tmp/distance_amplitude_scatter_%s%iHz' %(m.name,f), picture_formats )
-            plot_amplitude_histogramm(amplitues[f], m.name, f, c, '/tmp/voltage_histogramm_%s%iHz'  %(m.name,f), picture_formats )
-            plot_duration_histogramm(durations[f], m.name, f, c, '/tmp/duration_histogramm_%s%iHz' %(m.name,f), picture_formats )
-            plot_delay_histogramm(delays[f], m.name, f, c, '/tmp/delay_histogramm_%s%iHz'    %(m.name,f), picture_formats )
-            plot_phaseshift_histogramm([f * delay for delay in delays[f]], m.name, f, c, '/tmp/phase_histogramm_%s%iHz'    %(m.name,f), picture_formats )
+            plot_distance_amplitude_scatter(distances=distances, amplitudes=amplitues[f], morphology_name=m.name, frequency=f, color=c, ratio=(5,6), picture_file='/tmp/distance_amplitude_scatter_%s%iHz' %(m.name,f), picture_formats=picture_formats )
+            plot_amplitude_histogramm(amplitudes=amplitues[f], morphology_name=m.name, frequency=f, color=c, ratio=(5,6), picture_file='/tmp/voltage_histogramm_%s%iHz'  %(m.name,f), picture_formats=picture_formats )
+            plot_duration_histogramm(durations=durations[f], morphology_name=m.name, frequency=f, color=c, ratio=(5,6), picture_file='/tmp/duration_histogramm_%s%iHz' %(m.name,f), picture_formats=picture_formats )
+            plot_delay_histogramm(delays=delays[f], morphology_name=m.name, frequency=f, color=c, ratio=(5,6), picture_file='/tmp/delay_histogramm_%s%iHz'    %(m.name,f), picture_formats=picture_formats )
+            plot_phaseshift_histogramm(phaseshifts=[f * delay for delay in delays[f]], morphology_name=m.name, frequency=f, color=c, ratio=(5,6), picture_file='/tmp/phase_histogramm_%s%iHz'    %(m.name,f), picture_formats=picture_formats )
 
         print ''
-
-        plot_amplitude_candlestick( amplitues, m.name, 'black', '/tmp/amplitude_out_candlestick_%s' % (m.name),    picture_formats )
-        plot_duration_candlestick(  durations, m.name, 'black', '/tmp/duration_candlestick_%s' %(m.name),      picture_formats )
-        plot_delay_candlestick(     delays, m.name, 'black', '/tmp/delay_candlestick_%s' %(m.name),         picture_formats )
+            #redundat but show instant process
+        plot_amplitude_candlestick( amplitudes=amplitues, morphology_name=m.name, color='black', ratio=(5,6), yline=265, picture_file='/tmp/amplitude_out_candlestick_%s' % (m.name),    picture_formats=picture_formats )
+        plot_duration_candlestick(  durations=durations, morphology_name=m.name, color='black', ratio=(5,6), yline=265, picture_file='/tmp/duration_candlestick_%s' %(m.name),      picture_formats=picture_formats )
+        plot_delay_candlestick(     delays=delays, morphology_name=m.name, color='black', ratio=(5,6), yline=265, picture_file='/tmp/delay_candlestick_%s' %(m.name),         picture_formats=picture_formats )
         
         ps  = {}
         for f,ds in delays.iteritems():
             ps[f]   = [f * delay for delay in ds]
-        plot_phaseshift_candlestick(ps, m.name, 'black', '/tmp/phase_candlestick_%s' %(m.name),         picture_formats )
-        plot_amplitude_s_candlestick( amplitues, m.name, 'black', '/tmp/amplitude_s_candlestick_%s' % (m.name),  picture_formats )
-        #plot_frequency_distance_amplitude_scatter3d(frequencies, distances, amplitues, m.name, c, '/tmp/frequency_distance_amplitude_scatter3d_%s'%(m.name), picture_formats )
+        plot_phaseshift_candlestick(phaseshifts=ps, morphology_name=m.name, color='black', ratio=(5,6), yline=265, picture_file='/tmp/phase_candlestick_%s' %(m.name),         picture_formats=picture_formats )
+        plot_amplitude_s_candlestick( amplitudes=amplitues, morphology_name=m.name, color='black', ratio=(5,6), yline=265, picture_file='/tmp/amplitude_s_candlestick_%s' % (m.name),  picture_formats=picture_formats )
+        #plot_frequency_distance_amplitude_scatter3d(frequencies=frequencies, distances=distances, amplitudes=amplitues, morphology_name=m.name, color=c, ratio=(5,6), picture_file='/tmp/frequency_distance_amplitude_scatter3d_%s'%(m.name), picture_formats=picture_formats )

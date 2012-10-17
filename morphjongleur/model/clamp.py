@@ -72,11 +72,11 @@ class IClamp(Clamp):
         '''
         import sys
         if amplitude > 1e-7 or amplitude < -1e-7:
-            print >> sys.stderr, "unit changed form nA to A"
+            print >> sys.stderr, "current unit is [A], no [nA]"
         if delay > 1e-1 :
-            print >> sys.stderr, "delay unit changed form ms to s: "+str(delay)
+            print >> sys.stderr, "delay unit is [s], not [ms]: "+str(delay)
         if duration > 1e-2:
-            print >> sys.stderr, "duration unit changed form ms to s: "+str(duration)
+            print >> sys.stderr, "duration unit is [s], not [ms]"+str(duration)
         super(IClamp, self).__init__(compartment, position)
         self.amplitude = amplitude
         self.delay = delay
