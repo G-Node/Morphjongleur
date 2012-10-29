@@ -15,11 +15,6 @@ import numpy
 def experiment(morphology, compartment, frequency, amplitude=-1e-9):#, amplitude
     recordingpoints  = [morphjongleur.model.experiment.RecordingPoint(compartment=recordingpoint) for recordingpoint in morphology.terminal_tips]
    
-   
-    iclamp  = morphjongleur.model.clamp.IClamp(compartment=morphology.root,
-                amplitude=-1e-9, delay=0e-3, duration=min(3e-3,3./frequency)
-            )
-   
     iclamp  = morphjongleur.util.pattern_generator.SinusClamp(compartment=compartment,
                 amplitude=amplitude,
                 frequency=frequency, duration=3./frequency
@@ -571,12 +566,13 @@ if __name__ == '__main__':
     picture_formats = ['png']#,'pdf','svg'
     c = 'black'
     colors  = ['black','black','#00ff00','#008000', '#0000ff','#000080']
-    frequencies = xrange(10,501,15)#xrange(490,9,-15)   xrange(1,10000,1)    [1/t for t in xrange(1e-4,1e-4, 1e0)]
+    frequencies = xrange(100,501,15)#xrange(490,9,-15)   xrange(1,10000,1)    [1/t for t in xrange(1e-4,1e-4, 1e0)]
     for swc in sys.argv[1:]:
         print swc, 
         amplitues = {}
         delays    = {}
         durations = {}
+        sinus_clamps    = []
         for f in frequencies:
             print f
             m   = morphjongleur.model.morphology.Morphology.swc_parse(swc, verbose=False)
@@ -585,6 +581,10 @@ if __name__ == '__main__':
             durations[f]    = [ ]
             distances       = [ ]#TODO: calculate _once_
             recordingpoints = experiment(morphology=m, compartment=m.root, frequency=f)
+            assert len(recordingpoints[0].experiment.iclamps) == 1
+            sinus_clamp =   recordingpoints[0].experiment.iclamps[0]
+            sinus_clamp.plot(picture_file='/tmp/SinusClamp_%i' % (sinus_clamp.frequency), picture_formats=['png'])
+            sinus_clamps.append( sinus_clamp )
             for recordingpoint in recordingpoints:
                 voltage_trace   = recordingpoint.get_voltage_trace()
                 amplitues[f].append( voltage_trace.amplitude )
@@ -599,6 +599,7 @@ if __name__ == '__main__':
             plot_phaseshift_histogramm(phaseshifts=[f * delay for delay in delays[f]], morphology_name=m.name, frequency=f, color=c, ratio=(5,6), picture_file='/tmp/phase_histogramm_%s%iHz'    %(m.name,f), picture_formats=picture_formats )
 
         print ''
+        morphjongleur.model.clamp.PatternClamp.plots(pattern_clamps=sinus_clamps, ratio=(100,10), picture_file='/tmp/SinusClamp', picture_formats=['png'])
             #redundat but show instant process
         plot_amplitude_candlestick( amplitudes=amplitues, morphology_name=m.name, color='black', ratio=(5,6), yline=265, picture_file='/tmp/amplitude_out_candlestick_%s' % (m.name),    picture_formats=picture_formats )
         plot_duration_candlestick(  durations=durations, morphology_name=m.name, color='black', ratio=(5,6), yline=265, picture_file='/tmp/duration_candlestick_%s' %(m.name),      picture_formats=picture_formats )

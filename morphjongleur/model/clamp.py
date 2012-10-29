@@ -141,17 +141,17 @@ class PatternClamp(IClamp):
         default_durations  = [s]
         '''
         self.iclamps    = []
-        self.compartment = compartment
-        self.position = position
+        self.compartment= compartment
+        self.position   = position
         #self.compartment_id = compartment.compartment_id
-        self.amplitude = amplitude
-        self.function = function
-        self.delta_t = delta_t
-        self.delays = delays
-        self.delays   = map(float, delays) #numpy type not orm mappable: not list(delays) & = [] leads to shadowing 
-        self.durations = map(float, durations) 
+        self.amplitude  = amplitude
+        self.function   = function
+        self.delta_t    = delta_t
+        self.delays     = delays
+        self.delays     = map(float, delays) #numpy type not orm mappable: not list(delays) & = [] leads to shadowing 
+        self.durations  = map(float, durations) 
 #TODO: why defined twice? 
-        import numpy    
+        import numpy
         for i in range(len(delays)):
             if len(durations) <= i:
                 self.durations.append(default_duration)
@@ -159,8 +159,8 @@ class PatternClamp(IClamp):
                 self.iclamps.append( 
                     IClamp(
                         compartment=self.compartment, position=self.position, 
-                        amplitude=amplitude*self.function(t), 
-                        delay=t, duration=delta_t
+                        amplitude=self.amplitude*self.function(t), 
+                        delay=t, duration=self.delta_t
                     )
                 )
 
@@ -169,6 +169,32 @@ class PatternClamp(IClamp):
         for iclamp in self.iclamps:
             iclamp.neuron_create()
             self.neuron_clamp.append(iclamp.neuron_clamp)
+
+    @staticmethod
+    def plots(pattern_clamps=[], colors=[], ratio=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+        import matplotlib.pyplot
+        import numpy
+        for pattern_clamp,color in zip(pattern_clamps,colors):
+            assert len(pattern_clamp.delays) == len(pattern_clamp.durations)
+            for i in range(len(pattern_clamp.delays)):
+                t   = numpy.arange(pattern_clamp.delays[i], pattern_clamp.durations[i], pattern_clamp.delta_t)
+                y   = pattern_clamp.amplitude * pattern_clamp.function(t)
+                matplotlib.pyplot.step(t,y, color=color)
+        
+        if ratio != None:#matplotlib.figure.figaspect(arg)
+            fig = matplotlib.pyplot.gcf()
+            fig.set_size_inches(ratio[0],ratio[1])
+
+        if(picture_file != None):
+            for picture_format in picture_formats:
+                matplotlib.pyplot.savefig(picture_file+'.'+picture_format, format=picture_format, transparent=False)
+        else:
+            matplotlib.pyplot.show()
+        matplotlib.pyplot.close('all')
+
+    def plot(self, color='black', ratio=None, picture_file=None, picture_formats=['png', 'pdf', 'svg']):
+        PatternClamp.plots(pattern_clamps=[self], colors=[color], ratio=ratio, picture_file=picture_file, picture_formats=picture_formats)
+
 
     def __str__(self):
         for c in self.iclamps:
