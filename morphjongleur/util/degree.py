@@ -27,7 +27,6 @@ def plot(tuppels=[], colors=[], titles=[], ylabel=None, ratio=None, picture_file
     matplotlib.pyplot.xlabel(u'branch\\textdegree')
     matplotlib.pyplot.xlim(xmin=0)
 
-    ratio=(4,4.5), 
     if ratio != None:#matplotlib.figure.figaspect(arg)
         fig = matplotlib.pyplot.gcf()
         fig.set_size_inches(ratio[0],ratio[1])
@@ -51,8 +50,9 @@ if __name__ == '__main__':
     import sys
     import morphjongleur.util.parser.swc
     picture_formats = ['png','svg', 'pdf']#
-    colors = ['#00ff00','#008000', '#0000ff','#000080']# H060602DB_10_2(whole).swc H060607DB_10_2(whole).swc H060602VB_10_2(whole).swc H060607VB_10_2(whole).swc
-    titles = ['nurse dorsal branch', 'forager dorsal branch', 'nurse ventral branch', 'forager ventral branch']
+    colors  = ['#00ff00','#008000', '#0000ff','#000080']# H060602DB_10_2(whole).swc H060607DB_10_2(whole).swc H060602VB_10_2(whole).swc H060607VB_10_2(whole).swc
+    titles  = ['nurse dorsal branch', 'forager dorsal branch', 'nurse ventral branch', 'forager ventral branch']
+    ratio   = (4,4.5)#(9,4.5)
     picture_formats=['png', 'pdf', 'svg']
     with_head   = True
     i = 0
@@ -85,8 +85,8 @@ if __name__ == '__main__':
         #plot(tuppels=[a.branches_degrees_mean_compactness], colors=colors, titles=titles, ylabel=u'compactness [$\mu m$]', picture_file='/tmp/branches_degrees_mean_compactness_%s' % (morphology.name), picture_formats=picture_formats)
     
 
-    plot(tuppels=branches_degrees_mean_lengths, colors=colors, titles=titles, ylabel=u'length [$\mu m$]', ratio=(4,4.5), picture_file='/tmp/branches_degrees_mean_length', picture_formats=picture_formats)
-    plot(tuppels=branches_degrees_mean_volumes, colors=colors, titles=titles, ylabel=u'volume [$\mu m^3$]', ratio=(4,4.5), picture_file='/tmp/branches_degrees_mean_volume', picture_formats=picture_formats)
-    plot(tuppels=branches_degrees_mean_lateral_areas, colors=colors, titles=titles, ylabel=u'lateral area [$\mu m^2$]', ratio=(4,4.5), picture_file='/tmp/branches_degrees_mean_lateral_area', picture_formats=picture_formats)
-    plot(tuppels=branches_degrees_mean_compactnesss, colors=colors, titles=titles, ylabel=u'compactness [$\mu m$]', ratio=(4,4.5), picture_file='/tmp/branches_degrees_mean_compactness', picture_formats=picture_formats)
+    plot(tuppels=branches_degrees_mean_lengths,         colors=colors, titles=titles, ylabel=u'length [$\mu m$]',           ratio=ratio, picture_file='/tmp/branches_degrees_mean_length', picture_formats=picture_formats)
+    plot(tuppels=branches_degrees_mean_volumes,         colors=colors, titles=titles, ylabel=u'volume [$\mu m^3$]',         ratio=ratio, picture_file='/tmp/branches_degrees_mean_volume', picture_formats=picture_formats)
+    plot(tuppels=branches_degrees_mean_lateral_areas,   colors=colors, titles=titles, ylabel=u'lateral area [$\mu m^2$]',   ratio=ratio, picture_file='/tmp/branches_degrees_mean_lateral_area', picture_formats=picture_formats)
+    plot(tuppels=branches_degrees_mean_compactnesss,    colors=colors, titles=titles, ylabel=u'compactness [$\mu m$]',      ratio=ratio, picture_file='/tmp/branches_degrees_mean_compactness', picture_formats=picture_formats)
     

@@ -306,11 +306,17 @@ http://code.activestate.com/recipes/66527-finding-the-convex-hull-of-a-set-of-2d
         '''
         return self.frustum_surface_area / self.es_surface_area
     @property
+    def esn_surface_area(self):
+        return self.esn_frustum_surface_area
+    @property
     def esn_frustum_volume(self):
         '''
         volume / equal surface area sphere volume        [#]
         '''
         return self.frustum_volume / self.es_volume
+    @property
+    def esn_volume(self):
+        return self.esn_frustum_volume
     @property
     def esn_compactness(self):
         '''
@@ -569,7 +575,7 @@ if __name__ == '__main__':
     for swc in sys.argv[1:]:#['../../data/test.swc']:#
         color = colors[i % len(colors)]
         i += 1
-
+        continue
         morphology   = Morphology.swc_parse(swc, verbose=False)
         
         m_pca   = morphology.pca()
@@ -676,6 +682,8 @@ if __name__ == '__main__':
     'cepn_volume','cepn_surface_area', 'cepn_compactness',
     'esn_cep_volume', 'esn_cep_surface_area', 'esn_cep_compactness',
     ]
+    xs = ['total_length', 'slant_length', 'volume', 'mcsa', 'lateral_area', 'surface_area', 'compactness', 'number_of_terminal_tips', 'mean_branching_distance']
+    xs = ['pca_length_x', 'pca_length_y', 'pca_length_z', 'es_volume', 'es_surface_area', 'es_compactness', 'esn_volume', 'esn_surface_area', 'esn_compactness', 'cep_volume', 'cep_surface_area', 'cep_compactness', 'cepn_volume','cepn_surface_area', 'cepn_compactness', 'esn_cep_volume', 'esn_cep_surface_area', 'esn_cep_compactness']
     for key in xs:#TODO: more time efficient with properties and only needed
         if a[0][key] != 0 and a[2][key] != 0:
             v['dorsal branch'][key]     = float(a[1][key]) / a[0][key] - 1
@@ -683,19 +691,20 @@ if __name__ == '__main__':
         else: 
             v['dorsal branch'][key]     = float('nan')
             v['ventral branch'][key]    = float('nan')
-    xs.reverse()
+    #xs.reverse()
     MetricAnalysis.bars_plot(
         v=v, 
         bars=bars, 
         xs=xs, 
         colors=['#00ff00','#0000ff'], 
-        rotation=0, 
-        horizontal=True,
-        ratio=(8,11), #8.268,11.6
+        rotation=90, 
+        horizontal=False,
+        ratio=(9,4.5),#(8,11), #8.268,11.6
         y_label='change: forager / nurse - 1', 
-        picture_file='/tmp/change_morphology', picture_formats=picture_formats
+        picture_file='/tmp/change_morphology_derived', picture_formats=picture_formats
     )
 
+    sys.exit(0)
 
     morphologies[0].name    = 'test'
     morphologies[1].name    = 'nurse'
